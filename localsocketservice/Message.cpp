@@ -392,7 +392,7 @@ bool CMessage::sendRequest (uint8_t id)
 	}
 
 
-	return mpClientInstance->sendToServer (buff, totalsize);
+	return mpClientInstance->sendToConnection (buff, totalsize);
 }
 
 bool CMessage::sendReplyOK (void)
@@ -471,7 +471,7 @@ bool CMessage::sendReply (void)
 //TODO replyは一度限り
 	mObjtype = EN_OBJTYPE_NOTHING;
 
-	return mpClientInstance->sendToServer (buff, totalsize);
+	return mpClientInstance->sendToConnection (buff, totalsize);
 }
 
 bool CMessage::sendNotify (void)
@@ -511,7 +511,7 @@ bool CMessage::sendNotify (void)
 	}
 
 
-	return mpClientInstance->sendToServer (buff, totalsize);
+	return mpClientInstance->sendToConnection (buff, totalsize);
 }
 
 bool CMessage::setPacket (uint8_t id, uint8_t type, uint8_t command, uint8_t *pOut, int outsize)

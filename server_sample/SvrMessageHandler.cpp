@@ -21,7 +21,7 @@ CSvrMessageHandler::~CSvrMessageHandler (void)
 
 void CSvrMessageHandler::onHandleRequest (CMessage *pMsg)
 {
-	_UTL_LOG_N ("%s %s\n", __FILE__, __PRETTY_FUNCTION__);
+	_UTL_LOG_N ("%s %s\n", __FILE__, __func__);
 
 
 	switch ((int)pMsg->getCommand()) {
@@ -73,10 +73,10 @@ void CSvrMessageHandler::onHandleRequest (CMessage *pMsg)
 
 void CSvrMessageHandler::onHandleReply (CMessage *pMsg)
 {
-	_UTL_LOG_N ("%s %s\n", __FILE__, __PRETTY_FUNCTION__);
+	_UTL_LOG_N ("%s %s\n", __FILE__, __func__);
 }
 
 void CSvrMessageHandler::onHandleNotify (CMessage *pMsg)
 {
-	_UTL_LOG_N ("%s %s\n", __FILE__, __PRETTY_FUNCTION__);
+	_UTL_LOG_N ("%s %s\n", __FILE__, __func__);
 }

@@ -351,13 +351,13 @@ bool CLocalSocketClient::isConnected (void)
 void CLocalSocketClient::onThreadMainRoutine (void)
 {
 	setName ((char*)"LocalSocketReceiver");
-	_UTL_LOG_I ("%s %s\n", __FILE__, __PRETTY_FUNCTION__);
+	_UTL_LOG_I ("%s %s\n", __FILE__, __func__);
 
 
 	receiveLoop (mFdClientSocket);
 
 
-	_UTL_LOG_I ("%s %s end\n", __FILE__, __PRETTY_FUNCTION__);
+	_UTL_LOG_I ("%s %s end\n", __FILE__, __func__);
 
 	// thread end
 }
@@ -553,7 +553,7 @@ int CLocalSocketClient::getFd (void)
 	return mFdClientSocket;
 }
 
-bool CLocalSocketClient::sendToServer (const uint8_t *pData, int size)
+bool CLocalSocketClient::sendToConnection (const uint8_t *pData, int size)
 {
 	CUtils::CScopedMutex scopedMutex (&mMutexSend);
 

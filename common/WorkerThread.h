@@ -23,18 +23,12 @@ public:
 
 	bool create (bool isJoinable=false);
 	void waitDestroy (void); // join
-	void disable (void);
-	void enable (void);
-	bool isEnable (void);
 	pthread_t getId (void);
 	bool isAlive (void);
 	bool isJoinable (void);
 
 protected:
 	virtual void onThreadMainRoutine (void);
-	virtual void onThreadRestart (void);
-	virtual void onThreadStop (void);
-	void checkDisable (void);
 
 	void setName (char *p);
 	char *getName (void);
@@ -45,13 +39,9 @@ private:
 
 	pthread_t mThreadId;
 	pthread_mutex_t mMutex;
-	pthread_cond_t mCond;
 
 	bool mIsJoinable;
-	P_THREAD_HANDLER mDerivedHandler;
-	void *mDerivedInstance;
 	bool mIsCreated;
-	bool mIsEnable;
 
 	char mName [THREAD_NAME_SIZE];
 };

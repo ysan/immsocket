@@ -26,7 +26,7 @@ typedef unsigned long int uint64_t;
 #endif
 #endif
 
-#define __PRETTY_FUNCTION__     __func__
+//#define __PRETTY_FUNCTION__     __func__
 
 
 #endif

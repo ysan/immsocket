@@ -11,11 +11,9 @@
 
 CWorkerThread::CWorkerThread (void) :
 	mIsJoinable (false),
-	mIsCreated (false),
-	mIsEnable (false)
+	mIsCreated (false)
 {
 	pthread_mutex_init (&mMutex, NULL);
-	pthread_cond_init (&mCond, NULL);
 
 	memset (mName, 0x00, sizeof (mName));
 }
@@ -23,7 +21,6 @@ CWorkerThread::CWorkerThread (void) :
 CWorkerThread::~CWorkerThread (void)
 {
 	pthread_mutex_destroy (&mMutex);
-	pthread_cond_destroy (&mCond);
 }
 
 
@@ -45,18 +42,21 @@ bool CWorkerThread::create (bool isJoinable)
 			pthread_attr_t threadAttr;
 			rtn = pthread_attr_init (&threadAttr);
 			if (rtn != 0) {
+				_UTL_PERROR ("pthread_attr_init()");
 				mIsCreated = false;
 				return false;
 			}
 
 			rtn = pthread_attr_setdetachstate (&threadAttr, PTHREAD_CREATE_DETACHED);
 			if (rtn != 0) {
+				_UTL_PERROR ("pthread_attr_setdetachstate()");
 				mIsCreated = false;
 				return false;
 			}
 
 			rtn = pthread_create (&mThreadId, &threadAttr, threadHandler, this);
 			if (rtn != 0) {
+				_UTL_PERROR ("pthread_create()");
 				mIsCreated = false;
 				return false;
 			}
@@ -66,6 +66,7 @@ bool CWorkerThread::create (bool isJoinable)
 			// joinable
 			rtn = pthread_create (&mThreadId, NULL, threadHandler, this);
 			if (rtn != 0) {
+				_UTL_PERROR ("pthread_create()");
 				mIsCreated = false;
 				return false;
 			}
@@ -116,53 +117,7 @@ void CWorkerThread::run (void)
 void CWorkerThread::onThreadMainRoutine (void)
 {
 	setName ((char*)"WorkerThread");
-	_UTL_LOG_I ("%s %s\n", __FILE__, __PRETTY_FUNCTION__);
-	checkDisable ();
-}
-
-void CWorkerThread::onThreadRestart (void)
-{
-	_UTL_LOG_I ("%s %s\n", __FILE__, __PRETTY_FUNCTION__);
-}
-
-void CWorkerThread::onThreadStop (void)
-{
-	_UTL_LOG_I ("%s %s\n", __FILE__, __PRETTY_FUNCTION__);
-}
-
-void CWorkerThread::checkDisable (void)
-{
-	if (!mIsEnable) {
-		onThreadStop();
-
-		pthread_mutex_lock (&mMutex);
-		pthread_cond_wait (&mCond, &mMutex);
-		pthread_mutex_unlock (&mMutex);
-
-		onThreadRestart();
-	}
-}
-
-void CWorkerThread::disable (void)
-{
-	if (mIsEnable) {
-		mIsEnable = false;
-	}
-}
-
-void CWorkerThread::enable (void)
-{
-	if (!mIsEnable) {
-		mIsEnable = true;
-		pthread_mutex_lock (&mMutex);
-		pthread_cond_signal (&mCond);
-		pthread_mutex_unlock (&mMutex);
-	}
-}
-
-bool CWorkerThread::isEnable (void)
-{
-	return mIsEnable;
+	_UTL_LOG_I ("%s %s\n", __FILE__, __func__);
 }
 
 pthread_t CWorkerThread::getId (void)

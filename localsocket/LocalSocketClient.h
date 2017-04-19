@@ -46,9 +46,9 @@ typedef enum {
 
 
 class CLocalSocketClient;
-typedef int (CLocalSocketClient:: *cbSetupClientSocket) (void);
-typedef int (CLocalSocketClient:: *cbReceiveWrapper) (int fdClientSocket, uint8_t *pBuff, int size);
-typedef int (CLocalSocketClient:: *cbSendWrapper) (int fdClientSocket, const uint8_t *pData, int size);
+typedef int (CLocalSocketClient:: *P_CB_SETUP_CLIENT_SOCKET) (void);
+typedef int (CLocalSocketClient:: *P_CB_RECEIVE_WRAPPER) (int fdClientSocket, uint8_t *pBuff, int size);
+typedef int (CLocalSocketClient:: *P_CB_SEND_WRAPPER) (int fdClientSocket, const uint8_t *pData, int size);
 
 class CLocalSocketClient : public CWorkerThread
 {
@@ -87,7 +87,7 @@ public:
 	bool isConnected (void);
 
 	int getFd (void);
-	bool sendToServer (const uint8_t *pData, int size);
+	bool sendToConnection (const uint8_t *pData, int size);
 	CLocalSocketClient::IPacketHandler* getPacketHandler (void);
 
 	void setLocalSocket (void);
@@ -125,9 +125,9 @@ private:
 
 
 	// setLocalSocket / setTcpSocket
-	cbSetupClientSocket mpcbSetupClientSocket;
-	cbReceiveWrapper mpcbReceiveWrapper;
-	cbSendWrapper mpcbSendWrapper;
+	P_CB_SETUP_CLIENT_SOCKET mpcbSetupClientSocket;
+	P_CB_RECEIVE_WRAPPER mpcbReceiveWrapper;
+	P_CB_SEND_WRAPPER mpcbSendWrapper;
 
 };
 

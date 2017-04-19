@@ -21,12 +21,12 @@ CClMessageHandler::~CClMessageHandler (void)
 
 void CClMessageHandler::onHandleRequest (CMessage *pMsg)
 {
-	_UTL_LOG_N ("%s %s\n", __FILE__, __PRETTY_FUNCTION__);
+	_UTL_LOG_N ("%s %s\n", __FILE__, __func__);
 }
 
 void CClMessageHandler::onHandleReply (CMessage *pMsg)
 {
-	_UTL_LOG_N ("%s %s\n", __FILE__, __PRETTY_FUNCTION__);
+	_UTL_LOG_N ("%s %s\n", __FILE__, __func__);
 
 
 	_UTL_LOG_N ("id[%d] command[%d] %s\n", (int)pMsg->getId(), (int)pMsg->getCommand(), pMsg->isReplyResultOK() ? "REPLY_OK" : "REPLY_NG");
@@ -40,5 +40,5 @@ void CClMessageHandler::onHandleReply (CMessage *pMsg)
 
 void CClMessageHandler::onHandleNotify (CMessage *pMsg)
 {
-	_UTL_LOG_N ("%s %s\n", __FILE__, __PRETTY_FUNCTION__);
+	_UTL_LOG_N ("%s %s\n", __FILE__, __func__);
 }

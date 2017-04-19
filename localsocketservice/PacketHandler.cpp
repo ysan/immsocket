@@ -33,7 +33,7 @@ void CPacketHandler::addSyncRequestTable (CMessage *pMsg)
 
 
 	if (!pMsg) {
-		_UTL_LOG_E ("%s pMsg is null\n", __PRETTY_FUNCTION__);
+		_UTL_LOG_E ("%s pMsg is null\n", __func__);
 		return;
 	}
 
@@ -60,7 +60,7 @@ void CPacketHandler::removeSyncRequestTable (CMessage *pMsg)
 
 
 	if (!pMsg) {
-		_UTL_LOG_E ("%s pMsg is null\n", __PRETTY_FUNCTION__);
+		_UTL_LOG_E ("%s pMsg is null\n", __func__);
 		return;
 	}
 
@@ -94,7 +94,7 @@ CMessage *CPacketHandler::findSyncRequestMessage (uint8_t id)
 void CPacketHandler::checkSyncRequestMessage (CMessage *pReplyMsg)
 {
 	if (!pReplyMsg) {
-		_UTL_LOG_E ("%s pReplyMsg is null\n", __PRETTY_FUNCTION__);
+		_UTL_LOG_E ("%s pReplyMsg is null\n", __func__);
 		return;
 	}
 
@@ -133,17 +133,17 @@ uint8_t CPacketHandler::genId (void)
 
 void CPacketHandler::onHandleRequest (CMessage *pMsg)
 {
-	_UTL_LOG_N ("%s %s\n", __FILE__, __PRETTY_FUNCTION__);
+	_UTL_LOG_N ("%s %s\n", __FILE__, __func__);
 }
 
 void CPacketHandler::onHandleReply (CMessage *pMsg)
 {
-	_UTL_LOG_N ("%s %s\n", __FILE__, __PRETTY_FUNCTION__);
+	_UTL_LOG_N ("%s %s\n", __FILE__, __func__);
 }
 
 void CPacketHandler::onHandleNotify (CMessage *pMsg)
 {
-	_UTL_LOG_N ("%s %s\n", __FILE__, __PRETTY_FUNCTION__);
+	_UTL_LOG_N ("%s %s\n", __FILE__, __func__);
 }
 
 void CPacketHandler::onSetup (CLocalSocketClient *pSelf)
@@ -166,7 +166,7 @@ void CPacketHandler::onTeardown (CLocalSocketClient *pSelf)
 void CPacketHandler::onReceivePacket (CLocalSocketClient *pSelf, uint8_t *pPacket, int size)
 {
 	if ((!pPacket) || (size < (int)sizeof(ST_PACKET))) {
-		_UTL_LOG_E ("%s  invalid packet\n", __PRETTY_FUNCTION__);
+		_UTL_LOG_E ("%s  invalid packet\n", __func__);
 		return ;
 	}
 
@@ -174,7 +174,7 @@ void CPacketHandler::onReceivePacket (CLocalSocketClient *pSelf, uint8_t *pPacke
 	ST_PACKET *pstPacket = (ST_PACKET*)pPacket;
 	_UTL_LOG_I (
 		"%s  id=[0x%02x] type=[0x%02x] command=[0x%02x] size=[0x%02x]\n",
-		__PRETTY_FUNCTION__,
+		__func__,
 		pstPacket->id,
 		pstPacket->type,
 		pstPacket->command,
@@ -197,7 +197,7 @@ void CPacketHandler::onReceivePacket (CLocalSocketClient *pSelf, uint8_t *pPacke
 	if (pstPacket->size > 0) {
 		// data exist
 		if (size != (int)sizeof(ST_PACKET) + (int)pstPacket->size) {
-			_UTL_LOG_E ("%s  invalid packet (mismatch size)\n", __PRETTY_FUNCTION__);
+			_UTL_LOG_E ("%s  invalid packet (mismatch size)\n", __func__);
 			return ;
 		}
 
@@ -207,7 +207,7 @@ void CPacketHandler::onReceivePacket (CLocalSocketClient *pSelf, uint8_t *pPacke
 	} else {
 		// data nothing
 		if (size != (int)sizeof(ST_PACKET)) {
-			_UTL_LOG_E ("%s  invalid packet (mismatch size)\n", __PRETTY_FUNCTION__);
+			_UTL_LOG_E ("%s  invalid packet (mismatch size)\n", __func__);
 			return ;
 		}
 	}
@@ -226,7 +226,7 @@ void CPacketHandler::onReceivePacket (CLocalSocketClient *pSelf, uint8_t *pPacke
 void CPacketHandler::handleMsg (CMessage *pMsg, int msgType)
 {
 	if (!pMsg) {
-		_UTL_LOG_E ("%s pMsg is null\n", __PRETTY_FUNCTION__);
+		_UTL_LOG_E ("%s pMsg is null\n", __func__);
 		return ;
 	}
 
@@ -251,7 +251,7 @@ void CPacketHandler::handleMsg (CMessage *pMsg, int msgType)
 		break;
 
 	default:
-		_UTL_LOG_E ("%s  invalid packet (unknown type)\n", __PRETTY_FUNCTION__);
+		_UTL_LOG_E ("%s  invalid packet (unknown type)\n", __func__);
 		break;
 	}
 

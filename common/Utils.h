@@ -42,7 +42,7 @@
 
 
 typedef enum {
-	EN_LOG_TYPE_I,		// information
+	EN_LOG_TYPE_I = 0,	// information
 	EN_LOG_TYPE_N,		// notice
 	EN_LOG_TYPE_W,		// warning
 	EN_LOG_TYPE_E,		// error
@@ -62,7 +62,7 @@ typedef enum {
 }
 #else
 #define _UTL_LOG_I(fmt, ...) {\
-	CUtils::putsLog (stdout, EN_LOG_TYPE_I, __FILE__, __PRETTY_FUNCTION__, __LINE__, fmt, ##__VA_ARGS__);\
+	CUtils::putsLog (stdout, EN_LOG_TYPE_I, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
 #endif
 
@@ -73,7 +73,7 @@ typedef enum {
 }
 #else
 #define _UTL_LOG_N(fmt, ...) {\
-    CUtils::putsLog (stdout, EN_LOG_TYPE_N, __FILE__, __PRETTY_FUNCTION__, __LINE__, fmt, ##__VA_ARGS__);\
+    CUtils::putsLog (stdout, EN_LOG_TYPE_N, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
 #endif
 
@@ -84,7 +84,7 @@ typedef enum {
 }
 #else
 #define _UTL_LOG_W(fmt, ...) {\
-    CUtils::putsLog (stdout, EN_LOG_TYPE_W, __FILE__, __PRETTY_FUNCTION__, __LINE__, fmt, ##__VA_ARGS__);\
+    CUtils::putsLog (stdout, EN_LOG_TYPE_W, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
 #endif
 
@@ -95,7 +95,7 @@ typedef enum {
 }
 #else
 #define _UTL_LOG_E(fmt, ...) {\
-    CUtils::putsLog (stdout, EN_LOG_TYPE_E, __FILE__, __PRETTY_FUNCTION__, __LINE__, fmt, ##__VA_ARGS__);\
+    CUtils::putsLog (stdout, EN_LOG_TYPE_E, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
 #endif
 
@@ -106,7 +106,7 @@ typedef enum {
 }
 #else
 #define _UTL_PERROR(fmt, ...) {\
-	CUtils::putsLog (stdout, EN_LOG_TYPE_PE, __FILE__, __PRETTY_FUNCTION__, __LINE__, fmt, ##__VA_ARGS__);\
+	CUtils::putsLog (stdout, EN_LOG_TYPE_PE, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
 #endif
 
