@@ -26,21 +26,15 @@ static void *threadHandler (void *args)
 		_UTL_LOG_N ("sync request\n");
 		CMessage *pMsg = new CMessage(pcl);
 		if (!pMsg->sendRequestSync ((uint8_t)0x02)) { // reply wait
+			delete pMsg;
+			pMsg = NULL;
 			continue;
 		}
 
-		switch ((int)pMsg->sync()->getCommand()) {
-		case REPLY_OK:
+		if (pMsg->sync()->isReplyResultOK()) {
 			_UTL_LOG_N ("REPLY_OK\n");
-			break;
-
-		case REPLY_NG:
+		} else {
 			_UTL_LOG_N ("REPLY_NG\n");
-			break;
-
-		default:
-			_UTL_LOG_E ("invalid reply message\n");
-			break;
 		}
 
 		if (pMsg->sync()->getDataSize() > 0) {
@@ -106,6 +100,8 @@ int main (void)
 		if ((int)strlen(buf) > 0) {
 			id = pMsg->genId();
 			if (!pMsg->sendRequestAsync(id, (uint8_t)0x01, (uint8_t*)buf, (int)strlen(buf))) {
+				delete pMsg;
+				pMsg = NULL;
 				continue;
 			}
 
@@ -113,6 +109,8 @@ int main (void)
 			n ++;
 			id = pMsg->genId();
 			if (!pMsg->sendRequestAsync(id, (uint8_t)0x05, (uint8_t*)&n, sizeof(int))) {
+				delete pMsg;
+				pMsg = NULL;
 				continue;
 			}
 		}

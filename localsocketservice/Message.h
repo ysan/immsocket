@@ -24,12 +24,9 @@ typedef enum {
 	EN_OBJTYPE_NOTHING,
 } EN_OBJTYPE;
 
-#define MSG_TYPE_REQUEST	((uint8_t)0x00)
-#define MSG_TYPE_REPLY		((uint8_t)0x01)
-#define MSG_TYPE_NOTIFY		((uint8_t)0x02)
-
-#define REPLY_OK			((uint8_t)0x00)
-#define REPLY_NG			((uint8_t)0x01)
+#define MSG_TYPE_REQUEST		((uint8_t)0x00)
+#define MSG_TYPE_REPLY			((uint8_t)0x01)
+#define MSG_TYPE_NOTIFY			((uint8_t)0x02)
 
 
 class CMessage
@@ -46,13 +43,21 @@ public:
 
 
 		uint8_t getCommand (void);
-		void setCommand (uint8_t command);
 
 		uint8_t* getData (void);
-		void setData (uint8_t *pData, int size);
 		int getDataSize (void);
 
+		bool isReplyResultOK (void) {
+			return mIsReplyResultOK;
+		}
+
 	private:
+		void setCommand (uint8_t command); // friend access
+		void setData (uint8_t *pData, int size, bool isClear=false); // friend access
+		void setReplyResult (bool isReplyResultOK) { // friend access
+			mIsReplyResultOK = isReplyResultOK;
+		}
+
 		void condLock (void);   // friend access
 		void condUnlock (void); // friend access
 		void condWait (void);   // friend access
@@ -62,6 +67,7 @@ public:
 		pthread_mutex_t mMutexCond;
 
 		uint8_t mCommand;
+		bool mIsReplyResultOK;
 //		uint8_t *mpData;
 		int mDataSize;
 
@@ -81,11 +87,13 @@ public:
 
 
 	uint8_t getCommand (void);
-	void setCommand (uint8_t command);
 
 	uint8_t* getData (void);
-	void setData (uint8_t *pData, int size);
 	int getDataSize (void);
+
+	bool isReplyResultOK (void) {
+		return mIsReplyResultOK;
+	}
 
 
 	uint8_t getId (void); // reference current id value
@@ -108,6 +116,11 @@ public:
 	}
 
 private:
+	void setCommand (uint8_t command);
+	void setData (uint8_t *pData, int size, bool isClear=false); // friend access
+	void setReplyResult (bool isReplyResultOK) { // friend access
+		mIsReplyResultOK = isReplyResultOK;
+	}
 
 	EN_OBJTYPE getObjtype (void);      // friend access
 	void setObjtype (EN_OBJTYPE type); // friend access
@@ -125,6 +138,7 @@ private:
 
 	uint8_t mId;
 	uint8_t mCommand;
+	bool mIsReplyResultOK;
 	CLocalSocketClient *mpClientInstance;
 //	uint8_t *mpData;
 	int mDataSize;

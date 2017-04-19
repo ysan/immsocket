@@ -104,8 +104,8 @@ void CPacketHandler::checkSyncRequestMessage (CMessage *pReplyMsg)
 		return ;
 	}
 
-	uint8_t _is_OK_NG = pReplyMsg->getCommand();
-	pWaitMsg->sync()->setCommand (_is_OK_NG);
+	bool isOK = pReplyMsg->isReplyResultOK();
+	pWaitMsg->sync()->setReplyResult (isOK);
 
 	int replyDataSize = pReplyMsg->getDataSize();
 	uint8_t* pReplyData = pReplyMsg->getData();
@@ -184,6 +184,16 @@ void CPacketHandler::onReceivePacket (CLocalSocketClient *pSelf, uint8_t *pPacke
 
 	CMessage msg(pSelf, pstPacket->id, pstPacket->command, EN_OBJTYPE_NOTHING);
 
+	int type = (int)(pstPacket->type & 0x0f);
+	if (type == MSG_TYPE_REPLY) {
+		// replyの場合のみ上位4bitに結果(OK/NG)が入っています
+		if ((pstPacket->type & 0xf0) == 0) {
+			msg.setReplyResult (true);
+		} else {
+			msg.setReplyResult (false);
+		}
+	}
+
 	if (pstPacket->size > 0) {
 		// data exist
 		if (size != (int)sizeof(ST_PACKET) + (int)pstPacket->size) {
@@ -192,7 +202,7 @@ void CPacketHandler::onReceivePacket (CLocalSocketClient *pSelf, uint8_t *pPacke
 		}
 
 		uint8_t *pData = pPacket + sizeof(ST_PACKET);
-		msg.setData(pData, pstPacket->size);
+		msg.setData (pData, pstPacket->size);
 
 	} else {
 		// data nothing
@@ -203,15 +213,16 @@ void CPacketHandler::onReceivePacket (CLocalSocketClient *pSelf, uint8_t *pPacke
 	}
 
 
-//	handleMsg (&msg, (int)pstPacket->type);
-
-	// PROXY_THREAD_POOL_NUM が2以上の時は
-	// CPacketHandler::handleMsgはスレッドセーフな処理にする必要があります
-	ST_REQ_QUEUE stReq (&msg, (int)pstPacket->type);
+//	handleMsg (&msg, type); // ProxyThreadでたたくようにしました
+	ST_REQ_QUEUE stReq (&msg, type);
 	mAsyncProcProxy.request (&stReq);
 
 }
 
+// ここはProxyThreadでたたかれます
+// PROXY_THREAD_POOL_NUM が2以上の時は
+// CPacketHandler::handleMsgはスレッドセーフな処理にする必要があります
+// リエントラントなコード必須
 void CPacketHandler::handleMsg (CMessage *pMsg, int msgType)
 {
 	if (!pMsg) {
@@ -227,6 +238,7 @@ void CPacketHandler::handleMsg (CMessage *pMsg, int msgType)
 		break;
 
 	case MSG_TYPE_REPLY:
+		pMsg->setObjtype (EN_OBJTYPE_NOTHING);
 		onHandleReply (pMsg);
 
 		checkSyncRequestMessage (pMsg);
@@ -234,6 +246,7 @@ void CPacketHandler::handleMsg (CMessage *pMsg, int msgType)
 		break;
 
 	case MSG_TYPE_NOTIFY:
+		pMsg->setObjtype (EN_OBJTYPE_NOTHING);
 		onHandleNotify (pMsg);
 		break;
 

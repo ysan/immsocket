@@ -24,22 +24,24 @@ void CSvrMessageHandler::onHandleRequest (CMessage *pMsg)
 	_UTL_LOG_N ("%s %s\n", __FILE__, __PRETTY_FUNCTION__);
 
 
-	if ((int)pMsg->getCommand() == 0x05) {
-
+	switch ((int)pMsg->getCommand()) {
+	case 0x05: {
 		int data = *((int*)pMsg->getData());
 		_UTL_LOG_N ("######  %d  ######\n", data);
 
 		CMessage *pReplyMsg = new CMessage(pMsg);
-		pReplyMsg->sendReplyOK();
+		if (((int)pMsg->getId() % 10) != 0) { // debug
+			pReplyMsg->sendReplyOK();
+		} else {
+			pReplyMsg->sendReplyNG();
+		}
 		delete pReplyMsg;
 		pReplyMsg = NULL;
 
-	} else if ((int)pMsg->getCommand() == 0x01) {
+		} break;
 
-		uint8_t *pData = pMsg->getData();
-		char tmp[pMsg->getDataSize() +1];
-		memset (tmp, 0x00, sizeof(tmp));
-		strncpy (tmp, (char*)pData, sizeof(tmp) -1);
+	case 0x01: {
+		char *pData = (char*)pMsg->getData();
 		_UTL_LOG_N ("######  %s  ######\n", pData);
 
 		CMessage *pReplyMsg = new CMessage(pMsg);
@@ -47,8 +49,9 @@ void CSvrMessageHandler::onHandleRequest (CMessage *pMsg)
 		delete pReplyMsg;
 		pReplyMsg = NULL;
 
-	} else if ((int)pMsg->getCommand() == 0x02) {
+		} break;
 
+	case 0x02: {
 		sleep (1); // debug
 
 		CMessage *pReplyMsg = new CMessage(pMsg);
@@ -56,13 +59,14 @@ void CSvrMessageHandler::onHandleRequest (CMessage *pMsg)
 		delete pReplyMsg;
 		pReplyMsg = NULL;
 
-	} else {
+		} break;
 
+	default: {
 		CMessage *pReplyMsg = new CMessage(pMsg);
 		pReplyMsg->sendReplyNG();
 		delete pReplyMsg;
 		pReplyMsg = NULL;
-
+		} break;
 	}
 
 }

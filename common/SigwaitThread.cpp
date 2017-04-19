@@ -58,7 +58,7 @@ bool CSigwaitThread::setSignalMask (void)
 //	sigaddset (&mSigset, SIGINT);
 	sigaddset (&mSigset, SIGTERM);
 	sigaddset (&mSigset, SIGPIPE);
-	sigaddset (&mSigset, SIGQUIT); //TODO terminal (ctrl + ¥)
+	sigaddset (&mSigset, SIGQUIT); //TODO terminal (ctrl + \)
 	int rtn = pthread_sigmask (SIG_BLOCK, &mSigset, NULL);
 	if (rtn != 0) {
 		_UTL_PERROR ("pthread_sigmask");
@@ -76,7 +76,7 @@ bool CSigwaitThread::unsetSignalMask (void)
 //	sigaddset (&mSigset, SIGINT);
 	sigaddset (&mSigset, SIGTERM);
 	sigaddset (&mSigset, SIGPIPE);
-	sigaddset (&mSigset, SIGQUIT); //TODO terminal (ctrl + ¥)
+	sigaddset (&mSigset, SIGQUIT); //TODO terminal (ctrl + \)
 	int rtn = pthread_sigmask (SIG_UNBLOCK, &mSigset, NULL);
 	if (rtn != 0) {
 		_UTL_PERROR ("pthread_sigmask");
@@ -90,29 +90,29 @@ void CSigwaitThread::onHandleSignal (int sig)
 {
 	switch (sig) {
 	case SIGINT:
-		_UTL_LOG_W ("catch SIGINT¥n");
+		_UTL_LOG_W ("catch SIGINT\n");
 
 		mIsStop = true;
 
 		break;
 
 	case SIGTERM:
-		_UTL_LOG_W ("catch SIGTERM¥n");
+		_UTL_LOG_W ("catch SIGTERM\n");
 
 		mIsStop = true;
 
 		break;
 
 	case SIGPIPE:
-		_UTL_LOG_W ("catch SIGPIPE¥n");
+		_UTL_LOG_W ("catch SIGPIPE\n");
 		break;
 
 	case SIGQUIT:
-		_UTL_LOG_W ("catch SIGQUIT¥n");
+		_UTL_LOG_W ("catch SIGQUIT\n");
 		break;
 
 	default:
-		_UTL_LOG_E ("unexpected signal.¥n");
+		_UTL_LOG_E ("unexpected signal.\n");
 		break;
 	}
 }
@@ -137,7 +137,7 @@ void CSigwaitThread::onThreadMainRoutine (void)
 			if (errno == EAGAIN) {
 				// timeout
 				if (mIsStop) {
-					_UTL_LOG_I ("stop¥n");
+					_UTL_LOG_I ("stop\n");
 					break;
 				}
 			} else {

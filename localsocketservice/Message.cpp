@@ -14,7 +14,10 @@
 
 namespace LocalSocketService {
 
-CMessage::CSync::CSync (void)
+CMessage::CSync::CSync (void) :
+	mCommand (0),
+	mIsReplyResultOK (false),
+	mDataSize (0)
 {
 	pthread_cond_init (&mCond, NULL);
 	pthread_mutex_init (&mMutexCond, NULL);
@@ -62,14 +65,21 @@ uint8_t* CMessage::CSync::getData (void)
 	return &mEntityData[0];
 }
 
-void CMessage::CSync::setData (uint8_t *pData, int size)
+void CMessage::CSync::setData (uint8_t *pData, int size, bool isClear)
 {
+	if (isClear) {
+		memset (mEntityData, 0x00, sizeof(mEntityData));
+		mDataSize = 0;
+		return;
+	}
+
 	if ((!pData) || (size == 0)) {
 		return;
 	}
 
 //	mpData= pData;
 	int cpsize = size > (0xff - (int)sizeof(ST_PACKET)) ? (0xff - (int)sizeof(ST_PACKET)) : size;
+	memset (mEntityData, 0x00, sizeof(mEntityData));
 	memcpy (mEntityData, pData, cpsize);
 	mDataSize = cpsize;
 }
@@ -83,6 +93,7 @@ int CMessage::CSync::getDataSize (void)
 CMessage::CMessage (void) :
 	mId (0),
 	mCommand (0),
+	mIsReplyResultOK (false),
 	mpClientInstance (NULL),
 //	mpData (NULL),
 	mDataSize (0),
@@ -95,6 +106,7 @@ CMessage::CMessage (void) :
 CMessage::CMessage (CMessage *pRequestMsg) :
 	mId (0),
 	mCommand (0),
+	mIsReplyResultOK (false),
 	mpClientInstance (NULL),
 //	mpData (NULL),
 	mDataSize (0),
@@ -102,6 +114,7 @@ CMessage::CMessage (CMessage *pRequestMsg) :
 {
 	if (pRequestMsg) {
 		mId = pRequestMsg->getId();
+		mCommand = pRequestMsg->getCommand();
 		mpClientInstance = pRequestMsg->getClientInstance();
 
 		if (pRequestMsg->getObjtype() == EN_OBJTYPE_REPLYABLE) { 
@@ -119,6 +132,7 @@ CMessage::CMessage (CMessage *pRequestMsg) :
 CMessage::CMessage (CLocalSocketClient *pClient) :
 	mId (0),
 	mCommand (0),
+	mIsReplyResultOK (false),
 	mpClientInstance (NULL),
 //	mpData (NULL),
 	mDataSize (0),
@@ -134,6 +148,7 @@ CMessage::CMessage (CLocalSocketClient *pClient) :
 CMessage::CMessage (CLocalSocketClient *pClient, uint8_t id) :
 	mId (0),
 	mCommand (0),
+	mIsReplyResultOK (false),
 	mpClientInstance (NULL),
 //	mpData (NULL),
 	mDataSize (0),
@@ -151,6 +166,7 @@ CMessage::CMessage (CLocalSocketClient *pClient, uint8_t id) :
 CMessage::CMessage (CLocalSocketClient *pClient, uint8_t id, uint8_t command) :
 	mId (0),
 	mCommand (0),
+	mIsReplyResultOK (false),
 	mpClientInstance (NULL),
 //	mpData (NULL),
 	mDataSize (0),
@@ -169,6 +185,7 @@ CMessage::CMessage (CLocalSocketClient *pClient, uint8_t id, uint8_t command) :
 CMessage::CMessage (CLocalSocketClient *pClient, uint8_t id, uint8_t command, EN_OBJTYPE enType) :
 	mId (0),
 	mCommand (0),
+	mIsReplyResultOK (false),
 	mpClientInstance (NULL),
 //	mpData (NULL),
 	mDataSize (0),
@@ -210,14 +227,21 @@ uint8_t* CMessage::getData (void)
 	return &mEntityData[0];
 }
 
-void CMessage::setData (uint8_t *pData, int size)
+void CMessage::setData (uint8_t *pData, int size, bool isClear)
 {
+	if (isClear) {
+		memset (mEntityData, 0x00, sizeof(mEntityData));
+		mDataSize = 0;
+		return;
+	}
+
 	if ((!pData) || (size <= 0)) {
 		return;
 	}
 
 //	mpData= pData;
 	int cpsize = size > (0xff - (int)sizeof(ST_PACKET)) ? (0xff - (int)sizeof(ST_PACKET)) : size;
+	memset (mEntityData, 0x00, sizeof(mEntityData));
 	memcpy (mEntityData, pData, cpsize);
 	mDataSize = cpsize;
 }
@@ -265,7 +289,7 @@ bool CMessage::sendRequestSync (void)
 
 
 	// add 
-	uint8_t id = genId();
+	uint8_t id = genId(); // need new id
 	pPacketHandler->addSyncRequestTable (this);
 
 	if (!sendRequest (id)) {
@@ -296,7 +320,7 @@ bool CMessage::sendRequestSync (void)
 bool CMessage::sendRequestSync (uint8_t command)
 {
 	setCommand (command);
-	setData (NULL, 0);
+	setData (NULL, 0, true);
 	return sendRequestSync();
 }
 
@@ -315,7 +339,7 @@ bool CMessage::sendRequestAsync (uint8_t id)
 bool CMessage::sendRequestAsync (uint8_t id, uint8_t command)
 {
 	setCommand (command);
-	setData (NULL, 0);
+	setData (NULL, 0, true);
 	return sendRequestAsync (id);
 }
 
@@ -373,30 +397,30 @@ bool CMessage::sendRequest (uint8_t id)
 
 bool CMessage::sendReplyOK (void)
 {
-	setCommand (REPLY_OK);
-	setData (NULL, 0);
-	return sendReply();
+	setReplyResult (true);
+	setData (NULL, 0, true);
+	return sendReply ();
 }
 
 bool CMessage::sendReplyOK (uint8_t *pReplyData, int size)
 {
-	setCommand (REPLY_OK);
+	setReplyResult (true);
 	setData (pReplyData, size);
-	return sendReply();
+	return sendReply ();
 }
 
 bool CMessage::sendReplyNG (void)
 {
-	setCommand (REPLY_NG);
-	setData (NULL, 0);
-	return sendReply();
+	setReplyResult (false);
+	setData (NULL, 0, true);
+	return sendReply ();
 }
 
 bool CMessage::sendReplyNG (uint8_t *pReplyData, int size)
 {
-	setCommand (REPLY_NG);
+	setReplyResult (false);
 	setData (pReplyData, size);
-	return sendReply();
+	return sendReply ();
 }
 
 bool CMessage::sendReply (void)
@@ -423,6 +447,15 @@ bool CMessage::sendReply (void)
 	}
 
 
+	// reply結果をtypeの上位4bitに埋め込みます
+	uint8_t type = 0x00;
+	if (mIsReplyResultOK) {
+		type = MSG_TYPE_REPLY;
+	} else {
+		type = MSG_TYPE_REPLY | ((0x01 << 4) & 0xff);
+	}
+
+
 	int totalsize = 0;
 	if (mDataSize == 0) {
 		totalsize = (int)sizeof(ST_PACKET);
@@ -431,11 +464,11 @@ bool CMessage::sendReply (void)
 	}
 	uint8_t buff [totalsize];
 	memset (buff, 0x00, sizeof(buff));
-	if (!setPacket (mId, MSG_TYPE_REPLY, mCommand, buff, totalsize)) {
+	if (!setPacket (mId, type, mCommand, buff, totalsize)) {
 		return false;
 	}
 
-//TODO
+//TODO replyは一度限り
 	mObjtype = EN_OBJTYPE_NOTHING;
 
 	return mpClientInstance->sendToServer (buff, totalsize);

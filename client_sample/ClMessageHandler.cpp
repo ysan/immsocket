@@ -29,21 +29,7 @@ void CClMessageHandler::onHandleReply (CMessage *pMsg)
 	_UTL_LOG_N ("%s %s\n", __FILE__, __PRETTY_FUNCTION__);
 
 
-	_UTL_LOG_N ("id[%d]\n", (int)pMsg->getId());
-
-	switch ((int)pMsg->getCommand()) {
-	case REPLY_OK:
-		_UTL_LOG_N ("REPLY_OK\n");
-		break;
-
-	case REPLY_NG:
-		_UTL_LOG_N ("REPLY_NG\n");
-		break;
-
-	default:
-		_UTL_LOG_E ("invalid reply message\n");
-		break;
-	}
+	_UTL_LOG_N ("id[%d] command[%d] %s\n", (int)pMsg->getId(), (int)pMsg->getCommand(), pMsg->isReplyResultOK() ? "REPLY_OK" : "REPLY_NG");
 
 	if (pMsg->getDataSize() > 0) {
 		_UTL_LOG_N ("replyData [%s]\n", (char*)(pMsg->getData()));
