@@ -97,7 +97,7 @@ public:
 
 
 	uint8_t getId (void); // reference current id value
-	uint8_t genId (void); // generate id
+	uint8_t generateId (void);
 
 	bool sendRequestSync (uint8_t command);
 	bool sendRequestSync (uint8_t command, uint8_t *pData, int size);

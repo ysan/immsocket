@@ -118,7 +118,7 @@ void CPacketHandler::checkSyncRequestMessage (CMessage *pReplyMsg)
 	pWaitMsg->sync()->condUnlock();
 }
 
-uint8_t CPacketHandler::genId (void)
+uint8_t CPacketHandler::generateId (void)
 {
 	CUtils::CScopedMutex scopedMutex (&mMutexGenId);
 

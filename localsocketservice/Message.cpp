@@ -256,7 +256,7 @@ uint8_t CMessage::getId (void)
 	return mId;
 }
 
-uint8_t CMessage::genId (void)
+uint8_t CMessage::generateId (void)
 {
 	CPacketHandler *pPacketHandler = (CPacketHandler*)mpClientInstance->getPacketHandler();
 	if (!pPacketHandler) {
@@ -265,7 +265,7 @@ uint8_t CMessage::genId (void)
 	}
 
 	uint8_t id = 0x00;
-	id = pPacketHandler->genId();
+	id = pPacketHandler->generateId();
 	mId = id;
 
 	return id;
@@ -289,7 +289,7 @@ bool CMessage::sendRequestSync (void)
 
 
 	// add 
-	uint8_t id = genId(); // need new id
+	uint8_t id = generateId(); // need new id
 	pPacketHandler->addSyncRequestTable (this);
 
 	if (!sendRequest (id)) {

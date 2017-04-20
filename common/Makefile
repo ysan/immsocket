@@ -5,7 +5,7 @@ BASEDIR		:=	../
 
 INCLUDES    := -I./
 
-LIBS		:= -lpthread
+LIBS		:= -lpthread -rdynamic
 
 LDFLAGS		:=
 

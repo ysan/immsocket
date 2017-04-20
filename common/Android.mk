@@ -4,7 +4,7 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := libcommon
 
-LOCAL_LDLIBS := -llog
+LOCAL_LDLIBS := -llog -rdynamic -lunwind -ldl
 
 LOCAL_PRELINK_MODULE := false
 

@@ -43,7 +43,7 @@ public:
 	CMessage *findSyncRequestMessage (uint8_t id);
 	void checkSyncRequestMessage (CMessage *pMsg);
 
-	uint8_t genId (void); // generate id
+	uint8_t generateId (void);
 
 
 protected:

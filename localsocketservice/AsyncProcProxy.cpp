@@ -66,7 +66,7 @@ void CAsyncProcProxy::CProxyThread::setAsyncProcProxy (CAsyncProcProxy *pAsyncPr
 void CAsyncProcProxy::CProxyThread::onThreadMainRoutine (void)
 {
 	char szName [64] = {0};
-	snprintf (szName, sizeof(szName), "%s(%lu)", "PrxyTh", pthread_self());
+	snprintf (szName, sizeof(szName), "%s(%ld)", "ProxyTh", syscall(SYS_gettid));
 	setName (szName);
 	_UTL_LOG_I ("%s %s\n", __FILE__, __func__);
 
@@ -84,7 +84,7 @@ void CAsyncProcProxy::CProxyThread::onThreadMainRoutine (void)
 	ST_REQ_QUEUE q ;
 
 	int rtn = 0;
-	struct timespec stTimeout = {0};
+	struct timespec stTimeout = {0L, 0L};
 
 	while (1) {
 		// lock

@@ -98,7 +98,7 @@ int main (void)
 
 		CMessage *pMsg = new CMessage(&client);
 		if ((int)strlen(buf) > 0) {
-			id = pMsg->genId();
+			id = pMsg->generateId();
 			if (!pMsg->sendRequestAsync(id, (uint8_t)0x01, (uint8_t*)buf, (int)strlen(buf))) {
 				delete pMsg;
 				pMsg = NULL;
@@ -107,7 +107,7 @@ int main (void)
 
 		} else {
 			n ++;
-			id = pMsg->genId();
+			id = pMsg->generateId();
 			if (!pMsg->sendRequestAsync(id, (uint8_t)0x05, (uint8_t*)&n, sizeof(int))) {
 				delete pMsg;
 				pMsg = NULL;

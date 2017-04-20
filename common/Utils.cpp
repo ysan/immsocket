@@ -3,6 +3,11 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <dlfcn.h>
+
+#ifndef _ANDROID_BUILD
+#include <execinfo.h>
+#endif
 
 #include "Utils.h"
 
@@ -11,6 +16,82 @@
 #define THREAD_NAME_STRING_SIZE		(15+1)
 #define LOG_STRING_SIZE				(128)
 #define BACKTRACE_BUFF_SIZE			(20)
+
+
+#ifdef _ANDROID_BUILD
+#include <stdint.h>
+#include <unwind.h>
+#include <cxxabi.h>
+
+struct UnwindData {
+	void **array;
+	int current;
+	int size;
+};
+
+static _Unwind_Reason_Code unwind_callback (struct _Unwind_Context* context, void* _data)
+{
+	UnwindData *data = static_cast<UnwindData*> (_data);
+	uintptr_t pc = _Unwind_GetIP (context);
+	if (pc) {
+		if (data->current < data->size) {
+			data->array[data->current] = (void *)pc;
+			data->current++;
+		} else {
+			return _URC_END_OF_STACK;
+		}
+	}
+
+	return _URC_NO_REASON;
+}
+
+int bionic_backtrace (void **array, int size)
+{
+	UnwindData data = {array, 0, size};
+	_Unwind_Backtrace (unwind_callback, &data);
+
+	return data.current;
+}
+
+char **bionic_backtrace_symbols (void *const *array, int size)
+{
+	const int line_size = 256;
+	void *buff = malloc((sizeof(void *) * size) + (line_size * size));
+	char **line_addr = (char **)buff;
+	char *ptr = (char *)buff + sizeof(void *) * size;
+
+	for (int i = 0; i < size; i++) {
+		line_addr[i] = ptr;
+		const void *addr = array[i];
+		const char *symbol = "";
+		const char *fname  = "";
+		unsigned int offset = 0;
+
+		Dl_info info;
+		if (dladdr(addr, &info) && info.dli_sname) {
+			int status = 0;
+			symbol = info.dli_sname;
+			char *demangled = __cxxabiv1::__cxa_demangle (symbol, 0, 0, &status);
+			if (demangled) {
+				symbol = demangled;
+			}
+			fname = info.dli_fname;
+			offset = (unsigned int)addr;
+			offset -= (unsigned int)info.dli_saddr;
+			snprintf (line_addr[i], line_size, "[0x%08X] %s <%s +0x%X>", (unsigned int)addr, fname, symbol, (unsigned int)offset);
+			if (demangled) {
+				free (demangled);
+			}
+		} else {
+			snprintf (line_addr[i], line_size, "[0x%08X]", (unsigned int)addr);
+		}
+		ptr += line_size;
+	}
+
+	return line_addr;
+}
+
+#endif
 
 
 /**
@@ -431,8 +512,7 @@ void CUtils::deleteLF (char *p)
 
 /**
  * putsBackTrace
- *
- * libc のbacktrace
+ * libc とbionicはコンパイルスイッチで切り替え
  */
 extern int backtrace(void **array, int size) __attribute__ ((weak));
 extern char **backtrace_symbols(void *const *array, int size) __attribute__ ((weak));
@@ -443,27 +523,33 @@ void CUtils::putsBackTrace (void)
 	void *pBuff [BACKTRACE_BUFF_SIZE];
 	char **pRtn;
 
-	if (backtrace) {
-		n = backtrace (pBuff, BACKTRACE_BUFF_SIZE);
-		pRtn = backtrace_symbols (pBuff, n);
-		if (!pRtn) {
-			_UTL_PERROR ("backtrace_symbols()");
-			return;
-		}
-
-		_UTL_LOG_W ("============================================================\n");
-		_UTL_LOG_W ("----- pid=%d tid=%ld -----\n", getpid(), syscall(SYS_gettid));
-		for (i = 0; i < n; i ++) {
-			_UTL_LOG_W ("%s\n", pRtn[i]);
-		}
-		_UTL_LOG_W ("============================================================\n");
-		free (pRtn);
-
-	} else {
+#ifdef _ANDROID_BUILD
+	n = bionic_backtrace (pBuff, BACKTRACE_BUFF_SIZE);
+	pRtn = bionic_backtrace_symbols (pBuff, n);
+#else
+	if (!backtrace) {
 		_UTL_LOG_W ("============================================================\n");
 		_UTL_LOG_W ("----- pid=%d tid=%ld ----- backtrace symbol not found\n", getpid(), syscall(SYS_gettid));
 		_UTL_LOG_W ("============================================================\n");
+		return ;
 	}
+
+	// libc
+	n = backtrace (pBuff, BACKTRACE_BUFF_SIZE);
+	pRtn = backtrace_symbols (pBuff, n);
+#endif
+	if (!pRtn) {
+		_UTL_PERROR ("backtrace_symbols()");
+		return;
+	}
+
+	_UTL_LOG_W ("============================================================\n");
+	_UTL_LOG_W ("----- pid=%d tid=%ld -----\n", getpid(), syscall(SYS_gettid));
+	for (i = 0; i < n; i ++) {
+		_UTL_LOG_W ("%s\n", pRtn[i]);
+	}
+	_UTL_LOG_W ("============================================================\n");
+	free (pRtn);
 }
 
 #define DUMP_PUTS_OFFSET	"  "
