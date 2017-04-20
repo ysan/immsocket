@@ -42,12 +42,12 @@
 
 
 typedef enum {
-	EN_LOG_TYPE_I = 0,	// information
-	EN_LOG_TYPE_N,		// notice
-	EN_LOG_TYPE_W,		// warning
-	EN_LOG_TYPE_E,		// error
-	EN_LOG_TYPE_PE,		// perror
-} EN_LOG_TYPE;
+	EN_LOG_LEVEL_I = 0,		// information
+	EN_LOG_LEVEL_N,			// notice
+	EN_LOG_LEVEL_W,			// warning
+	EN_LOG_LEVEL_E,			// error
+	EN_LOG_LEVEL_PE,		// perror
+} EN_LOG_LEVEL;
 
 
 /**
@@ -58,60 +58,61 @@ typedef enum {
 // --- Information ---
 #ifndef _LOG_ADD_FILE_INFO
 #define _UTL_LOG_I(fmt, ...) {\
-	CUtils::putsLogLW (stdout, EN_LOG_TYPE_I, fmt, ##__VA_ARGS__);\
+	CUtils::putsLogLW (stdout, EN_LOG_LEVEL_I, fmt, ##__VA_ARGS__);\
 }
 #else
 #define _UTL_LOG_I(fmt, ...) {\
-	CUtils::putsLog (stdout, EN_LOG_TYPE_I, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
+	CUtils::putsLog (stdout, EN_LOG_LEVEL_I, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
 #endif
 
 // --- Notice ---
 #ifndef _LOG_ADD_FILE_INFO
 #define _UTL_LOG_N(fmt, ...) {\
-	CUtils::putsLogLW (stdout, EN_LOG_TYPE_N, fmt, ##__VA_ARGS__);\
+	CUtils::putsLogLW (stdout, EN_LOG_LEVEL_N, fmt, ##__VA_ARGS__);\
 }
 #else
 #define _UTL_LOG_N(fmt, ...) {\
-    CUtils::putsLog (stdout, EN_LOG_TYPE_N, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
+    CUtils::putsLog (stdout, EN_LOG_LEVEL_N, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
 #endif
 
 // --- Warning ---
 #ifndef _LOG_ADD_FILE_INFO
 #define _UTL_LOG_W(fmt, ...) {\
-	CUtils::putsLogLW (stdout, EN_LOG_TYPE_W, fmt, ##__VA_ARGS__);\
+	CUtils::putsLogLW (stdout, EN_LOG_LEVEL_W, fmt, ##__VA_ARGS__);\
 }
 #else
 #define _UTL_LOG_W(fmt, ...) {\
-    CUtils::putsLog (stdout, EN_LOG_TYPE_W, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
+    CUtils::putsLog (stdout, EN_LOG_LEVEL_W, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
 #endif
 
 // --- Error ---
 #ifndef _LOG_ADD_FILE_INFO
 #define _UTL_LOG_E(fmt, ...) {\
-	CUtils::putsLogLW (stdout, EN_LOG_TYPE_E, fmt, ##__VA_ARGS__);\
+	CUtils::putsLogLW (stdout, EN_LOG_LEVEL_E, fmt, ##__VA_ARGS__);\
 }
 #else
 #define _UTL_LOG_E(fmt, ...) {\
-    CUtils::putsLog (stdout, EN_LOG_TYPE_E, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
+    CUtils::putsLog (stdout, EN_LOG_LEVEL_E, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
 #endif
 
 // --- perror ---
 #ifndef _LOG_ADD_FILE_INFO
 #define _UTL_PERROR(fmt, ...) {\
-	CUtils::putsLogLW (stdout, EN_LOG_TYPE_PE, fmt, ##__VA_ARGS__);\
+	CUtils::putsLogLW (stdout, EN_LOG_LEVEL_PE, fmt, ##__VA_ARGS__);\
 }
 #else
 #define _UTL_PERROR(fmt, ...) {\
-	CUtils::putsLog (stdout, EN_LOG_TYPE_PE, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
+	CUtils::putsLog (stdout, EN_LOG_LEVEL_PE, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
 #endif
 
 #else // _ANDROID_BUILD
 
+// --- Information ---
 #define _UTL_LOG_I(fmt, ...) do {\
 	__android_log_print (ANDROID_LOG_DEBUG, __func__, fmt, ##__VA_ARGS__); \
 } while (0)
@@ -152,19 +153,38 @@ public:
 
 	static void putsLog (
 		FILE *pFp,
-		EN_LOG_TYPE enLogType,
+		EN_LOG_LEVEL enLogLevel,
 		const char *pszFile,
 		const char *pszFunc,
 		int nLine,
 		const char *pszFormat,
 		...
 	);
-	static void putsLogLW (
+	static void putsLog (
 		FILE *pFp,
-		EN_LOG_TYPE enLogType,
+		EN_LOG_LEVEL enCurLogLevel,
+		EN_LOG_LEVEL enLogLevel,
+		const char *pszFile,
+		const char *pszFunc,
+		int nLine,
 		const char *pszFormat,
 		...
 	);
+
+	static void putsLogLW (
+		FILE *pFp,
+		EN_LOG_LEVEL enLogLevel,
+		const char *pszFormat,
+		...
+	);
+	static void putsLogLW (
+		FILE *pFp,
+		EN_LOG_LEVEL enCurLogLevel,
+		EN_LOG_LEVEL enLogLevel,
+		const char *pszFormat,
+		...
+	);
+
 
 	static void deleteLF (char *p);
 
@@ -198,6 +218,22 @@ private:
 
 	static void getSysTime (char *pszOut, size_t nSize);
 
+	static void putsLog (
+		FILE *pFp,
+		EN_LOG_LEVEL enLogLevel,
+		const char *pszFile,
+		const char *pszFunc,
+		int nLine,
+		const char *pszFormat,
+		va_list va
+	);
+
+	static void putsLogLW (
+		FILE *pFp,
+		EN_LOG_LEVEL enLogLevel,
+		const char *pszFormat,
+		va_list va
+	);
 };
 
 #endif

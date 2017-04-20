@@ -89,22 +89,21 @@ void CUtils::getTimeOfDay (struct timeval *p)
 
 /**
  * putsLog
- * ログ出力
+ * ログ出力 本体
  */
 void CUtils::putsLog (
 	FILE *pFp,
-	EN_LOG_TYPE enLogType,
+	EN_LOG_LEVEL enLogLevel,
 	const char *pszFile,
 	const char *pszFunc,
 	int nLine,
 	const char *pszFormat,
-	...
+	va_list va
 )
 {
 	char szBufVa [LOG_STRING_SIZE];
 	char szTime [SYSTIME_STRING_SIZE];
     char szThreadName [THREAD_NAME_STRING_SIZE];
-	va_list va;
 	char type;
 	char szPerror[32];
 #ifndef _ANDROID_BUILD
@@ -116,30 +115,30 @@ void CUtils::putsLog (
     memset (szThreadName, 0x00, sizeof (szThreadName));
 	memset (szPerror, 0x00, sizeof (szPerror));
 
-	switch (enLogType) {
-	case EN_LOG_TYPE_I:
+	switch (enLogLevel) {
+	case EN_LOG_LEVEL_I:
 		type = 'I';
 		break;
 
-	case EN_LOG_TYPE_N:
+	case EN_LOG_LEVEL_N:
 		type = 'N';
 		fprintf (stdout, _UTL_TEXT_CYAN);
 		break;
 
-	case EN_LOG_TYPE_W:
+	case EN_LOG_LEVEL_W:
 		type = 'W';
 		fprintf (stdout, _UTL_TEXT_BOLD_TYPE);
 		fprintf (stdout, _UTL_TEXT_YELLOW);
 		break;
 
-	case EN_LOG_TYPE_E:
+	case EN_LOG_LEVEL_E:
 		type = 'E';
 		fprintf (stdout, _UTL_TEXT_UNDER_LINE);
 		fprintf (stdout, _UTL_TEXT_BOLD_TYPE);
 		fprintf (stdout, _UTL_TEXT_RED);
 		break;
 
-	case EN_LOG_TYPE_PE:
+	case EN_LOG_LEVEL_PE:
 		type = 'E';
 		fprintf (stdout, _UTL_TEXT_REVERSE);
 		fprintf (stdout, _UTL_TEXT_BOLD_TYPE);
@@ -156,17 +155,15 @@ void CUtils::putsLog (
 		break;
 	}
 
-	va_start (va, pszFormat);
 	vsnprintf (szBufVa, sizeof(szBufVa), pszFormat, va);
-	va_end (va);
 
 	getSysTime (szTime, SYSTIME_STRING_SIZE);
 	getThreadName (szThreadName, THREAD_NAME_STRING_SIZE);
 
 	deleteLF (szBufVa);
 
-	switch (enLogType) {
-	case EN_LOG_TYPE_PE:
+	switch (enLogLevel) {
+	case EN_LOG_LEVEL_PE:
 		fprintf (
 			pFp,
 			"[%s] %c %s  %s: %s   src=[%s %s()] line=[%d]\n",
@@ -185,10 +182,10 @@ void CUtils::putsLog (
 		);
 		break;
 
-	case EN_LOG_TYPE_I:
-	case EN_LOG_TYPE_N:
-	case EN_LOG_TYPE_W:
-	case EN_LOG_TYPE_E:
+	case EN_LOG_LEVEL_I:
+	case EN_LOG_LEVEL_N:
+	case EN_LOG_LEVEL_W:
+	case EN_LOG_LEVEL_E:
 	default:
 		fprintf (
 			pFp,
@@ -211,20 +208,64 @@ void CUtils::putsLog (
 }
 
 /**
+ * putsLog
+ * ログ出力 loglevel判定なし
+ */
+void CUtils::putsLog (
+	FILE *pFp,
+	EN_LOG_LEVEL enLogLevel,
+	const char *pszFile,
+	const char *pszFunc,
+	int nLine,
+	const char *pszFormat,
+	...
+)
+{
+	va_list va;
+	va_start (va, pszFormat);
+	putsLog (pFp, enLogLevel, pszFile, pszFunc, nLine, pszFormat, va);
+	va_end (va);
+}
+
+/**
+ * putsLog
+ * ログ出力 loglevel判定あり
+ */
+void CUtils::putsLog (
+	FILE *pFp,
+	EN_LOG_LEVEL enCurLogLevel,
+	EN_LOG_LEVEL enLogLevel,
+	const char *pszFile,
+	const char *pszFunc,
+	int nLine,
+	const char *pszFormat,
+	...
+)
+{
+	if (enCurLogLevel > enLogLevel) {
+		return ;
+	}
+
+	va_list va;
+	va_start (va, pszFormat);
+	putsLog (pFp, enLogLevel, pszFile, pszFunc, nLine, pszFormat, va);
+	va_end (va);
+}
+
+/**
  * putsLW
- * ログ出力 src lineなし
+ * ログ出力 src,lineなし 本体
  */
 void CUtils::putsLogLW (
 	FILE *pFp,
-	EN_LOG_TYPE enLogType,
+	EN_LOG_LEVEL enLogLevel,
 	const char *pszFormat,
-	...
+	va_list va
 )
 {
 	char szBufVa [LOG_STRING_SIZE];
 	char szTime [SYSTIME_STRING_SIZE];
     char szThreadName [THREAD_NAME_STRING_SIZE];
-	va_list va;
 	char type;
 	char szPerror[32];
 #ifndef _ANDROID_BUILD
@@ -236,30 +277,30 @@ void CUtils::putsLogLW (
     memset (szThreadName, 0x00, sizeof (szThreadName));
 	memset (szPerror, 0x00, sizeof (szPerror));
 
-	switch (enLogType) {
-	case EN_LOG_TYPE_I:
+	switch (enLogLevel) {
+	case EN_LOG_LEVEL_I:
 		type = 'I';
 		break;
 
-	case EN_LOG_TYPE_N:
+	case EN_LOG_LEVEL_N:
 		type = 'N';
 		fprintf (stdout, _UTL_TEXT_CYAN);
 		break;
 
-	case EN_LOG_TYPE_W:
+	case EN_LOG_LEVEL_W:
 		type = 'W';
 		fprintf (stdout, _UTL_TEXT_BOLD_TYPE);
 		fprintf (stdout, _UTL_TEXT_YELLOW);
 		break;
 
-	case EN_LOG_TYPE_E:
+	case EN_LOG_LEVEL_E:
 		type = 'E';
 		fprintf (stdout, _UTL_TEXT_UNDER_LINE);
 		fprintf (stdout, _UTL_TEXT_BOLD_TYPE);
 		fprintf (stdout, _UTL_TEXT_RED);
 		break;
 
-	case EN_LOG_TYPE_PE:
+	case EN_LOG_LEVEL_PE:
 		type = 'E';
 		fprintf (stdout, _UTL_TEXT_REVERSE);
 		fprintf (stdout, _UTL_TEXT_BOLD_TYPE);
@@ -276,17 +317,15 @@ void CUtils::putsLogLW (
 		break;
 	}
 
-	va_start (va, pszFormat);
 	vsnprintf (szBufVa, sizeof(szBufVa), pszFormat, va);
-	va_end (va);
 
 	getSysTime (szTime, SYSTIME_STRING_SIZE);
 	getThreadName (szThreadName, THREAD_NAME_STRING_SIZE);
 
 	deleteLF (szBufVa);
 
-	switch (enLogType) {
-	case EN_LOG_TYPE_PE:
+	switch (enLogLevel) {
+	case EN_LOG_LEVEL_PE:
 		fprintf (
 			pFp,
 			"[%s] %c %s  %s: %s\n",
@@ -302,10 +341,10 @@ void CUtils::putsLogLW (
 		);
 		break;
 
-	case EN_LOG_TYPE_I:
-	case EN_LOG_TYPE_N:
-	case EN_LOG_TYPE_W:
-	case EN_LOG_TYPE_E:
+	case EN_LOG_LEVEL_I:
+	case EN_LOG_LEVEL_N:
+	case EN_LOG_LEVEL_W:
+	case EN_LOG_LEVEL_E:
 	default:
 		fprintf (
 			pFp,
@@ -322,6 +361,45 @@ void CUtils::putsLogLW (
 
 	fprintf (stdout, _UTL_TEXT_ATTR_RESET);
 	fflush (pFp);
+}
+
+/**
+ * putsLog
+ * ログ出力 src,lineなし loglevel判定なし
+ */
+void CUtils::putsLogLW (
+	FILE *pFp,
+	EN_LOG_LEVEL enLogLevel,
+	const char *pszFormat,
+	...
+)
+{
+	va_list va;
+	va_start (va, pszFormat);
+	putsLogLW (pFp, enLogLevel, pszFormat, va);
+	va_end (va);
+}
+
+/**
+ * putsLog
+ * ログ出力 src,lineなし loglevel判定あり
+ */
+void CUtils::putsLogLW (
+	FILE *pFp,
+	EN_LOG_LEVEL enCurLogLevel,
+	EN_LOG_LEVEL enLogLevel,
+	const char *pszFormat,
+	...
+)
+{
+	if (enCurLogLevel > enLogLevel) {
+		return ;
+	}
+
+	va_list va;
+	va_start (va, pszFormat);
+	putsLogLW (pFp, enLogLevel, pszFormat, va);
+	va_end (va);
 }
 
 /**
