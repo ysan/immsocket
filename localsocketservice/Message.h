@@ -12,8 +12,10 @@
 #include "LocalSocketServer.h"
 #include "LocalSocketClient.h"
 #include "PacketHandler.h"
+#include "LocalSocketServiceCommon.h"
 
 using namespace std;
+using namespace LocalSocket;
 
 namespace LocalSocketService {
 

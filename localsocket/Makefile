@@ -40,6 +40,7 @@ SRCS		:=
 SRCS_CPP	:= \
 	LocalSocketServer.cpp \
 	LocalSocketClient.cpp \
+	LocalSocketCommon.cpp \
 
 #
 #   Configurations

@@ -19,31 +19,12 @@
 
 #include "Utils.h"
 #include "WorkerThread.h"
+#include "LocalSocketCommon.h"
 
 using namespace std;
 
 
-#define DEFAULT_LOCALSOCKET_ENDPOINT_PATH	"./socket_endpoint"
-#define DEFAULT_TCP_SERVER_PORT				((uint16_t)65000)
-#define DEFAULT_TCP_SERVER_ADDR				"127.0.0.1"
-
-#define RECEIVED_DATA_SIZE		(4096)
-
-#define SOH						(0x01) // start of heading
-#define EOT						(0x04) // end of transfer
-#define ACK						(0x06)
-#define NAK						(0x15)
-
-
-typedef enum {
-	EN_RECEIVE_STATE_STANDBY__WAIT_SOH,
-	EN_RECEIVE_STATE_WORKING__CHECK_RESERVE_0,
-	EN_RECEIVE_STATE_WORKING__CHECK_RESERVE_1,
-	EN_RECEIVE_STATE_WORKING__CHECK_SIZE,
-	EN_RECEIVE_STATE_WORKING__CHECK_DATA,
-	EN_RECEIVE_STATE_WORKING__CHECK_EOT,
-} EN_RECEIVE_STATE;
-
+namespace LocalSocket {
 
 class CLocalSocketClient;
 typedef int (CLocalSocketClient:: *P_CB_SETUP_CLIENT_SOCKET) (void);
@@ -130,5 +111,7 @@ private:
 	P_CB_SEND_WRAPPER mpcbSendWrapper;
 
 };
+
+} // namespace LocalSocket
 
 #endif

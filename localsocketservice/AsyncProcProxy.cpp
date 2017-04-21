@@ -33,7 +33,7 @@ bool CAsyncProcProxy::CProxyThread::start (void)
 	CUtils::CScopedMutex scopedMutex (&mMutex);
 
 	if (isAlive()) {
-		_UTL_LOG_W ("already started\n");
+		_LSS_LOG_W ("already started\n");
 		return true;
 	}
 
@@ -68,11 +68,11 @@ void CAsyncProcProxy::CProxyThread::onThreadMainRoutine (void)
 	char szName [64] = {0};
 	snprintf (szName, sizeof(szName), "%s(%ld)", "ProxyTh", syscall(SYS_gettid));
 	setName (szName);
-	_UTL_LOG_I ("%s %s\n", __FILE__, __func__);
+	_LSS_LOG_I ("%s %s\n", __FILE__, __func__);
 
 
 	if (!mpAsyncProcProxy) {
-		_UTL_LOG_E ("mpAsyncProcProxy is null\n");
+		_LSS_LOG_E ("mpAsyncProcProxy is null\n");
 		return;
 	}
 
@@ -103,7 +103,7 @@ void CAsyncProcProxy::CProxyThread::onThreadMainRoutine (void)
 			if (rtn == ETIMEDOUT) {
 			// timeout
 				if (mIsStop) {
-					_UTL_LOG_W ("stop --> waitloop break\n");
+					_LSS_LOG_W ("stop --> waitloop break\n");
 					break;
 				}
 			}
@@ -125,7 +125,7 @@ void CAsyncProcProxy::CProxyThread::onThreadMainRoutine (void)
 	}
 
 
-	_UTL_LOG_I ("%s %s end...\n", __FILE__, __func__);
+	_LSS_LOG_I ("%s %s end...\n", __FILE__, __func__);
 
 	// thread end
 }
@@ -152,7 +152,7 @@ bool CAsyncProcProxy::start (void)
 	for (int i = 0; i < PROXY_THREAD_POOL_NUM; i ++) {
 		mProxyThread[i].setAsyncProcProxy (this);	
 		if (!mProxyThread[i].start()) {
-			_UTL_LOG_E ("mProxyThread[%d].start() is failure\n", i);
+			_LSS_LOG_E ("mProxyThread[%d].start() is failure\n", i);
 			return false;
 		}
 	}

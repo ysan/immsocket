@@ -13,11 +13,13 @@
 #include "LocalSocketClient.h"
 #include "Message.h"
 #include "PacketHandler.h"
+#include "LocalSocketServiceCommon.h"
 
 #include <queue>
 
 
 using namespace std;
+using namespace LocalSocket;
 
 
 namespace LocalSocketService {

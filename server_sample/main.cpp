@@ -15,6 +15,7 @@
 
  
 using namespace std;
+using namespace LocalSocket;
 using namespace LocalSocketService;
 
 
@@ -39,13 +40,20 @@ int main (void)
 
 	sleep (1);
 	if (server.isAlive()) {
+		while (1) {
+			char buf[1024] = {0};
+			memset (buf, 0x00, sizeof(buf));
+			fgets (buf, sizeof(buf)-1, stdin);
+			CUtils::deleteLF (buf);
 
-		char b[1];
-		read (STDIN_FILENO, b, 1);
-		server.syncStop();
-
+			if ((strlen(buf) == 1) && (strncmp(buf, "q", strlen(buf)) == 0)) {
+				// quit
+				break;
+			}
+		}
 	}
 
+	server.syncStop();
 
 	if (pClientHandler) {
 		delete pClientHandler;

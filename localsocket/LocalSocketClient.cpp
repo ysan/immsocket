@@ -15,6 +15,7 @@
 #include "LocalSocketClient.h"
 #include "Utils.h"
 
+namespace LocalSocket {
 
 // for client single // local
 CLocalSocketClient::CLocalSocketClient (void) :
@@ -217,7 +218,7 @@ bool CLocalSocketClient::startReceiver (void)
 	CUtils::CScopedMutex scopedMutex (&mMutex);
 
 	if (isAlive()) {
-		_UTL_LOG_W ("already started\n");
+		_LSOCK_LOG_W ("already started\n");
 		return true;
 	}
 
@@ -314,7 +315,7 @@ bool CLocalSocketClient::connectToServer (void)
 	CUtils::CScopedMutex scopedMutex (&mMutex);
 
 	if (mFdClientSocket != 0) {
-		_UTL_LOG_W ("already connected\n");
+		_LSOCK_LOG_W ("already connected\n");
 		return true;
 	} 
 
@@ -351,13 +352,13 @@ bool CLocalSocketClient::isConnected (void)
 void CLocalSocketClient::onThreadMainRoutine (void)
 {
 	setName ((char*)"LocalSocketReceiver");
-	_UTL_LOG_I ("%s %s\n", __FILE__, __func__);
+	_LSOCK_LOG_I ("%s %s\n", __FILE__, __func__);
 
 
 	receiveLoop (mFdClientSocket);
 
 
-	_UTL_LOG_I ("%s %s end\n", __FILE__, __func__);
+	_LSOCK_LOG_W ("%s %s end\n", __FILE__, __func__);
 
 	// thread end
 }
@@ -393,7 +394,7 @@ void CLocalSocketClient::receiveLoop (int fdClientSocket)
 
 	while (1) {
 
-//		_UTL_LOG_I ("select(read) blocking...");
+//		_LSOCK_LOG_I ("select(read) blocking...");
 		FD_ZERO (&stFds);
 		FD_SET (fdClientSocket, &stFds);
 		stTimeout.tv_sec = 1;
@@ -407,7 +408,7 @@ void CLocalSocketClient::receiveLoop (int fdClientSocket)
 		} else if (rtn == 0) {
 			// timeout
 			if (mIsStop) {
-				_UTL_LOG_W ("stop --> receiveLoop break\n");
+				_LSOCK_LOG_W ("stop --> receiveLoop break\n");
 				break;
 			}
 		}
@@ -417,24 +418,24 @@ void CLocalSocketClient::receiveLoop (int fdClientSocket)
 			memset (buff, 0x00, sizeof(buff));
 			rtn = (this->*mpcbReceiveWrapper) (fdClientSocket, buff, sizeof(buff));
 			if (rtn == 0) {
-				_UTL_LOG_N ("disconnect.");
+				_LSOCK_LOG_N ("disconnect.");
 				break;
 			} else if (rtn < 0) {
 				_UTL_PERROR ("read()");
 				continue;
 			} else {
-				_UTL_LOG_I ("data come  size[%d]\n", rtn);
-				CUtils::dumper ((const uint8_t*)buff, rtn);
+				_LSOCK_LOG_I ("data come  size[%d]\n", rtn);
+				CUtils::dumper ((const uint8_t*)buff, rtn, true, getLogLevel());
 
 
 				chk = checkData (buff, rtn);
 				if (chk == -1) {
-					_UTL_LOG_E ("error checkData()\n");
+					_LSOCK_LOG_E ("error checkData()\n");
 					continue;
 				} else if (chk == -2) {
 					continue;
 				} else {
-					_UTL_LOG_I ("continue\n");
+					_LSOCK_LOG_I ("continue\n");
 					continue;
 				}
 			}
@@ -458,7 +459,7 @@ int CLocalSocketClient::checkData (uint8_t *pBuff, int size)
 			if (*pBuff == SOH) {
 				mState = EN_RECEIVE_STATE_WORKING__CHECK_RESERVE_0;
 			} else {
-				_UTL_LOG_W ("unexpected data --> drop\n");
+				_LSOCK_LOG_W ("unexpected data --> drop\n");
 			}
 
 		} else if (mState == EN_RECEIVE_STATE_WORKING__CHECK_RESERVE_0) {
@@ -494,15 +495,15 @@ int CLocalSocketClient::checkData (uint8_t *pBuff, int size)
 			if (*pBuff == EOT) {
 				// EOT
 				if (mCurrentPacketWritePos > 0) {
-					_UTL_LOG_N ("packet complete\n");
-					CUtils::dumper ((const uint8_t*)mCurrentPacket, mCurrentPacketWritePos);
+					_LSOCK_LOG_N ("packet complete\n");
+					CUtils::dumper ((const uint8_t*)mCurrentPacket, mCurrentPacketWritePos, true, getLogLevel());
 
 					if (mpPacketHandler) {
 						mpPacketHandler->onReceivePacket (this, mCurrentPacket, mCurrentPacketWritePos);
 					}
 
 				} else {
-					_UTL_LOG_N ("null packet\n");
+					_LSOCK_LOG_N ("null packet\n");
 				}
 
 				// clear member
@@ -513,7 +514,7 @@ int CLocalSocketClient::checkData (uint8_t *pBuff, int size)
 
 			} else {
 				// invalid packet(invalid EOT)
-				_UTL_LOG_E ("invalid packet(invalid EOT)\n");
+				_LSOCK_LOG_E ("invalid packet(invalid EOT)\n");
 
 				// clear member
 				mState = EN_RECEIVE_STATE_STANDBY__WAIT_SOH;
@@ -526,7 +527,7 @@ int CLocalSocketClient::checkData (uint8_t *pBuff, int size)
 
 		if (mCurrentPacketWritePos >= RECEIVED_DATA_SIZE) {
 			// buffer over
-			_UTL_LOG_E ("buffer over(mCurrentPacket)\n");
+			_LSOCK_LOG_E ("buffer over(mCurrentPacket)\n");
 
 			// clear member
 			mState = EN_RECEIVE_STATE_STANDBY__WAIT_SOH;
@@ -566,7 +567,7 @@ bool CLocalSocketClient::sendToConnection (const uint8_t *pData, int size)
 	uint8_t buff [totalsize];
 	memset (buff, 0x00, sizeof(buff));
 	if (!setPacket (pData, size, buff, totalsize)) {
-		_UTL_LOG_E ("setPacket() is failure.\n");
+		_LSOCK_LOG_E ("setPacket() is failure.\n");
 		return false;
 	}
 
@@ -637,3 +638,5 @@ void CLocalSocketClient::setTcpSocket (void)
 	mpcbReceiveWrapper = &CLocalSocketClient::receiveWrapper_Tcp;
 	mpcbSendWrapper = &CLocalSocketClient::sendWrapper_Tcp;
 }
+
+} // namespace LocalSocket

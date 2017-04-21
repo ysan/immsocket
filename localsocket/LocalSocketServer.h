@@ -23,10 +23,13 @@
 
 #include "WorkerThread.h"
 #include "Utils.h"
+#include "LocalSocketCommon.h"
 #include "LocalSocketClient.h"
 
 using namespace std;
 
+
+namespace LocalSocket {
 
 class CLocalSocketClient;
 
@@ -105,5 +108,7 @@ private:
 	P_CB_ACCEPT_WRAPPER mpcbAcceptWrapper;
 
 };
+
+} // namespace LocalSocket
 
 #endif

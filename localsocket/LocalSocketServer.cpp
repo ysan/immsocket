@@ -17,6 +17,8 @@
 #include "Utils.h"
 
 
+namespace LocalSocket {
+
 // local
 CLocalSocketServer::CLocalSocketServer (void) :
 	mFdServerSocket (0),
@@ -146,7 +148,7 @@ bool CLocalSocketServer::start (void)
 	CUtils::CScopedMutex scopedMutex (&mMutex);
 
 	if (isAlive()) {
-		_UTL_LOG_W ("already started\n");
+		_LSOCK_LOG_W ("already started\n");
 		return true;
 	}
 
@@ -172,7 +174,7 @@ void CLocalSocketServer::syncStop (void)
 void CLocalSocketServer::onThreadMainRoutine (void)
 {
 	setName ((char*)"LocalSocketServer");
-	_UTL_LOG_I ("%s %s\n", __FILE__, __func__);
+	_LSOCK_LOG_I ("%s %s\n", __FILE__, __func__);
 
 
 	int fd = (this->*mpcbSetupServerSocket) ();
@@ -184,11 +186,11 @@ void CLocalSocketServer::onThreadMainRoutine (void)
 
 	forceClearClientTable ();
 
-	_UTL_LOG_I ("server socket:[%d] close\n", fd);
+	_LSOCK_LOG_W ("server socket:[%d] close\n", fd);
 	close (fd);
 
 
-	_UTL_LOG_I ("%s %s end...\n", __FILE__, __func__);
+	_LSOCK_LOG_W ("%s %s end...\n", __FILE__, __func__);
 
 	// thread end
 }
@@ -316,7 +318,7 @@ void CLocalSocketServer::acceptLoop (int fdServerSocket)
 
 	while (1) {
 
-//		_UTL_LOG_I ("select(accept) blocking...");
+//		_LSOCK_LOG_I ("select(accept) blocking...");
 		FD_ZERO (&stFds);
 		FD_SET (fdServerSocket, &stFds);
 		stTimeout.tv_sec = 1;
@@ -332,7 +334,7 @@ void CLocalSocketServer::acceptLoop (int fdServerSocket)
 			refreshClientTable ();
 
 			if (mIsStop) {
-				_UTL_LOG_W ("stop --> acceptLoop break\n");
+				_LSOCK_LOG_W ("stop --> acceptLoop break\n");
 				break;
 			}
 
@@ -352,7 +354,7 @@ void CLocalSocketServer::acceptLoop (int fdServerSocket)
 				continue ;
 			}
 
-			_UTL_LOG_I ("accepted fdClientSocket:[%d]\n", fdClientSocket);
+			_LSOCK_LOG_I ("accepted fdClientSocket:[%d]\n", fdClientSocket);
 
 			CLocalSocketClient *pClient = NULL;
 			if (mpClientHandler) {
@@ -404,12 +406,12 @@ bool CLocalSocketServer::removeClientTable (int fd)
 		if (pClient) {
 			pClient->syncStopReceiver (); // thread end
 
-			_UTL_LOG_N ("client socket:[%d] close\n", fd);
+			_LSOCK_LOG_N ("client socket:[%d] close\n", fd);
 			close (fd);
 
 			CLocalSocketClient::IPacketHandler *pHandler = pClient->getPacketHandler();
 			if (pHandler) {
-				_UTL_LOG_N ("client socket:[%d] --> packetHandler delete\n", fd);
+				_LSOCK_LOG_N ("client socket:[%d] --> packetHandler delete\n", fd);
 				delete pHandler;
 				pHandler = NULL;
 			}
@@ -417,7 +419,7 @@ bool CLocalSocketServer::removeClientTable (int fd)
 			delete iter->second.pInstance;
 			iter->second.pInstance = NULL;
 
-			_UTL_LOG_N ("client socket:[%d] --> instance delete\n", fd);
+			_LSOCK_LOG_N ("client socket:[%d] --> instance delete\n", fd);
 		}
 
 		mClientTable.erase (fd);
@@ -478,7 +480,7 @@ void CLocalSocketServer::dumpClientTable (void)
 
 	CLIENT_TABLE::iterator iter = mClientTable.begin();
 
-	_UTL_LOG_I ("--- dumpClientTable ---\n");
+	_LSOCK_LOG_I ("--- dumpClientTable ---\n");
 
 	while (iter != mClientTable.end()) {
 
@@ -486,13 +488,13 @@ void CLocalSocketServer::dumpClientTable (void)
 		if (pClient) {
 			bool isAlive = pClient->isAlive();
 			int fd = pClient->getFd();
-			_UTL_LOG_I (" fd:[%d] isAlive:[%d]\n", fd, isAlive);
+			_LSOCK_LOG_I (" fd:[%d] isAlive:[%d]\n", fd, isAlive);
 		}
 
 		iter ++;
 	}
 
-	_UTL_LOG_I ("-----------------------\n");
+	_LSOCK_LOG_I ("-----------------------\n");
 }
 
 void CLocalSocketServer::setLocalSocket (void)
@@ -506,3 +508,5 @@ void CLocalSocketServer::setTcpSocket (void)
 	mpcbSetupServerSocket = &CLocalSocketServer::setupServerSocket_Tcp;
 	mpcbAcceptWrapper = &CLocalSocketServer::acceptWrapper_Tcp;
 }
+
+} // namespace LocalSocket

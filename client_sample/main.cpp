@@ -13,41 +13,11 @@
 
  
 using namespace std;
+using namespace LocalSocket;
 using namespace LocalSocketService;
 
 
-static void *threadHandler (void *args)
-{
-	CLocalSocketClient* pcl = (CLocalSocketClient*)args;
-
-	while (1) {
-		sleep (5);
-
-		_UTL_LOG_N ("sync request\n");
-		CMessage *pMsg = new CMessage(pcl);
-		if (!pMsg->sendRequestSync ((uint8_t)0x02)) { // reply wait
-			delete pMsg;
-			pMsg = NULL;
-			continue;
-		}
-
-		if (pMsg->sync()->isReplyResultOK()) {
-			_UTL_LOG_N ("REPLY_OK\n");
-		} else {
-			_UTL_LOG_N ("REPLY_NG\n");
-		}
-
-		if (pMsg->sync()->getDataSize() > 0) {
-			_UTL_LOG_N ("replyData [%s]\n", (char*)(pMsg->sync()->getData()));
-		}
-
-		delete pMsg;
-		pMsg = NULL;
-	}
-
-	return NULL;
-}
-
+static void *sync_req_test (void *args);
 
 int main (void)
 {
@@ -74,8 +44,8 @@ int main (void)
 	client.startReceiver();
 
 
-	pthread_t pth_id;
-	if (pthread_create (&pth_id, NULL, threadHandler, (void*)&client) != 0) {
+	pthread_t thid;
+	if (pthread_create (&thid, NULL, sync_req_test, (void*)&client) != 0) {
 		_UTL_PERROR ("pthread_create");
 	}
 
@@ -89,12 +59,13 @@ int main (void)
 		fgets (buf, sizeof(buf)-1, stdin);
 		CUtils::deleteLF (buf);
 
-		if ((strlen(buf) == 3) && (strncmp(buf, "end", strlen(buf)) == 0)) {
+		if ((strlen(buf) == 1) && (strncmp(buf, "q", strlen(buf)) == 0)) {
+			// quit
 			break;
 		}
 
 
-		_UTL_LOG_N ("async request\n");
+		_UTL_LOG_I ("async request\n");
 
 		CMessage *pMsg = new CMessage(&client);
 		if ((int)strlen(buf) > 0) {
@@ -125,9 +96,43 @@ int main (void)
 	client.syncStopReceiver();
 	client.disconnectFromServer();
 
-
-	delete pHandler;
-	pHandler = NULL;
+	if (pHandler) {
+		delete pHandler;
+		pHandler = NULL;
+	}
 
 	exit (EXIT_SUCCESS);
 }
+
+static void *sync_req_test (void *args)
+{
+	CLocalSocketClient* pcl = (CLocalSocketClient*)args;
+
+	while (1) {
+		sleep (5);
+
+		_UTL_LOG_I ("sync request\n");
+		CMessage *pMsg = new CMessage(pcl);
+		if (!pMsg->sendRequestSync ((uint8_t)0x02)) { // reply wait
+			delete pMsg;
+			pMsg = NULL;
+			continue;
+		}
+
+		if (pMsg->sync()->isReplyResultOK()) {
+			_UTL_LOG_I ("REPLY_OK\n");
+		} else {
+			_UTL_LOG_I ("REPLY_NG\n");
+		}
+
+		if (pMsg->sync()->getDataSize() > 0) {
+			_UTL_LOG_I ("replyData [%s]\n", (char*)(pMsg->sync()->getData()));
+		}
+
+		delete pMsg;
+		pMsg = NULL;
+	}
+
+	return NULL;
+}
+

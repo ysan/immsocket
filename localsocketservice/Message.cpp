@@ -120,11 +120,11 @@ CMessage::CMessage (CMessage *pRequestMsg) :
 		if (pRequestMsg->getObjtype() == EN_OBJTYPE_REPLYABLE) { 
 			mObjtype = EN_OBJTYPE_REPLYER;
 		} else {
-			_UTL_LOG_W ("not EN_OBJTYPE_REPLYABLE\n");
+			_LSS_LOG_W ("not EN_OBJTYPE_REPLYABLE\n");
 		}
 
 	} else {
-		_UTL_LOG_E ("pRequestMsg is null\n");
+		_LSS_LOG_E ("pRequestMsg is null\n");
 	}
 
 }
@@ -260,7 +260,7 @@ uint8_t CMessage::generateId (void)
 {
 	CPacketHandler *pPacketHandler = (CPacketHandler*)mpClientInstance->getPacketHandler();
 	if (!pPacketHandler) {
-		_UTL_LOG_E ("PacketHandler is null\n");
+		_LSS_LOG_E ("PacketHandler is null\n");
 		return 0x00;
 	}
 
@@ -274,13 +274,13 @@ uint8_t CMessage::generateId (void)
 bool CMessage::sendRequestSync (void)
 {
 	if (!mpClientInstance) {
-		_UTL_LOG_E ("mpClientInstance is null\n");
+		_LSS_LOG_E ("mpClientInstance is null\n");
 		return false;
 	}
 
 	CPacketHandler *pPacketHandler = (CPacketHandler*)mpClientInstance->getPacketHandler();
 	if (!pPacketHandler) {
-		_UTL_LOG_E ("PacketHandler is null\n");
+		_LSS_LOG_E ("PacketHandler is null\n");
 		return false;
 	}
 
@@ -353,29 +353,29 @@ bool CMessage::sendRequestAsync (uint8_t id, uint8_t command, uint8_t *pData, in
 bool CMessage::sendRequest (uint8_t id)
 {
 	if (mObjtype != EN_OBJTYPE_REQUESTER) {
-		_UTL_LOG_E ("mObjType:[%d]\n", mObjtype);
+		_LSS_LOG_E ("mObjType:[%d]\n", mObjtype);
 		return false;
 	}
 	if (!mpClientInstance) {
-		_UTL_LOG_E ("mpClientInstance is null\n");
+		_LSS_LOG_E ("mpClientInstance is null\n");
 		return false;
 	}
 //	if ((mDataSize == 0) && mpData) {
-//		_UTL_LOG_E ("(mDataSize == 0) && mpData --> invalid data\n");
+//		_LSS_LOG_E ("(mDataSize == 0) && mpData --> invalid data\n");
 //		return false;
 //	}
 //	if ((mDataSize > 0) && !mpData) {
-//		_UTL_LOG_E ("(mDataSize > 0) && !mpData --> invalid data\n");
+//		_LSS_LOG_E ("(mDataSize > 0) && !mpData --> invalid data\n");
 //		return false;
 //	}
 	if (mDataSize > (0xff - (int)sizeof(ST_PACKET))) {
-		_UTL_LOG_E ("data size over\n");
+		_LSS_LOG_E ("data size over\n");
 		return false;
 	}
 
 	CPacketHandler *pPacketHandler = (CPacketHandler*)mpClientInstance->getPacketHandler();
 	if (!pPacketHandler) {
-		_UTL_LOG_E ("PacketHandler is null\n");
+		_LSS_LOG_E ("PacketHandler is null\n");
 		return false;
 	}
 
@@ -426,23 +426,23 @@ bool CMessage::sendReplyNG (uint8_t *pReplyData, int size)
 bool CMessage::sendReply (void)
 {
 	if (mObjtype != EN_OBJTYPE_REPLYER) {
-		_UTL_LOG_E ("mObjType:[%d]\n", mObjtype);
+		_LSS_LOG_E ("mObjType:[%d]\n", mObjtype);
 		return false;
 	}
 	if (!mpClientInstance) {
-		_UTL_LOG_E ("mpClientInstance is null\n");
+		_LSS_LOG_E ("mpClientInstance is null\n");
 		return false;
 	}
 //	if ((mDataSize == 0) && mpData) {
-//		_UTL_LOG_E ("(mDataSize == 0) && mpData --> invalid data\n");
+//		_LSS_LOG_E ("(mDataSize == 0) && mpData --> invalid data\n");
 //		return false;
 //	}
 //	if ((mDataSize > 0) && !mpData) {
-//		_UTL_LOG_E ("(mDataSize > 0) && !mpData --> invalid data\n");
+//		_LSS_LOG_E ("(mDataSize > 0) && !mpData --> invalid data\n");
 //		return false;
 //	}
 	if (mDataSize > (0xff - (int)sizeof(ST_PACKET))) {
-		_UTL_LOG_E ("data size over\n");
+		_LSS_LOG_E ("data size over\n");
 		return false;
 	}
 
@@ -477,23 +477,23 @@ bool CMessage::sendReply (void)
 bool CMessage::sendNotify (void)
 {
 	if (mObjtype != EN_OBJTYPE_REQUESTER) {
-		_UTL_LOG_E ("mObjType:[%d]\n", mObjtype);
+		_LSS_LOG_E ("mObjType:[%d]\n", mObjtype);
 		return false;
 	}
 	if (!mpClientInstance) {
-		_UTL_LOG_E ("mpClientInstance is null\n");
+		_LSS_LOG_E ("mpClientInstance is null\n");
 		return false;
 	}
 //	if ((mDataSize == 0) && mpData) {
-//		_UTL_LOG_E ("(mDataSize == 0) && mpData --> invalid data\n");
+//		_LSS_LOG_E ("(mDataSize == 0) && mpData --> invalid data\n");
 //		return false;
 //	}
 //	if ((mDataSize > 0) && !mpData) {
-//		_UTL_LOG_E ("(mDataSize > 0) && !mpData --> invalid data\n");
+//		_LSS_LOG_E ("(mDataSize > 0) && !mpData --> invalid data\n");
 //		return false;
 //	}
 	if (mDataSize > (0xff - (int)sizeof(ST_PACKET))) {
-		_UTL_LOG_E ("data size over\n");
+		_LSS_LOG_E ("data size over\n");
 		return false;
 	}
 
@@ -521,15 +521,15 @@ bool CMessage::setPacket (uint8_t id, uint8_t type, uint8_t command, uint8_t *pO
 	}
 
 //	if ((mDataSize == 0) && mpData) {
-//		_UTL_LOG_E ("(mDataSize == 0) && mpData --> invalid data\n");
+//		_LSS_LOG_E ("(mDataSize == 0) && mpData --> invalid data\n");
 //		return false;
 //	}
 //	if ((mDataSize > 0) && !mpData) {
-//		_UTL_LOG_E ("(mDataSize > 0) && !mpData --> invalid data\n");
+//		_LSS_LOG_E ("(mDataSize > 0) && !mpData --> invalid data\n");
 //		return false;
 //	}
 	if (mDataSize > (0xff - (int)sizeof(ST_PACKET))) {
-		_UTL_LOG_E ("data size over\n");
+		_LSS_LOG_E ("data size over\n");
 		return false;
 	}
 

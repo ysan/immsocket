@@ -21,13 +21,13 @@ CSvrMessageHandler::~CSvrMessageHandler (void)
 
 void CSvrMessageHandler::onHandleRequest (CMessage *pMsg)
 {
-	_UTL_LOG_N ("%s %s\n", __FILE__, __func__);
+	_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
 
 
 	switch ((int)pMsg->getCommand()) {
 	case 0x05: {
 		int data = *((int*)pMsg->getData());
-		_UTL_LOG_N ("######  %d  ######\n", data);
+		_UTL_LOG_I ("received ->  [%d]\n", data);
 
 		CMessage *pReplyMsg = new CMessage(pMsg);
 		if (((int)pMsg->getId() % 10) != 0) { // debug
@@ -42,7 +42,7 @@ void CSvrMessageHandler::onHandleRequest (CMessage *pMsg)
 
 	case 0x01: {
 		char *pData = (char*)pMsg->getData();
-		_UTL_LOG_N ("######  %s  ######\n", pData);
+		_UTL_LOG_I ("received ->  [%s]\n", pData);
 
 		CMessage *pReplyMsg = new CMessage(pMsg);
 		pReplyMsg->sendReplyOK();
@@ -52,6 +52,7 @@ void CSvrMessageHandler::onHandleRequest (CMessage *pMsg)
 		} break;
 
 	case 0x02: {
+		_UTL_LOG_I ("debug sleep 1s\n");
 		sleep (1); // debug
 
 		CMessage *pReplyMsg = new CMessage(pMsg);
@@ -73,10 +74,10 @@ void CSvrMessageHandler::onHandleRequest (CMessage *pMsg)
 
 void CSvrMessageHandler::onHandleReply (CMessage *pMsg)
 {
-	_UTL_LOG_N ("%s %s\n", __FILE__, __func__);
+	_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
 }
 
 void CSvrMessageHandler::onHandleNotify (CMessage *pMsg)
 {
-	_UTL_LOG_N ("%s %s\n", __FILE__, __func__);
+	_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
 }

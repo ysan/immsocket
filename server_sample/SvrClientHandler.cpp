@@ -23,6 +23,8 @@ CSvrClientHandler::~CSvrClientHandler (void)
 
 CLocalSocketClient *CSvrClientHandler::onAcceptClient (int fdClientSocket)
 {
+	_UTL_LOG_N ("%s\n", __PRETTY_FUNCTION__);
+
 	CSvrMessageHandler *pHandler = new CSvrMessageHandler();
 
 	CLocalSocketClient *pClient = new CLocalSocketClient (fdClientSocket, pHandler);

@@ -13,8 +13,10 @@
 #include "LocalSocketClient.h"
 #include "Message.h"
 #include "AsyncProcProxy.h"
+#include "LocalSocketServiceCommon.h"
 
 using namespace std;
+using namespace LocalSocket;
 
 namespace LocalSocketService {
 

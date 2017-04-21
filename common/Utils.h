@@ -190,7 +190,7 @@ public:
 
 	static void putsBackTrace (void);
 
-	static void dumper (const uint8_t *pSrc, int nSrcLen, bool isAddAscii=true);
+	static void dumper (const uint8_t *pSrc, int nSrcLen, bool isAddAscii=true, EN_LOG_LEVEL enLvl=EN_LOG_LEVEL_I);
 
 
 

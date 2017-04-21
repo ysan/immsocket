@@ -41,6 +41,7 @@ SRCS_CPP	:= \
 	ClientHandler.cpp \
 	Message.cpp \
 	AsyncProcProxy.cpp \
+	LocalSocketServiceCommon.cpp \
 
 #
 #   Configurations

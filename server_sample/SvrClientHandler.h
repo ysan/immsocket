@@ -15,6 +15,7 @@
 #include "ClientHandler.h"
 
 using namespace std;
+using namespace LocalSocket;
 using namespace LocalSocketService;
 
 
