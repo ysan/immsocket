@@ -197,7 +197,7 @@ public:
 	class CScopedMutex
 	{
 	public:
-		CScopedMutex (pthread_mutex_t* pMutex) {
+		CScopedMutex (pthread_mutex_t* pMutex) : mpMutex(NULL) {
 			if (pMutex) {
 				mpMutex = pMutex;
 				pthread_mutex_lock (mpMutex);

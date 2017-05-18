@@ -339,7 +339,6 @@ void CLocalSocketServer::acceptLoop (int fdServerSocket)
 			}
 
 
-			// 10秒おきにclient table 表示
 			n ++;
 			if (n >= 10) {
 				dumpClientTable ();
