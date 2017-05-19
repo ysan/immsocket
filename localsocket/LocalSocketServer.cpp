@@ -204,7 +204,7 @@ int CLocalSocketServer::setupServerSocket (void)
 	unlink (mSocketEndpointPath);
 
 	if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
-		_UTL_PERROR ("socket");
+		_LSOCK_PERROR ("socket");
 		return -1;
 	}
 
@@ -217,20 +217,20 @@ int CLocalSocketServer::setupServerSocket (void)
 #else
 	rtn = bind (fd, (struct sockaddr*)&stServerAddr, sizeof(stServerAddr.sun_family)+strlen(mSocketEndpointPath));
 	if (rtn < 0) {
-		_UTL_PERROR ("bind");
+		_LSOCK_PERROR ("bind");
 		return -1;
 	}
 #endif
 
 	rtn = chmod (mSocketEndpointPath, S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IWGRP|S_IXGRP|S_IROTH|S_IWOTH|S_IXOTH);
 	if (rtn < 0) {
-		_UTL_PERROR ("chmod");
+		_LSOCK_PERROR ("chmod");
 		return -1;
 	}
 
 	rtn = listen (fd, SOMAXCONN);
 	if (rtn < 0) {
-		_UTL_PERROR ("listen");
+		_LSOCK_PERROR ("listen");
 		return -1;
 	}
 
@@ -250,14 +250,14 @@ int CLocalSocketServer::setupServerSocket_Tcp (void)
 
 	fd = socket (AF_INET, SOCK_STREAM, 0);
 	if (fd < 0) {
-		_UTL_PERROR ("socket()");
+		_LSOCK_PERROR ("socket()");
 		return -1;
 	}
 
 	int optval = 1;
 	rtn = setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
 	if (rtn < 0) {
-		_UTL_PERROR ("setsockopt()");
+		_LSOCK_PERROR ("setsockopt()");
 		close (fd);
 		return -1;
 	}
@@ -267,7 +267,7 @@ int CLocalSocketServer::setupServerSocket_Tcp (void)
 #else
 	rtn = bind (fd, (struct sockaddr*)&stServerAddr, sizeof(struct sockaddr));
 	if (rtn < 0) {
-		_UTL_PERROR ("bind()");
+		_LSOCK_PERROR ("bind()");
 		close (fd);
 		return -1;
 	}
@@ -275,7 +275,7 @@ int CLocalSocketServer::setupServerSocket_Tcp (void)
 
 	rtn = listen (fd, SOMAXCONN);
 	if (rtn < 0) {
-		_UTL_PERROR ("listen()");
+		_LSOCK_PERROR ("listen()");
 		close (fd);
 		return -1;
 	}
@@ -326,7 +326,7 @@ void CLocalSocketServer::acceptLoop (int fdServerSocket)
 
 		rtn = select (fdServerSocket+1, &stFds, NULL, NULL, &stTimeout);
 		if (rtn < 0) {
-			_UTL_PERROR ("select()");
+			_LSOCK_PERROR ("select()");
 			continue;
 
 		} else if (rtn == 0) {
@@ -349,7 +349,7 @@ void CLocalSocketServer::acceptLoop (int fdServerSocket)
 
 		if (FD_ISSET (fdServerSocket, &stFds)) {
 			if ((fdClientSocket = (this->*mpcbAcceptWrapper) (fdServerSocket)) < 0) {
-				_UTL_PERROR ("accept");
+				_LSOCK_PERROR ("accept");
 				continue ;
 			}
 

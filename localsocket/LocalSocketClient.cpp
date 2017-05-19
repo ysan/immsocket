@@ -262,7 +262,7 @@ int CLocalSocketClient::setupClientSocket (void)
 	struct sockaddr_un stClientAddr;
 
 	if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
-		_UTL_PERROR ("socket");
+		_LSOCK_PERROR ("socket");
 		return -1;
 	}
 
@@ -271,7 +271,7 @@ int CLocalSocketClient::setupClientSocket (void)
 	strcpy (stClientAddr.sun_path, mSocketEndpointPath);
 
 	if (connect (fd, (struct sockaddr*)&stClientAddr, sizeof(stClientAddr.sun_family)+strlen(mSocketEndpointPath)) < 0) {
-		_UTL_PERROR ("connect");
+		_LSOCK_PERROR ("connect");
 		return -1;
 	}
 
@@ -290,19 +290,19 @@ int CLocalSocketClient::setupClientSocket_Tcp (void)
 //	stClientAddr.sin_addr.s_addr = inet_addr (mIpAddr);
 	rtn = inet_aton (mIpAddr, &stClientAddr.sin_addr);
 	if (rtn == 0) {
-		_UTL_PERROR ("inet_aton()");
+		_LSOCK_PERROR ("inet_aton()");
 		return -1;
 	}
 
 	fd = socket (AF_INET, SOCK_STREAM, 0);
 	if (fd < 0) {
-		_UTL_PERROR ("socket()");
+		_LSOCK_PERROR ("socket()");
 		return -1;
 	}
 
 	rtn = connect (fd, (struct sockaddr*)&stClientAddr, sizeof(struct sockaddr));
 	if( rtn < 0 ){
-		_UTL_PERROR ("connect()");
+		_LSOCK_PERROR ("connect()");
 		close (fd);
 		return -1;
 	}
@@ -367,7 +367,7 @@ int CLocalSocketClient::receiveWrapper (int fdClientSocket, uint8_t *pBuff, int 
 {
 	int rtn = read (fdClientSocket, pBuff, size);
 	if (rtn < 0) {
-		_UTL_PERROR ("read()");
+		_LSOCK_PERROR ("read()");
 	}
 
 	return rtn;
@@ -377,7 +377,7 @@ int CLocalSocketClient::receiveWrapper_Tcp (int fdClientSocket, uint8_t *pBuff, 
 {
 	int rtn = recv (fdClientSocket, pBuff, size, 0);
 	if (rtn < 0) {
-		_UTL_PERROR ("recv()");
+		_LSOCK_PERROR ("recv()");
 	}
 
 	return rtn;
@@ -402,7 +402,7 @@ void CLocalSocketClient::receiveLoop (int fdClientSocket)
 
 		rtn = select (fdClientSocket+1, &stFds, NULL, NULL, &stTimeout);
 		if (rtn < 0) {
-			_UTL_PERROR ("select()");
+			_LSOCK_PERROR ("select()");
 			continue;
 
 		} else if (rtn == 0) {
@@ -421,7 +421,7 @@ void CLocalSocketClient::receiveLoop (int fdClientSocket)
 				_LSOCK_LOG_N ("disconnect.");
 				break;
 			} else if (rtn < 0) {
-				_UTL_PERROR ("read()");
+				_LSOCK_PERROR ("read()");
 				continue;
 			} else {
 				_LSOCK_LOG_I ("data come  size[%d]\n", rtn);
@@ -607,7 +607,7 @@ int CLocalSocketClient::sendWrapper (int fdClientSocket, const uint8_t *pData, i
 {
 	int rtn = write (fdClientSocket, pData, size);
 	if (rtn < 0) {
-		_UTL_PERROR ("write");
+		_LSOCK_PERROR ("write");
 	}
 
 	return rtn;
@@ -617,7 +617,7 @@ int CLocalSocketClient::sendWrapper_Tcp (int fdClientSocket, const uint8_t *pDat
 {
 	int rtn = send (fdClientSocket, pData, size, 0);
 	if (rtn < 0) {
-		_UTL_PERROR ("send");
+		_LSOCK_PERROR ("send");
 	}
 
 	return rtn;
