@@ -425,8 +425,9 @@ void CLocalSocketClient::receiveLoop (int fdClientSocket)
 				continue;
 			} else {
 				_LSOCK_LOG_I ("data come  size[%d]\n", rtn);
-				CUtils::dumper ((const uint8_t*)buff, rtn, true, getLogLevel());
-
+				if (getLogLevel() <= EN_LOG_LEVEL_I) {
+					CUtils::dumper ((const uint8_t*)buff, rtn);
+				}
 
 				chk = checkData (buff, rtn);
 				if (chk == -1) {
@@ -496,7 +497,9 @@ int CLocalSocketClient::checkData (uint8_t *pBuff, int size)
 				// EOT
 				if (mCurrentPacketWritePos > 0) {
 					_LSOCK_LOG_N ("packet complete\n");
-					CUtils::dumper ((const uint8_t*)mCurrentPacket, mCurrentPacketWritePos, true, getLogLevel());
+					if (getLogLevel() <= EN_LOG_LEVEL_I) {
+						CUtils::dumper ((const uint8_t*)mCurrentPacket, mCurrentPacketWritePos);
+					}
 
 					if (mpPacketHandler) {
 						mpPacketHandler->onReceivePacket (this, mCurrentPacket, mCurrentPacketWritePos);

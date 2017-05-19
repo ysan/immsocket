@@ -553,12 +553,8 @@ void CUtils::putsBackTrace (void)
 }
 
 #define DUMP_PUTS_OFFSET	"  "
-void CUtils::dumper (const uint8_t *pSrc, int nSrcLen, bool isAddAscii, EN_LOG_LEVEL enCurLogLevel)
+void CUtils::dumper (const uint8_t *pSrc, int nSrcLen, bool isAddAscii)
 {
-	if (enCurLogLevel > EN_LOG_LEVEL_I) {
-		return ;
-	}
-
 	if ((!pSrc) || (nSrcLen <= 0)) {
 		return;
 	}
