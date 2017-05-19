@@ -69,6 +69,7 @@ public:
 
 	int getFd (void);
 	bool sendToConnection (const uint8_t *pData, int size);
+	int receiveOnePacket (uint8_t *pBuff, int size);
 	CLocalSocketClient::IPacketHandler* getPacketHandler (void);
 
 	void setLocalSocket (void);
@@ -77,7 +78,8 @@ public:
 private:
 	void onThreadMainRoutine (void);
 	void receiveLoop (int fdClientSocket);
-	int checkData (uint8_t *pBuff, int size);
+	void receiveOnce (int fdClientSocket);
+	int checkData (uint8_t *pBuff, int size, bool isOnce=false);
 	bool setPacket (const uint8_t *pIn, int insize, uint8_t *pOut, int outsize);
 
 	int setupClientSocket     (void);
@@ -91,7 +93,7 @@ private:
 	bool mIsStop;
 	EN_RECEIVE_STATE mState;
 	int mFdClientSocket;
-	uint8_t mCurrentPacket [RECEIVED_DATA_SIZE];
+	uint8_t mCurrentPacket [RECEIVED_SIZE_MAX];
 	int mCurrentPacketWritePos;
 	uint8_t mCurrentPacketDataSize;
 	

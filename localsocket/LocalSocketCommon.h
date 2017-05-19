@@ -25,7 +25,7 @@ namespace LocalSocket {
 #define DEFAULT_TCP_SERVER_PORT				((uint16_t)65000)
 #define DEFAULT_TCP_SERVER_ADDR				"127.0.0.1"
 
-#define RECEIVED_DATA_SIZE		(4096)
+#define RECEIVED_SIZE_MAX		(4096)
 
 #define SOH						(0x01) // start of heading
 #define EOT						(0x04) // end of transfer

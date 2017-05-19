@@ -355,6 +355,7 @@ void CLocalSocketClient::onThreadMainRoutine (void)
 	_LSOCK_LOG_I ("%s %s\n", __FILE__, __func__);
 
 
+	// don't use receiveOnce and receiveLoop together
 	receiveLoop (mFdClientSocket);
 
 
@@ -431,9 +432,10 @@ void CLocalSocketClient::receiveLoop (int fdClientSocket)
 
 				chk = checkData (buff, rtn);
 				if (chk == -1) {
-					_LSOCK_LOG_E ("error checkData()\n");
+					_LSOCK_LOG_E ("checkData()  error\n");
 					continue;
 				} else if (chk == -2) {
+					_LSOCK_LOG_E ("checkData()  buffer over\n");
 					continue;
 				} else {
 					_LSOCK_LOG_I ("continue\n");
@@ -441,18 +443,102 @@ void CLocalSocketClient::receiveLoop (int fdClientSocket)
 				}
 			}
 		}
-
 	}
 }
 
-int CLocalSocketClient::checkData (uint8_t *pBuff, int size)
+void CLocalSocketClient::receiveOnce (int fdClientSocket)
+{
+	uint8_t buff[1024];
+	int rtn = 0;
+	int chk = 0;
+	fd_set stFds;
+	struct timeval stTimeout;
+
+
+	while (1) {
+
+		FD_ZERO (&stFds);
+		FD_SET (fdClientSocket, &stFds);
+		stTimeout.tv_sec = 1;
+		stTimeout.tv_usec = 0;
+
+		rtn = select (fdClientSocket+1, &stFds, NULL, NULL, &stTimeout);
+		if (rtn < 0) {
+			_LSOCK_PERROR ("select()");
+			break;
+
+		} else if (rtn == 0) {
+			// timeout
+			if (mIsStop) {
+				_LSOCK_LOG_W ("stop --> receiveOnce break\n");
+				break;
+			}
+		}
+
+
+		if (FD_ISSET (fdClientSocket, &stFds)) {
+			memset (buff, 0x00, sizeof(buff));
+			rtn = (this->*mpcbReceiveWrapper) (fdClientSocket, buff, sizeof(buff));
+			if (rtn == 0) {
+				_LSOCK_LOG_N ("disconnect.");
+				break;
+			} else if (rtn < 0) {
+				_LSOCK_PERROR ("read()");
+				break;
+			} else {
+				_LSOCK_LOG_I ("data come  size[%d]\n", rtn);
+				if (getLogLevel() <= EN_LOG_LEVEL_I) {
+					CUtils::dumper ((const uint8_t*)buff, rtn);
+				}
+
+				chk = checkData (buff, rtn, true);
+				if (chk == -1) {
+					_LSOCK_LOG_E ("checkData()  error\n");
+					break;
+				} else if (chk == -2) {
+					_LSOCK_LOG_E ("checkData()  buffer over\n");
+					break;
+				} else if (chk == 1) {
+					// packet complete
+					break;
+				} else {
+					_LSOCK_LOG_I ("continue\n");
+					continue;
+				}
+			}
+		}
+	}
+}
+
+int CLocalSocketClient::receiveOnePacket (uint8_t *pBuff, int size)
+{
+	if (!pBuff || size == 0) {
+		return 0;
+	}
+
+	// clear member
+	mState = EN_RECEIVE_STATE_STANDBY__WAIT_SOH;
+	memset (mCurrentPacket, 0x00, sizeof (mCurrentPacket));
+	mCurrentPacketWritePos = 0;
+	mCurrentPacketDataSize = 0;
+
+	// don't use receiveOnce and receiveLoop together
+	receiveOnce (mFdClientSocket);
+
+	int cpsize = size > mCurrentPacketWritePos ? mCurrentPacketWritePos : size;
+	memcpy (pBuff, mCurrentPacket, cpsize);
+
+	return cpsize;
+}
+
+int CLocalSocketClient::checkData (uint8_t *pBuff, int size, bool isOnce)
 {
 	if ((!pBuff) || (size == 0)) {
 		return -1;
 	}
 
 
-	while (1) {
+	while (size > 0) {
 
 		if (mState == EN_RECEIVE_STATE_STANDBY__WAIT_SOH) {
 			// wait SOH
@@ -501,6 +587,10 @@ int CLocalSocketClient::checkData (uint8_t *pBuff, int size)
 						CUtils::dumper ((const uint8_t*)mCurrentPacket, mCurrentPacketWritePos);
 					}
 
+					if (isOnce) {
+						return 1;
+					}
+
 					if (mpPacketHandler) {
 						mpPacketHandler->onReceivePacket (this, mCurrentPacket, mCurrentPacketWritePos);
 					}
@@ -528,7 +618,7 @@ int CLocalSocketClient::checkData (uint8_t *pBuff, int size)
 		}
 
 
-		if (mCurrentPacketWritePos >= RECEIVED_DATA_SIZE) {
+		if (mCurrentPacketWritePos >= RECEIVED_SIZE_MAX) {
 			// buffer over
 			_LSOCK_LOG_E ("buffer over(mCurrentPacket)\n");
 
@@ -543,10 +633,6 @@ int CLocalSocketClient::checkData (uint8_t *pBuff, int size)
 
 		pBuff ++;
 		size --;
-
-		if (size == 0) {
-			break;
-		}
 	}
 
 	return 0;

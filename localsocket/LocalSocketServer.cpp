@@ -496,12 +496,33 @@ void CLocalSocketServer::dumpClientTable (void)
 	_LSOCK_LOG_I ("-----------------------\n");
 }
 
+void CLocalSocketServer::sendToClient (uint8_t *pData, int size)
+{
+	// args check in pClient->sendToConnection
+
+	CUtils::CScopedMutex scopedMutex (&mMutexClientTable);
+
+	CLIENT_TABLE::iterator iter = mClientTable.begin();
+
+	while (iter != mClientTable.end()) {
+
+		CLocalSocketClient *pClient = iter->second.pInstance;
+		if (pClient) {
+			pClient->sendToConnection (pData, size);
+		}
+
+		iter ++;
+	}
+}
+
+// socket config
 void CLocalSocketServer::setLocalSocket (void)
 {
 	mpcbSetupServerSocket = &CLocalSocketServer::setupServerSocket;
 	mpcbAcceptWrapper = &CLocalSocketServer::acceptWrapper;
 }
 
+// socket config
 void CLocalSocketServer::setTcpSocket (void)
 {
 	mpcbSetupServerSocket = &CLocalSocketServer::setupServerSocket_Tcp;

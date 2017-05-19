@@ -72,6 +72,8 @@ public:
 	void stop (void); // async
 	void syncStop (void);
 
+	void sendToClient (uint8_t *pData, int size);
+
 	void setLocalSocket (void);
 	void setTcpSocket (void);
 
