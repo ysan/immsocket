@@ -36,7 +36,6 @@ int main (void)
 	CLocalSocketServer server (65000, pClientHandler);
 //	CLocalSocketServer server (65000, new CSvrMessageHandler()); // debug single client
 #endif
-#endif
 	server.start();
 
 
