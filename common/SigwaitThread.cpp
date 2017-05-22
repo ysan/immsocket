@@ -31,6 +31,7 @@ bool CSigwaitThread::start (void)
 		return true;
 	}
 
+	mIsStop = false;
 	return create ();
 }
 

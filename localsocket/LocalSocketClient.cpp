@@ -227,6 +227,7 @@ bool CLocalSocketClient::startReceiver (void)
 		mpPacketHandler->onSetup (this);
 	}
 
+	mIsStop = false;
 	return create ();
 }
 
@@ -393,6 +394,9 @@ void CLocalSocketClient::receiveLoop (int fdClientSocket)
 	struct timeval stTimeout;
 
 
+	// clear member
+	clearReceiveDependVals ();
+
 	while (1) {
 
 //		_LSOCK_LOG_I ("select(read) blocking...");
@@ -455,6 +459,9 @@ void CLocalSocketClient::receiveOnce (int fdClientSocket)
 	struct timeval stTimeout;
 
 
+	// clear member
+	clearReceiveDependVals ();
+
 	while (1) {
 
 		FD_ZERO (&stFds);
@@ -510,17 +517,27 @@ void CLocalSocketClient::receiveOnce (int fdClientSocket)
 	}
 }
 
-int CLocalSocketClient::receiveOnePacket (uint8_t *pBuff, int size)
+void CLocalSocketClient::syncReceivePacketLoop (void)
 {
-	if (!pBuff || size == 0) {
-		return 0;
+	if (mpPacketHandler) {
+		mpPacketHandler->onSetup (this);
 	}
 
-	// clear member
-	mState = EN_RECEIVE_STATE_STANDBY__WAIT_SOH;
-	memset (mCurrentPacket, 0x00, sizeof (mCurrentPacket));
-	mCurrentPacketWritePos = 0;
-	mCurrentPacketDataSize = 0;
+
+	// don't use receiveOnce and receiveLoop together
+	receiveLoop (mFdClientSocket);
+
+
+	if (mpPacketHandler) {
+		mpPacketHandler->onTeardown (this);
+	}
+}
+
+int CLocalSocketClient::syncReceivePacketOnce (uint8_t *pBuff, int size)
+{
+	if (!pBuff || size <= 0) {
+		return 0;
+	}
 
 	// don't use receiveOnce and receiveLoop together
 	receiveOnce (mFdClientSocket);
@@ -529,6 +546,14 @@ int CLocalSocketClient::receiveOnePacket (uint8_t *pBuff, int size)
 	memcpy (pBuff, mCurrentPacket, cpsize);
 
 	return cpsize;
+}
+
+void CLocalSocketClient::clearReceiveDependVals (void)
+{
+	mState = EN_RECEIVE_STATE_STANDBY__WAIT_SOH;
+	memset (mCurrentPacket, 0x00, sizeof (mCurrentPacket));
+	mCurrentPacketWritePos = 0;
+	mCurrentPacketDataSize = 0;
 }
 
 int CLocalSocketClient::checkData (uint8_t *pBuff, int size, bool isOnce)
@@ -600,20 +625,14 @@ int CLocalSocketClient::checkData (uint8_t *pBuff, int size, bool isOnce)
 				}
 
 				// clear member
-				mState = EN_RECEIVE_STATE_STANDBY__WAIT_SOH;
-				memset (mCurrentPacket, 0x00, sizeof (mCurrentPacket));
-				mCurrentPacketWritePos = 0;
-				mCurrentPacketDataSize = 0;
+				clearReceiveDependVals ();
 
 			} else {
 				// invalid packet(invalid EOT)
 				_LSOCK_LOG_E ("invalid packet(invalid EOT)\n");
 
 				// clear member
-				mState = EN_RECEIVE_STATE_STANDBY__WAIT_SOH;
-				memset (mCurrentPacket, 0x00, sizeof (mCurrentPacket));
-				mCurrentPacketWritePos = 0;
-				mCurrentPacketDataSize = 0;
+				clearReceiveDependVals ();
 			}
 		}
 
@@ -623,10 +642,7 @@ int CLocalSocketClient::checkData (uint8_t *pBuff, int size, bool isOnce)
 			_LSOCK_LOG_E ("buffer over(mCurrentPacket)\n");
 
 			// clear member
-			mState = EN_RECEIVE_STATE_STANDBY__WAIT_SOH;
-			memset (mCurrentPacket, 0x00, sizeof (mCurrentPacket));
-			mCurrentPacketWritePos = 0;
-			mCurrentPacketDataSize = 0;
+			clearReceiveDependVals ();
 
 			return -2;
 		}

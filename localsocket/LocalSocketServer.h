@@ -62,8 +62,10 @@ public:
 	CLocalSocketServer (void);                                                            // local
 	CLocalSocketServer (const char *pPath);                                               // local
 	CLocalSocketServer (const char *pPath, CLocalSocketServer::IClientHandler *pHandler); // local
+	CLocalSocketServer (const char *pPath, CLocalSocketClient::IPacketHandler *pHandler); // local // single client
 	CLocalSocketServer (uint16_t port);                                                   // tcp
 	CLocalSocketServer (uint16_t port, CLocalSocketServer::IClientHandler *pHandler);     // tcp
+	CLocalSocketServer (uint16_t port, CLocalSocketClient::IPacketHandler *pHandler);     // tcp // single client
 	virtual ~CLocalSocketServer (void);
 
 
@@ -94,6 +96,7 @@ private:
 
 	int mFdServerSocket;
 	CLocalSocketServer::IClientHandler *mpClientHandler;
+	CLocalSocketClient::IPacketHandler *mpPacketHandler;
 	bool mIsStop;
 
 	pthread_mutex_t mMutex;
@@ -108,6 +111,7 @@ private:
 	// setLocalSocket / setTcpSocket
 	P_CB_SETUP_SERVER_SOCKET mpcbSetupServerSocket;
 	P_CB_ACCEPT_WRAPPER mpcbAcceptWrapper;
+	bool isConfigLocal;
 
 };
 

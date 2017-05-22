@@ -23,6 +23,7 @@ namespace LocalSocket {
 CLocalSocketServer::CLocalSocketServer (void) :
 	mFdServerSocket (0),
 	mpClientHandler (NULL),
+	mpPacketHandler (NULL),
 	mIsStop (false),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
@@ -42,6 +43,7 @@ CLocalSocketServer::CLocalSocketServer (void) :
 CLocalSocketServer::CLocalSocketServer (const char *pPath) :
 	mFdServerSocket (0),
 	mpClientHandler (NULL),
+	mpPacketHandler (NULL),
 	mIsStop (false),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
@@ -63,6 +65,7 @@ CLocalSocketServer::CLocalSocketServer (const char *pPath) :
 CLocalSocketServer::CLocalSocketServer (const char *pPath, CLocalSocketServer::IClientHandler *pHandler) :
 	mFdServerSocket (0),
 	mpClientHandler (NULL),
+	mpPacketHandler (NULL),
 	mIsStop (false),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
@@ -84,10 +87,37 @@ CLocalSocketServer::CLocalSocketServer (const char *pPath, CLocalSocketServer::I
 	setLocalSocket ();
 }
 
+// local // single client
+CLocalSocketServer::CLocalSocketServer (const char *pPath, CLocalSocketClient::IPacketHandler *pHandler) :
+	mFdServerSocket (0),
+	mpClientHandler (NULL),
+	mpPacketHandler (NULL),
+	mIsStop (false),
+	mPort (DEFAULT_TCP_SERVER_PORT)
+{
+	pthread_mutex_init (&mMutex, NULL);
+	pthread_mutexattr_t attr;
+	pthread_mutexattr_init (&attr);
+	pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE_NP);
+	pthread_mutex_init (&mMutexClientTable, &attr);
+
+	if (pHandler) {
+		mpPacketHandler = pHandler;
+	}
+
+	memset (mSocketEndpointPath, 0x00, sizeof(mSocketEndpointPath));
+	if ((pPath) && (strlen(pPath) > 0)) {
+		strncpy (mSocketEndpointPath, pPath, sizeof (mSocketEndpointPath) -1);
+	}
+
+	setLocalSocket ();
+}
+
 // tcp
 CLocalSocketServer::CLocalSocketServer (uint16_t port) :
 	mFdServerSocket (0),
 	mpClientHandler (NULL),
+	mpPacketHandler (NULL),
 	mIsStop (false),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
@@ -109,6 +139,7 @@ CLocalSocketServer::CLocalSocketServer (uint16_t port) :
 CLocalSocketServer::CLocalSocketServer (uint16_t port, CLocalSocketServer::IClientHandler *pHandler) :
 	mFdServerSocket (0),
 	mpClientHandler (NULL),
+	mpPacketHandler (NULL),
 	mIsStop (false),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
@@ -120,6 +151,32 @@ CLocalSocketServer::CLocalSocketServer (uint16_t port, CLocalSocketServer::IClie
 
 	if (pHandler) {
 		mpClientHandler = pHandler;
+	}
+
+	memset (mSocketEndpointPath, 0x00, sizeof(mSocketEndpointPath));
+	strncpy (mSocketEndpointPath, DEFAULT_LOCALSOCKET_ENDPOINT_PATH, sizeof(mSocketEndpointPath)-1);
+
+	mPort = port;
+
+	setTcpSocket ();
+}
+
+// tcp // single client
+CLocalSocketServer::CLocalSocketServer (uint16_t port, CLocalSocketClient::IPacketHandler *pHandler) :
+	mFdServerSocket (0),
+	mpClientHandler (NULL),
+	mpPacketHandler (NULL),
+	mIsStop (false),
+	mPort (DEFAULT_TCP_SERVER_PORT)
+{
+	pthread_mutex_init (&mMutex, NULL);
+	pthread_mutexattr_t attr;
+	pthread_mutexattr_init (&attr);
+	pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE_NP);
+	pthread_mutex_init (&mMutexClientTable, &attr);
+
+	if (pHandler) {
+		mpPacketHandler = pHandler;
 	}
 
 	memset (mSocketEndpointPath, 0x00, sizeof(mSocketEndpointPath));
@@ -152,6 +209,7 @@ bool CLocalSocketServer::start (void)
 		return true;
 	}
 
+	mIsStop = false;
 	return create ();
 }
 
@@ -356,16 +414,44 @@ void CLocalSocketServer::acceptLoop (int fdServerSocket)
 			_LSOCK_LOG_I ("accepted fdClientSocket:[%d]\n", fdClientSocket);
 
 			CLocalSocketClient *pClient = NULL;
-			if (mpClientHandler) {
-				pClient = mpClientHandler->onAcceptClient (fdClientSocket);
+
+			if (mpPacketHandler) {
+				//---- single client ----
+
+				pClient = new CLocalSocketClient (fdClientSocket, mpPacketHandler);
+				if (isConfigLocal) {
+					pClient->setLocalSocket();
+				} else {
+					pClient->setTcpSocket();
+				}
+
+				addClientTable (fdClientSocket, pClient);
+
+				// sync
+				pClient->syncReceivePacketLoop ();
 
 			} else {
-				// default client receiver
-				pClient = new CLocalSocketClient (fdClientSocket); // fix local
-				pClient->startReceiver ();
+				//---- multi client ----
+
+				if (mpClientHandler) {
+					pClient = mpClientHandler->onAcceptClient (fdClientSocket);
+
+				} else {
+					// default client receiver
+					pClient = new CLocalSocketClient (fdClientSocket); // fix local
+					if (isConfigLocal) {
+						pClient->setLocalSocket();
+					} else {
+						pClient->setTcpSocket();
+					}
+
+					// async
+					pClient->startReceiver ();
+				}
+
+				addClientTable (fdClientSocket, pClient);
 			}
 
-			addClientTable (fdClientSocket, pClient);
 		}
 	}
 
@@ -408,11 +494,14 @@ bool CLocalSocketServer::removeClientTable (int fd)
 			_LSOCK_LOG_N ("client socket:[%d] close\n", fd);
 			close (fd);
 
-			CLocalSocketClient::IPacketHandler *pHandler = pClient->getPacketHandler();
-			if (pHandler) {
-				_LSOCK_LOG_N ("client socket:[%d] --> packetHandler delete\n", fd);
-				delete pHandler;
-				pHandler = NULL;
+			if (!mpPacketHandler) {
+				// multi client only
+				CLocalSocketClient::IPacketHandler *pHandler = pClient->getPacketHandler();
+				if (pHandler) {
+					_LSOCK_LOG_N ("client socket:[%d] --> packetHandler delete\n", fd);
+					delete pHandler;
+					pHandler = NULL;
+				}
 			}
 
 			delete iter->second.pInstance;
@@ -520,6 +609,7 @@ void CLocalSocketServer::setLocalSocket (void)
 {
 	mpcbSetupServerSocket = &CLocalSocketServer::setupServerSocket;
 	mpcbAcceptWrapper = &CLocalSocketServer::acceptWrapper;
+	isConfigLocal = true;
 }
 
 // socket config
@@ -527,6 +617,7 @@ void CLocalSocketServer::setTcpSocket (void)
 {
 	mpcbSetupServerSocket = &CLocalSocketServer::setupServerSocket_Tcp;
 	mpcbAcceptWrapper = &CLocalSocketServer::acceptWrapper_Tcp;
+	isConfigLocal = false;
 }
 
 } // namespace LocalSocket

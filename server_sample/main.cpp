@@ -34,6 +34,8 @@ int main (void)
 	CLocalSocketServer server ((char*)"/tmp/local_socket_sample", pClientHandler);
 #else
 	CLocalSocketServer server (65000, pClientHandler);
+//	CLocalSocketServer server (65000, new CSvrMessageHandler()); // debug single client
+#endif
 #endif
 	server.start();
 

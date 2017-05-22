@@ -37,6 +37,7 @@ bool CAsyncProcProxy::CProxyThread::start (void)
 		return true;
 	}
 
+    mIsStop = false;
     return create ();
 }
 
