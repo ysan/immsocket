@@ -222,11 +222,6 @@ bool CLocalSocketClient::startReceiver (void)
 		return true;
 	}
 
-
-	if (mpPacketHandler) {
-		mpPacketHandler->onSetup (this);
-	}
-
 	mIsStop = false;
 	return create ();
 }
@@ -235,22 +230,12 @@ void CLocalSocketClient::stopReceiver (void)
 {
 	CUtils::CScopedMutex scopedMutex (&mMutex);
 
-
-	if (mpPacketHandler) {
-		mpPacketHandler->onTeardown (this);
-	}
-
 	mIsStop = true;
 }
 
 void CLocalSocketClient::syncStopReceiver (void)
 {
 	CUtils::CScopedMutex scopedMutex (&mMutex);
-
-
-	if (mpPacketHandler) {
-		mpPacketHandler->onTeardown (this);
-	}
 
 	mIsStop = true;
 
@@ -356,8 +341,18 @@ void CLocalSocketClient::onThreadMainRoutine (void)
 	_LSOCK_LOG_I ("%s %s\n", __FILE__, __func__);
 
 
+	if (mpPacketHandler) {
+		mpPacketHandler->onSetup (this);
+	}
+
+
 	// don't use receiveOnce and receiveLoop together
 	receiveLoop (mFdClientSocket);
+
+
+	if (mpPacketHandler) {
+		mpPacketHandler->onTeardown (this);
+	}
 
 
 	_LSOCK_LOG_W ("%s %s end\n", __FILE__, __func__);
@@ -426,7 +421,7 @@ void CLocalSocketClient::receiveLoop (int fdClientSocket)
 				_LSOCK_LOG_N ("disconnect.");
 				break;
 			} else if (rtn < 0) {
-				_LSOCK_PERROR ("read()");
+				_LSOCK_PERROR ("read()/recv()");
 				continue;
 			} else {
 				_LSOCK_LOG_I ("data come  size[%d]\n", rtn);
@@ -730,6 +725,7 @@ CLocalSocketClient::IPacketHandler *CLocalSocketClient::getPacketHandler (void)
 	return mpPacketHandler;
 }
 
+// socket config
 void CLocalSocketClient::setLocalSocket (void)
 {
 	mpcbSetupClientSocket = &CLocalSocketClient::setupClientSocket;
@@ -737,6 +733,7 @@ void CLocalSocketClient::setLocalSocket (void)
 	mpcbSendWrapper = &CLocalSocketClient::sendWrapper;
 }
 
+// socket config
 void CLocalSocketClient::setTcpSocket (void)
 {
 	mpcbSetupClientSocket = &CLocalSocketClient::setupClientSocket_Tcp;

@@ -27,6 +27,7 @@ LOCAL_SRC_FILES := \
 	Message.cpp \
 	ClientHandler.cpp \
 	AsyncProcProxy.cpp \
+	LocalSocketServiceCommon.cpp \
 
 
 include $(BUILD_SHARED_LIBRARY)

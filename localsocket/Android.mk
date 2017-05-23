@@ -22,6 +22,7 @@ LOCAL_SHARED_LIBRARIES := \
 LOCAL_SRC_FILES := \
 	LocalSocketServer.cpp \
 	LocalSocketClient.cpp \
+	LocalSocketCommon.cpp \
 
 
 include $(BUILD_SHARED_LIBRARY)

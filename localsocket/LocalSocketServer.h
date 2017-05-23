@@ -73,6 +73,7 @@ public:
 	bool start (void); // async
 	void stop (void); // async
 	void syncStop (void);
+	bool isStarted (void);
 
 	void sendToClient (uint8_t *pData, int size);
 

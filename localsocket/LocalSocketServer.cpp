@@ -229,6 +229,17 @@ void CLocalSocketServer::syncStop (void)
 	waitDestroy ();
 }
 
+bool CLocalSocketServer::isStarted (void)
+{
+	CUtils::CScopedMutex scopedMutex (&mMutex);
+
+	if (mFdServerSocket == 0) {
+		return false;
+	} else {
+		return true;
+	}
+}
+
 void CLocalSocketServer::onThreadMainRoutine (void)
 {
 	setName ((char*)"LocalSocketServer");
@@ -239,6 +250,7 @@ void CLocalSocketServer::onThreadMainRoutine (void)
 	if (fd < 0) {
 		return  ;
 	}
+
 	mFdServerSocket = fd;
 	acceptLoop (fd);
 
@@ -246,6 +258,7 @@ void CLocalSocketServer::onThreadMainRoutine (void)
 
 	_LSOCK_LOG_W ("server socket:[%d] close\n", fd);
 	close (fd);
+	mFdServerSocket = 0;
 
 
 	_LSOCK_LOG_W ("%s %s end...\n", __FILE__, __func__);
