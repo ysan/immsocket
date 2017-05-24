@@ -18,7 +18,7 @@ USERDEFS	:=
 #
 #   Target object
 #
-TARGET_NAME	:=	local_send_test
+TARGET_NAME	:=	send_test
 
 #
 #   Target type
@@ -31,7 +31,7 @@ TARGET_TYPE	:=	EXEC
 #
 SRCS		:=
 
-SRCS_CPP	:= local_send_test.cpp
+SRCS_CPP	:= send_test.cpp
 
 #
 #   Configurations

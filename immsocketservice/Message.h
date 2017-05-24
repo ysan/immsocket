@@ -9,15 +9,15 @@
 #include <errno.h>
 #include <pthread.h>
 
-#include "LocalSocketServer.h"
-#include "LocalSocketClient.h"
+#include "ImmSocketServer.h"
+#include "ImmSocketClient.h"
 #include "PacketHandler.h"
-#include "LocalSocketServiceCommon.h"
+#include "ImmSocketServiceCommon.h"
 
 using namespace std;
-using namespace LocalSocket;
+using namespace ImmSocket;
 
-namespace LocalSocketService {
+namespace ImmSocketService {
 
 typedef enum {
 	EN_OBJTYPE_REQUESTER = 0,
@@ -79,11 +79,11 @@ public:
 public:
 	friend class CPacketHandler;
 	CMessage (void);
-	CMessage (CLocalSocketClient *pClient);
+	CMessage (CImmSocketClient *pClient);
 	CMessage (CMessage *pRequestMsg); // for create reply message
-	CMessage (CLocalSocketClient *pClient, uint8_t id);
-	CMessage (CLocalSocketClient *pClient, uint8_t id, uint8_t command);
-	CMessage (CLocalSocketClient *pClient, uint8_t id, uint8_t command, EN_OBJTYPE enType);
+	CMessage (CImmSocketClient *pClient, uint8_t id);
+	CMessage (CImmSocketClient *pClient, uint8_t id, uint8_t command);
+	CMessage (CImmSocketClient *pClient, uint8_t id, uint8_t command, EN_OBJTYPE enType);
 //	CMessage (const CMessage &obj); // copy constructor
 	virtual ~CMessage (void);
 
@@ -110,7 +110,7 @@ public:
 	bool sendReplyNG (void);
 	bool sendReplyNG (uint8_t *pReplyData, int size);
 
-	CLocalSocketClient *getClientInstance (void);
+	CImmSocketClient *getClientInstance (void);
 
 	// for syncRequest -> reply
 	CSync *sync (void) {
@@ -141,7 +141,7 @@ private:
 	uint8_t mId;
 	uint8_t mCommand;
 	bool mIsReplyResultOK;
-	CLocalSocketClient *mpClientInstance;
+	CImmSocketClient *mpClientInstance;
 //	uint8_t *mpData;
 	int mDataSize;
 	EN_OBJTYPE mObjtype;
@@ -152,6 +152,6 @@ private:
 
 };
 
-} // namespace LocalSocketService
+} // namespace ImmSocketService
 
 #endif

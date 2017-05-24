@@ -9,27 +9,27 @@
 #include <errno.h>
 #include <pthread.h>
 
-#include "LocalSocketServer.h"
-#include "LocalSocketClient.h"
+#include "ImmSocketServer.h"
+#include "ImmSocketClient.h"
 #include "PacketHandler.h"
-#include "LocalSocketServiceCommon.h"
+#include "ImmSocketServiceCommon.h"
 
 using namespace std;
-using namespace LocalSocket;
+using namespace ImmSocket;
 
-namespace LocalSocketService {
+namespace ImmSocketService {
 
-class CClientHandler : public CLocalSocketServer::IClientHandler
+class CClientHandler : public CImmSocketServer::IClientHandler
 {
 public:
 	CClientHandler (void);
 	virtual ~CClientHandler (void);
 
 protected:
-	CLocalSocketClient* onAcceptClient (int fdClientSocket);
+	CImmSocketClient* onAcceptClient (int fdClientSocket);
 
 };
 
-} // namespace LocalSocketService
+} // namespace ImmSocketService
 
 #endif

@@ -9,16 +9,16 @@
 #include <errno.h>
 #include <pthread.h>
 
-#include "LocalSocketServer.h"
-#include "LocalSocketClient.h"
+#include "ImmSocketServer.h"
+#include "ImmSocketClient.h"
 #include "Message.h"
 #include "AsyncProcProxy.h"
-#include "LocalSocketServiceCommon.h"
+#include "ImmSocketServiceCommon.h"
 
 using namespace std;
-using namespace LocalSocket;
+using namespace ImmSocket;
 
-namespace LocalSocketService {
+namespace ImmSocketService {
 
 typedef struct {
 	uint8_t id;
@@ -32,7 +32,7 @@ typedef struct {
 typedef map<uint8_t, CMessage*> SYNC_REQUEST_TABLE; // <id, CMessage>
 
 
-class CPacketHandler : public CLocalSocketClient::IPacketHandler
+class CPacketHandler : public CImmSocketClient::IPacketHandler
 {
 public:
 	friend class CAsyncProcProxy;
@@ -55,13 +55,13 @@ protected:
 
 
 private:
-	void onSetup (CLocalSocketClient *pSelf);
-	void onTeardown (CLocalSocketClient *pSelf);
-	void onReceivePacket (CLocalSocketClient *pSelf, uint8_t *pPacket, int size);
+	void onSetup (CImmSocketClient *pSelf);
+	void onTeardown (CImmSocketClient *pSelf);
+	void onReceivePacket (CImmSocketClient *pSelf, uint8_t *pPacket, int size);
 	void handleMsg (CMessage *pMsg, int msgType); // friend access
 
 
-	CLocalSocketClient *mpClientInstance;
+	CImmSocketClient *mpClientInstance;
 
 	uint8_t mId;
 	pthread_mutex_t mMutexGenId;
@@ -73,6 +73,6 @@ private:
 
 };
 
-} // namespace LocalSocketService
+} // namespace ImmSocketService
 
 #endif

@@ -12,15 +12,15 @@
 #include <sys/stat.h>
 
 #include "WorkerThread.h"
-#include "LocalSocketServer.h"
-#include "LocalSocketClient.h"
+#include "ImmSocketServer.h"
+#include "ImmSocketClient.h"
 #include "Utils.h"
 
 
-namespace LocalSocket {
+namespace ImmSocket {
 
-// local
-CLocalSocketServer::CLocalSocketServer (void) :
+// imm
+CImmSocketServer::CImmSocketServer (void) :
 	mFdServerSocket (0),
 	mpClientHandler (NULL),
 	mpPacketHandler (NULL),
@@ -34,13 +34,13 @@ CLocalSocketServer::CLocalSocketServer (void) :
 	pthread_mutex_init (&mMutexClientTable, &attr);
 
 	memset (mSocketEndpointPath, 0x00, sizeof(mSocketEndpointPath));
-	strncpy (mSocketEndpointPath, DEFAULT_LOCALSOCKET_ENDPOINT_PATH, sizeof(mSocketEndpointPath)-1);
+	strncpy (mSocketEndpointPath, DEFAULT_IMMSOCKET_ENDPOINT_PATH, sizeof(mSocketEndpointPath)-1);
 
 	setLocalSocket ();
 }
 
-// local
-CLocalSocketServer::CLocalSocketServer (const char *pPath) :
+// imm
+CImmSocketServer::CImmSocketServer (const char *pPath) :
 	mFdServerSocket (0),
 	mpClientHandler (NULL),
 	mpPacketHandler (NULL),
@@ -61,8 +61,8 @@ CLocalSocketServer::CLocalSocketServer (const char *pPath) :
 	setLocalSocket ();
 }
 
-// local
-CLocalSocketServer::CLocalSocketServer (const char *pPath, CLocalSocketServer::IClientHandler *pHandler) :
+// imm
+CImmSocketServer::CImmSocketServer (const char *pPath, CImmSocketServer::IClientHandler *pHandler) :
 	mFdServerSocket (0),
 	mpClientHandler (NULL),
 	mpPacketHandler (NULL),
@@ -87,8 +87,8 @@ CLocalSocketServer::CLocalSocketServer (const char *pPath, CLocalSocketServer::I
 	setLocalSocket ();
 }
 
-// local // single client
-CLocalSocketServer::CLocalSocketServer (const char *pPath, CLocalSocketClient::IPacketHandler *pHandler) :
+// imm // single client
+CImmSocketServer::CImmSocketServer (const char *pPath, CImmSocketClient::IPacketHandler *pHandler) :
 	mFdServerSocket (0),
 	mpClientHandler (NULL),
 	mpPacketHandler (NULL),
@@ -114,7 +114,7 @@ CLocalSocketServer::CLocalSocketServer (const char *pPath, CLocalSocketClient::I
 }
 
 // tcp
-CLocalSocketServer::CLocalSocketServer (uint16_t port) :
+CImmSocketServer::CImmSocketServer (uint16_t port) :
 	mFdServerSocket (0),
 	mpClientHandler (NULL),
 	mpPacketHandler (NULL),
@@ -128,7 +128,7 @@ CLocalSocketServer::CLocalSocketServer (uint16_t port) :
 	pthread_mutex_init (&mMutexClientTable, &attr);
 
 	memset (mSocketEndpointPath, 0x00, sizeof(mSocketEndpointPath));
-	strncpy (mSocketEndpointPath, DEFAULT_LOCALSOCKET_ENDPOINT_PATH, sizeof(mSocketEndpointPath)-1);
+	strncpy (mSocketEndpointPath, DEFAULT_IMMSOCKET_ENDPOINT_PATH, sizeof(mSocketEndpointPath)-1);
 
 	mPort = port;
 
@@ -136,7 +136,7 @@ CLocalSocketServer::CLocalSocketServer (uint16_t port) :
 }
 
 // tcp
-CLocalSocketServer::CLocalSocketServer (uint16_t port, CLocalSocketServer::IClientHandler *pHandler) :
+CImmSocketServer::CImmSocketServer (uint16_t port, CImmSocketServer::IClientHandler *pHandler) :
 	mFdServerSocket (0),
 	mpClientHandler (NULL),
 	mpPacketHandler (NULL),
@@ -154,7 +154,7 @@ CLocalSocketServer::CLocalSocketServer (uint16_t port, CLocalSocketServer::IClie
 	}
 
 	memset (mSocketEndpointPath, 0x00, sizeof(mSocketEndpointPath));
-	strncpy (mSocketEndpointPath, DEFAULT_LOCALSOCKET_ENDPOINT_PATH, sizeof(mSocketEndpointPath)-1);
+	strncpy (mSocketEndpointPath, DEFAULT_IMMSOCKET_ENDPOINT_PATH, sizeof(mSocketEndpointPath)-1);
 
 	mPort = port;
 
@@ -162,7 +162,7 @@ CLocalSocketServer::CLocalSocketServer (uint16_t port, CLocalSocketServer::IClie
 }
 
 // tcp // single client
-CLocalSocketServer::CLocalSocketServer (uint16_t port, CLocalSocketClient::IPacketHandler *pHandler) :
+CImmSocketServer::CImmSocketServer (uint16_t port, CImmSocketClient::IPacketHandler *pHandler) :
 	mFdServerSocket (0),
 	mpClientHandler (NULL),
 	mpPacketHandler (NULL),
@@ -180,32 +180,32 @@ CLocalSocketServer::CLocalSocketServer (uint16_t port, CLocalSocketClient::IPack
 	}
 
 	memset (mSocketEndpointPath, 0x00, sizeof(mSocketEndpointPath));
-	strncpy (mSocketEndpointPath, DEFAULT_LOCALSOCKET_ENDPOINT_PATH, sizeof(mSocketEndpointPath)-1);
+	strncpy (mSocketEndpointPath, DEFAULT_IMMSOCKET_ENDPOINT_PATH, sizeof(mSocketEndpointPath)-1);
 
 	mPort = port;
 
 	setTcpSocket ();
 }
 
-CLocalSocketServer::~CLocalSocketServer (void)
+CImmSocketServer::~CImmSocketServer (void)
 {
 	pthread_mutex_destroy (&mMutex);
 	pthread_mutex_destroy (&mMutexClientTable);
 }
 
 
-//CLocalSocketServer *CLocalSocketServer::getInstance (void)
+//CImmSocketServer *CImmSocketServer::getInstance (void)
 //{
-//	static CLocalSocketServer singletonInstance;
+//	static CImmSocketServer singletonInstance;
 //	return &singletonInstance;
 //}
 
-bool CLocalSocketServer::start (void)
+bool CImmSocketServer::start (void)
 {
 	CUtils::CScopedMutex scopedMutex (&mMutex);
 
 	if (isAlive()) {
-		_LSOCK_LOG_W ("already started\n");
+		_IMMSOCK_LOG_W ("already started\n");
 		return true;
 	}
 
@@ -213,14 +213,14 @@ bool CLocalSocketServer::start (void)
 	return create ();
 }
 
-void CLocalSocketServer::stop (void)
+void CImmSocketServer::stop (void)
 {
 	CUtils::CScopedMutex scopedMutex (&mMutex);
 
 	mIsStop = true;
 }
 
-void CLocalSocketServer::syncStop (void)
+void CImmSocketServer::syncStop (void)
 {
 	CUtils::CScopedMutex scopedMutex (&mMutex);
 
@@ -229,7 +229,7 @@ void CLocalSocketServer::syncStop (void)
 	waitDestroy ();
 }
 
-bool CLocalSocketServer::isStarted (void)
+bool CImmSocketServer::isStarted (void)
 {
 	CUtils::CScopedMutex scopedMutex (&mMutex);
 
@@ -240,10 +240,10 @@ bool CLocalSocketServer::isStarted (void)
 	}
 }
 
-void CLocalSocketServer::onThreadMainRoutine (void)
+void CImmSocketServer::onThreadMainRoutine (void)
 {
-	setName ((char*)"LocalSocketServer");
-	_LSOCK_LOG_I ("%s %s\n", __FILE__, __func__);
+	setName ((char*)"ImmSocketServer");
+	_IMMSOCK_LOG_I ("%s %s\n", __FILE__, __func__);
 
 
 	int fd = (this->*mpcbSetupServerSocket) ();
@@ -256,17 +256,17 @@ void CLocalSocketServer::onThreadMainRoutine (void)
 
 	forceClearClientTable ();
 
-	_LSOCK_LOG_W ("server socket:[%d] close\n", fd);
+	_IMMSOCK_LOG_W ("server socket:[%d] close\n", fd);
 	close (fd);
 	mFdServerSocket = 0;
 
 
-	_LSOCK_LOG_W ("%s %s end...\n", __FILE__, __func__);
+	_IMMSOCK_LOG_W ("%s %s end...\n", __FILE__, __func__);
 
 	// thread end
 }
 
-int CLocalSocketServer::setupServerSocket (void)
+int CImmSocketServer::setupServerSocket (void)
 {
 	int fd = 0;
 	int rtn = 0;
@@ -275,7 +275,7 @@ int CLocalSocketServer::setupServerSocket (void)
 	unlink (mSocketEndpointPath);
 
 	if ((fd = socket(PF_UNIX, SOCK_STREAM, 0)) < 0) {
-		_LSOCK_PERROR ("socket");
+		_IMMSOCK_PERROR ("socket");
 		return -1;
 	}
 
@@ -288,27 +288,27 @@ int CLocalSocketServer::setupServerSocket (void)
 #else
 	rtn = bind (fd, (struct sockaddr*)&stServerAddr, sizeof(stServerAddr.sun_family)+strlen(mSocketEndpointPath));
 	if (rtn < 0) {
-		_LSOCK_PERROR ("bind");
+		_IMMSOCK_PERROR ("bind");
 		return -1;
 	}
 #endif
 
 	rtn = chmod (mSocketEndpointPath, S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IWGRP|S_IXGRP|S_IROTH|S_IWOTH|S_IXOTH);
 	if (rtn < 0) {
-		_LSOCK_PERROR ("chmod");
+		_IMMSOCK_PERROR ("chmod");
 		return -1;
 	}
 
 	rtn = listen (fd, SOMAXCONN);
 	if (rtn < 0) {
-		_LSOCK_PERROR ("listen");
+		_IMMSOCK_PERROR ("listen");
 		return -1;
 	}
 
 	return fd;
 }
 
-int CLocalSocketServer::setupServerSocket_Tcp (void)
+int CImmSocketServer::setupServerSocket_Tcp (void)
 {
 	int fd = 0;
 	int rtn = 0;
@@ -321,14 +321,14 @@ int CLocalSocketServer::setupServerSocket_Tcp (void)
 
 	fd = socket (AF_INET, SOCK_STREAM, 0);
 	if (fd < 0) {
-		_LSOCK_PERROR ("socket()");
+		_IMMSOCK_PERROR ("socket()");
 		return -1;
 	}
 
 	int optval = 1;
 	rtn = setsockopt (fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
 	if (rtn < 0) {
-		_LSOCK_PERROR ("setsockopt()");
+		_IMMSOCK_PERROR ("setsockopt()");
 		close (fd);
 		return -1;
 	}
@@ -338,7 +338,7 @@ int CLocalSocketServer::setupServerSocket_Tcp (void)
 #else
 	rtn = bind (fd, (struct sockaddr*)&stServerAddr, sizeof(struct sockaddr));
 	if (rtn < 0) {
-		_LSOCK_PERROR ("bind()");
+		_IMMSOCK_PERROR ("bind()");
 		close (fd);
 		return -1;
 	}
@@ -346,7 +346,7 @@ int CLocalSocketServer::setupServerSocket_Tcp (void)
 
 	rtn = listen (fd, SOMAXCONN);
 	if (rtn < 0) {
-		_LSOCK_PERROR ("listen()");
+		_IMMSOCK_PERROR ("listen()");
 		close (fd);
 		return -1;
 	}
@@ -354,7 +354,7 @@ int CLocalSocketServer::setupServerSocket_Tcp (void)
 	return fd;
 }
 
-int CLocalSocketServer::acceptWrapper (int fdServerSocket)
+int CImmSocketServer::acceptWrapper (int fdServerSocket)
 {
 	int fdClientSocket = 0;
 	struct sockaddr_un stClientAddr;
@@ -366,7 +366,7 @@ int CLocalSocketServer::acceptWrapper (int fdServerSocket)
 	return fdClientSocket;
 }
 
-int CLocalSocketServer::acceptWrapper_Tcp (int fdServerSocket)
+int CImmSocketServer::acceptWrapper_Tcp (int fdServerSocket)
 {
 	int fdClientSocket = 0;
 	struct sockaddr_in stClientAddr;
@@ -378,7 +378,7 @@ int CLocalSocketServer::acceptWrapper_Tcp (int fdServerSocket)
 	return fdClientSocket;
 }
 
-void CLocalSocketServer::acceptLoop (int fdServerSocket)
+void CImmSocketServer::acceptLoop (int fdServerSocket)
 {
 	int fdClientSocket = 0;
 	fd_set stFds;
@@ -389,7 +389,7 @@ void CLocalSocketServer::acceptLoop (int fdServerSocket)
 
 	while (1) {
 
-//		_LSOCK_LOG_I ("select(accept) blocking...");
+//		_IMMSOCK_LOG_I ("select(accept) blocking...");
 		FD_ZERO (&stFds);
 		FD_SET (fdServerSocket, &stFds);
 		stTimeout.tv_sec = 1;
@@ -397,7 +397,7 @@ void CLocalSocketServer::acceptLoop (int fdServerSocket)
 
 		rtn = select (fdServerSocket+1, &stFds, NULL, NULL, &stTimeout);
 		if (rtn < 0) {
-			_LSOCK_PERROR ("select()");
+			_IMMSOCK_PERROR ("select()");
 			continue;
 
 		} else if (rtn == 0) {
@@ -405,7 +405,7 @@ void CLocalSocketServer::acceptLoop (int fdServerSocket)
 			refreshClientTable ();
 
 			if (mIsStop) {
-				_LSOCK_LOG_W ("stop --> acceptLoop break\n");
+				_IMMSOCK_LOG_W ("stop --> acceptLoop break\n");
 				break;
 			}
 
@@ -420,18 +420,18 @@ void CLocalSocketServer::acceptLoop (int fdServerSocket)
 
 		if (FD_ISSET (fdServerSocket, &stFds)) {
 			if ((fdClientSocket = (this->*mpcbAcceptWrapper) (fdServerSocket)) < 0) {
-				_LSOCK_PERROR ("accept");
+				_IMMSOCK_PERROR ("accept");
 				continue ;
 			}
 
-			_LSOCK_LOG_I ("accepted fdClientSocket:[%d]\n", fdClientSocket);
+			_IMMSOCK_LOG_I ("accepted fdClientSocket:[%d]\n", fdClientSocket);
 
-			CLocalSocketClient *pClient = NULL;
+			CImmSocketClient *pClient = NULL;
 
 			if (mpPacketHandler) {
 				//---- single client ----
 
-				pClient = new CLocalSocketClient (fdClientSocket, mpPacketHandler);
+				pClient = new CImmSocketClient (fdClientSocket, mpPacketHandler);
 				if (isConfigLocal) {
 					pClient->setLocalSocket();
 				} else {
@@ -451,7 +451,7 @@ void CLocalSocketServer::acceptLoop (int fdServerSocket)
 
 				} else {
 					// default client receiver
-					pClient = new CLocalSocketClient (fdClientSocket); // fix local
+					pClient = new CImmSocketClient (fdClientSocket);
 					if (isConfigLocal) {
 						pClient->setLocalSocket();
 					} else {
@@ -470,7 +470,7 @@ void CLocalSocketServer::acceptLoop (int fdServerSocket)
 
 }
 
-void CLocalSocketServer::addClientTable (int fd, CLocalSocketClient *pInstance)
+void CImmSocketServer::addClientTable (int fd, CImmSocketClient *pInstance)
 {
 	CUtils::CScopedMutex scopedMutex (&mMutexClientTable);
 
@@ -491,7 +491,7 @@ void CLocalSocketServer::addClientTable (int fd, CLocalSocketClient *pInstance)
 }
 
 // clientThread instance delete in
-bool CLocalSocketServer::removeClientTable (int fd)
+bool CImmSocketServer::removeClientTable (int fd)
 {
 	CUtils::CScopedMutex scopedMutex (&mMutexClientTable);
 
@@ -500,18 +500,18 @@ bool CLocalSocketServer::removeClientTable (int fd)
 
 	if (iter != mClientTable.end()) {
 
-		CLocalSocketClient *pClient = iter->second.pInstance;
+		CImmSocketClient *pClient = iter->second.pInstance;
 		if (pClient) {
 			pClient->syncStopReceiver (); // thread end
 
-			_LSOCK_LOG_N ("client socket:[%d] close\n", fd);
+			_IMMSOCK_LOG_N ("client socket:[%d] close\n", fd);
 			close (fd);
 
 			if (!mpPacketHandler) {
 				// multi client only
-				CLocalSocketClient::IPacketHandler *pHandler = pClient->getPacketHandler();
+				CImmSocketClient::IPacketHandler *pHandler = pClient->getPacketHandler();
 				if (pHandler) {
-					_LSOCK_LOG_N ("client socket:[%d] --> packetHandler delete\n", fd);
+					_IMMSOCK_LOG_N ("client socket:[%d] --> packetHandler delete\n", fd);
 					delete pHandler;
 					pHandler = NULL;
 				}
@@ -520,7 +520,7 @@ bool CLocalSocketServer::removeClientTable (int fd)
 			delete iter->second.pInstance;
 			iter->second.pInstance = NULL;
 
-			_LSOCK_LOG_N ("client socket:[%d] --> instance delete\n", fd);
+			_IMMSOCK_LOG_N ("client socket:[%d] --> instance delete\n", fd);
 		}
 
 		mClientTable.erase (fd);
@@ -530,14 +530,14 @@ bool CLocalSocketServer::removeClientTable (int fd)
 	return false;
 }
 
-void CLocalSocketServer::refreshClientTable (void)
+void CImmSocketServer::refreshClientTable (void)
 {
 	CUtils::CScopedMutex scopedMutex (&mMutexClientTable);
 
 	CLIENT_TABLE::iterator iter = mClientTable.begin();
 
 	while (iter != mClientTable.end()) {
-		CLocalSocketClient *pClient = iter->second.pInstance;
+		CImmSocketClient *pClient = iter->second.pInstance;
 		if (pClient) {
 			bool isAlive = pClient->isAlive();
 			int fd = pClient->getFd();
@@ -554,14 +554,14 @@ void CLocalSocketServer::refreshClientTable (void)
 	}
 }
 
-void CLocalSocketServer::forceClearClientTable (void)
+void CImmSocketServer::forceClearClientTable (void)
 {
 	CUtils::CScopedMutex scopedMutex (&mMutexClientTable);
 
 	CLIENT_TABLE::iterator iter = mClientTable.begin();
 
 	while (iter != mClientTable.end()) {
-		CLocalSocketClient *pClient = iter->second.pInstance;
+		CImmSocketClient *pClient = iter->second.pInstance;
 		if (pClient) {
 			int fd = pClient->getFd();
 			if (removeClientTable (fd)) {
@@ -575,30 +575,30 @@ void CLocalSocketServer::forceClearClientTable (void)
 	}
 }
 
-void CLocalSocketServer::dumpClientTable (void)
+void CImmSocketServer::dumpClientTable (void)
 {
 	CUtils::CScopedMutex scopedMutex (&mMutexClientTable);
 
 	CLIENT_TABLE::iterator iter = mClientTable.begin();
 
-	_LSOCK_LOG_I ("--- dumpClientTable ---\n");
+	_IMMSOCK_LOG_I ("--- dumpClientTable ---\n");
 
 	while (iter != mClientTable.end()) {
 
-		CLocalSocketClient *pClient = iter->second.pInstance;
+		CImmSocketClient *pClient = iter->second.pInstance;
 		if (pClient) {
 			bool isAlive = pClient->isAlive();
 			int fd = pClient->getFd();
-			_LSOCK_LOG_I (" fd:[%d] isAlive:[%d]\n", fd, isAlive);
+			_IMMSOCK_LOG_I (" fd:[%d] isAlive:[%d]\n", fd, isAlive);
 		}
 
 		iter ++;
 	}
 
-	_LSOCK_LOG_I ("-----------------------\n");
+	_IMMSOCK_LOG_I ("-----------------------\n");
 }
 
-void CLocalSocketServer::sendToClient (uint8_t *pData, int size)
+void CImmSocketServer::sendToClient (uint8_t *pData, int size)
 {
 	// args check in pClient->sendToConnection
 
@@ -608,7 +608,7 @@ void CLocalSocketServer::sendToClient (uint8_t *pData, int size)
 
 	while (iter != mClientTable.end()) {
 
-		CLocalSocketClient *pClient = iter->second.pInstance;
+		CImmSocketClient *pClient = iter->second.pInstance;
 		if (pClient) {
 			pClient->sendToConnection (pData, size);
 		}
@@ -618,19 +618,19 @@ void CLocalSocketServer::sendToClient (uint8_t *pData, int size)
 }
 
 // socket config
-void CLocalSocketServer::setLocalSocket (void)
+void CImmSocketServer::setLocalSocket (void)
 {
-	mpcbSetupServerSocket = &CLocalSocketServer::setupServerSocket;
-	mpcbAcceptWrapper = &CLocalSocketServer::acceptWrapper;
+	mpcbSetupServerSocket = &CImmSocketServer::setupServerSocket;
+	mpcbAcceptWrapper = &CImmSocketServer::acceptWrapper;
 	isConfigLocal = true;
 }
 
 // socket config
-void CLocalSocketServer::setTcpSocket (void)
+void CImmSocketServer::setTcpSocket (void)
 {
-	mpcbSetupServerSocket = &CLocalSocketServer::setupServerSocket_Tcp;
-	mpcbAcceptWrapper = &CLocalSocketServer::acceptWrapper_Tcp;
+	mpcbSetupServerSocket = &CImmSocketServer::setupServerSocket_Tcp;
+	mpcbAcceptWrapper = &CImmSocketServer::acceptWrapper_Tcp;
 	isConfigLocal = false;
 }
 
-} // namespace LocalSocket
+} // namespace ImmSocket

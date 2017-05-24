@@ -6,19 +6,19 @@ BASEDIR		:=	../
 INCLUDES	:= \
 	-I./ \
 	-I$(BASEDIR)/common \
-	-I$(BASEDIR)/localsocket \
-	-I$(BASEDIR)/localsocketservice \
+	-I$(BASEDIR)/immsocket \
+	-I$(BASEDIR)/immsocketservice \
 
 LIBS		:= \
-	-L$(BASEDIR)/localsocketservice -llocalsocketservice \
-	-L$(BASEDIR)/localsocket -llocalsocket \
+	-L$(BASEDIR)/immsocketservice -limmsocketservice \
+	-L$(BASEDIR)/immsocket -limmsocket \
 	-L$(BASEDIR)/common -lcommon \
 	-lpthread \
 
 LDFLAGS		:= \
 	-Wl,-rpath=`pwd`/$(BASEDIR)/common \
-	-Wl,-rpath=`pwd`/$(BASEDIR)/localsocket \
-	-Wl,-rpath=`pwd`/$(BASEDIR)/localsocketservice \
+	-Wl,-rpath=`pwd`/$(BASEDIR)/immsocket \
+	-Wl,-rpath=`pwd`/$(BASEDIR)/immsocketservice \
 
 APPEND_OBJS	:=
 

@@ -3,28 +3,27 @@
 #
 BASEDIR		:=	../
 
-INCLUDES    := \
+INCLUDES	:= \
 	-I./ \
 	-I$(BASEDIR)/common \
+	-I$(BASEDIR)/immsocket \
 
 LIBS		:= \
+	-L$(BASEDIR)/immsocket -limmsocket \
 	-L$(BASEDIR)/common -lcommon \
 	-lpthread \
 
 LDFLAGS		:= \
-	-Wl,-rpath=`pwd`/$(BASEDIR)/common
+	-Wl,-rpath=`pwd`/$(BASEDIR)/common \
+	-Wl,-rpath=`pwd`/$(BASEDIR)/immsocket \
 
 APPEND_OBJS	:=
 
-SUBDIRS		:= \
-	local_send_test \
-
-USERDEFS	:=
 
 #
 #   Target object
 #
-TARGET_NAME	:=	localsocket
+TARGET_NAME	:=	immsocketservice
 
 #
 #   Target type
@@ -38,9 +37,11 @@ TARGET_TYPE	:=	SHARED
 SRCS		:=
 
 SRCS_CPP	:= \
-	LocalSocketServer.cpp \
-	LocalSocketClient.cpp \
-	LocalSocketCommon.cpp \
+	PacketHandler.cpp \
+	ClientHandler.cpp \
+	Message.cpp \
+	AsyncProcProxy.cpp \
+	ImmSocketServiceCommon.cpp \
 
 #
 #   Configurations

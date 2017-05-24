@@ -1,5 +1,5 @@
-#ifndef _LOCAL_SOCKET_SERVER_H_
-#define _LOCAL_SOCKET_SERVER_H_
+#ifndef _IMM_SOCKET_SERVER_H_
+#define _IMM_SOCKET_SERVER_H_
 
 
 #include <stdio.h>
@@ -23,30 +23,30 @@
 
 #include "WorkerThread.h"
 #include "Utils.h"
-#include "LocalSocketCommon.h"
-#include "LocalSocketClient.h"
+#include "ImmSocketCommon.h"
+#include "ImmSocketClient.h"
 
 using namespace std;
 
 
-namespace LocalSocket {
+namespace ImmSocket {
 
-class CLocalSocketClient;
+class CImmSocketClient;
 
 typedef struct client_info {
 	int fd;
-	CLocalSocketClient *pInstance;
+	CImmSocketClient *pInstance;
 } ST_CLIENT_INFO;
 
 typedef map<int, ST_CLIENT_INFO> CLIENT_TABLE; // <fd, ST_CLIENT_INFO>
 
 
-class CLocalSocketServer;
-typedef int (CLocalSocketServer:: *P_CB_SETUP_SERVER_SOCKET) (void);
-typedef int (CLocalSocketServer:: *P_CB_ACCEPT_WRAPPER) (int fdServerSocket);
+class CImmSocketServer;
+typedef int (CImmSocketServer:: *P_CB_SETUP_SERVER_SOCKET) (void);
+typedef int (CImmSocketServer:: *P_CB_ACCEPT_WRAPPER) (int fdServerSocket);
 
 
-class CLocalSocketServer : public CWorkerThread
+class CImmSocketServer : public CWorkerThread
 {
 public:
 	class IClientHandler
@@ -54,22 +54,22 @@ public:
 	public:
 		virtual ~IClientHandler (void) {};
 
-		virtual CLocalSocketClient *onAcceptClient (int fdClientSocket) = 0;
+		virtual CImmSocketClient *onAcceptClient (int fdClientSocket) = 0;
 	};
 
 
 public:
-	CLocalSocketServer (void);                                                            // local
-	CLocalSocketServer (const char *pPath);                                               // local
-	CLocalSocketServer (const char *pPath, CLocalSocketServer::IClientHandler *pHandler); // local
-	CLocalSocketServer (const char *pPath, CLocalSocketClient::IPacketHandler *pHandler); // local // single client
-	CLocalSocketServer (uint16_t port);                                                   // tcp
-	CLocalSocketServer (uint16_t port, CLocalSocketServer::IClientHandler *pHandler);     // tcp
-	CLocalSocketServer (uint16_t port, CLocalSocketClient::IPacketHandler *pHandler);     // tcp // single client
-	virtual ~CLocalSocketServer (void);
+	CImmSocketServer (void);                                                          // local
+	CImmSocketServer (const char *pPath);                                             // local
+	CImmSocketServer (const char *pPath, CImmSocketServer::IClientHandler *pHandler); // local
+	CImmSocketServer (const char *pPath, CImmSocketClient::IPacketHandler *pHandler); // local // single client
+	CImmSocketServer (uint16_t port);                                                 // tcp
+	CImmSocketServer (uint16_t port, CImmSocketServer::IClientHandler *pHandler);     // tcp
+	CImmSocketServer (uint16_t port, CImmSocketClient::IPacketHandler *pHandler);     // tcp // single client
+	virtual ~CImmSocketServer (void);
 
 
-//	CLocalSocketServer *getInstance (void);
+//	CImmSocketServer *getInstance (void);
 	bool start (void); // async
 	void stop (void); // async
 	void syncStop (void);
@@ -83,7 +83,7 @@ public:
 private:
 	void onThreadMainRoutine (void);
 	void acceptLoop (int fdServerSocket);
-	void addClientTable (int fd, CLocalSocketClient *pInstance);
+	void addClientTable (int fd, CImmSocketClient *pInstance);
 	bool removeClientTable (int fd);
 	void refreshClientTable (void);
 	void forceClearClientTable (void);
@@ -96,8 +96,8 @@ private:
 
 
 	int mFdServerSocket;
-	CLocalSocketServer::IClientHandler *mpClientHandler;
-	CLocalSocketClient::IPacketHandler *mpPacketHandler;
+	CImmSocketServer::IClientHandler *mpClientHandler;
+	CImmSocketClient::IPacketHandler *mpPacketHandler;
 	bool mIsStop;
 
 	pthread_mutex_t mMutex;
@@ -105,7 +105,7 @@ private:
 	CLIENT_TABLE mClientTable;
 	pthread_mutex_t mMutexClientTable;
 
-	char mSocketEndpointPath[64]; // local
+	char mSocketEndpointPath[64]; // imm
 	uint16_t mPort;               // tcp
 
 
@@ -116,6 +116,6 @@ private:
 
 };
 
-} // namespace LocalSocket
+} // namespace ImmSocket
 
 #endif

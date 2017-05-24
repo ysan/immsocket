@@ -4,8 +4,8 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "LocalSocketServer.h"
-#include "LocalSocketClient.h"
+#include "ImmSocketServer.h"
+#include "ImmSocketClient.h"
 #include "Utils.h"
 #include "ClientHandler.h"
 #include "PacketHandler.h"
@@ -13,7 +13,7 @@
 #include "AsyncProcProxy.h"
 
 
-namespace LocalSocketService {
+namespace ImmSocketService {
 
 CAsyncProcProxy::CProxyThread::CProxyThread (void) :
 	mIsStop (false),
@@ -33,7 +33,7 @@ bool CAsyncProcProxy::CProxyThread::start (void)
 	CUtils::CScopedMutex scopedMutex (&mMutex);
 
 	if (isAlive()) {
-		_LSS_LOG_W ("already started\n");
+		_ISS_LOG_W ("already started\n");
 		return true;
 	}
 
@@ -69,18 +69,18 @@ void CAsyncProcProxy::CProxyThread::onThreadMainRoutine (void)
 	char szName [64] = {0};
 	snprintf (szName, sizeof(szName), "%s(%ld)", "ProxyTh", syscall(SYS_gettid));
 	setName (szName);
-	_LSS_LOG_I ("%s %s\n", __FILE__, __func__);
+	_ISS_LOG_I ("%s %s\n", __FILE__, __func__);
 
 
 	if (!mpAsyncProcProxy) {
-		_LSS_LOG_E ("mpAsyncProcProxy is null\n");
+		_ISS_LOG_E ("mpAsyncProcProxy is null\n");
 		return;
 	}
 
 	pthread_mutex_t *pMutexCond = &(mpAsyncProcProxy->mMutexCond);
 	pthread_cond_t *pCond = &(mpAsyncProcProxy->mCond);
 
-	CLocalSocketClient *pClient = NULL;
+	CImmSocketClient *pClient = NULL;
 	CPacketHandler *pHandler = NULL;
 	ST_REQ_QUEUE q ;
 
@@ -104,7 +104,7 @@ void CAsyncProcProxy::CProxyThread::onThreadMainRoutine (void)
 			if (rtn == ETIMEDOUT) {
 			// timeout
 				if (mIsStop) {
-					_LSS_LOG_W ("stop --> waitloop break\n");
+					_ISS_LOG_W ("stop --> waitloop break\n");
 					break;
 				}
 			}
@@ -126,7 +126,7 @@ void CAsyncProcProxy::CProxyThread::onThreadMainRoutine (void)
 	}
 
 
-	_LSS_LOG_I ("%s %s end...\n", __FILE__, __func__);
+	_ISS_LOG_I ("%s %s end...\n", __FILE__, __func__);
 
 	// thread end
 }
@@ -153,7 +153,7 @@ bool CAsyncProcProxy::start (void)
 	for (int i = 0; i < PROXY_THREAD_POOL_NUM; i ++) {
 		mProxyThread[i].setAsyncProcProxy (this);	
 		if (!mProxyThread[i].start()) {
-			_LSS_LOG_E ("mProxyThread[%d].start() is failure\n", i);
+			_ISS_LOG_E ("mProxyThread[%d].start() is failure\n", i);
 			return false;
 		}
 	}
@@ -223,4 +223,4 @@ ST_REQ_QUEUE CAsyncProcProxy::deQueue (bool isPeep)
 	}
 }
 
-} // namespace LocalSocketService
+} // namespace ImmSocketService

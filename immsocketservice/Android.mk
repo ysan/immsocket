@@ -2,34 +2,32 @@ IMM_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-IMM_MODULE := client_sample
+IMM_MODULE := libimmsocketservice
 
 IMM_LDLIBS := \
 	-llog \
-	-limmsocketservice \
 	-limmsocket \
-	-lcommon \
+	-lcommon \	
 
 IMM_PRELINK_MODULE := false
 
-IMM_CFLAGS := \
-	-D_ANDROID_BUILD \
-	-D_DEBUG_TCP \
+IMM_CFLAGS := -D_ANDROID_BUILD
 
 IMM_C_INCLUDES := \
 	$(IMM_PATH)/../common \
 	$(IMM_PATH)/../immsocket \
-	$(IMM_PATH)/../immsocketservice \
 
 
 IMM_SHARED_LIBRARIES := \
 	libcommon \
 	libimmsocket \
-	libimmsocketservice \
 
 IMM_SRC_FILES := \
-	ClMessageHandler.cpp \
-	main.cpp \
+	PacketHandler.cpp \
+	Message.cpp \
+	ClientHandler.cpp \
+	AsyncProcProxy.cpp \
+	ImmSocketServiceCommon.cpp \
 
 
-include $(BUILD_EXECUTABLE)
+include $(BUILD_SHARED_LIBRARY)

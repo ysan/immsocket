@@ -11,13 +11,13 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "LocalSocketCommon.h"
+#include "ImmSocketServiceCommon.h"
 #include "Utils.h"
 
 
-namespace LocalSocket {
+namespace ImmSocketService {
 
-static EN_LOG_LEVEL s_Loglevel = EN_LOG_LEVEL_W;
+static EN_LOG_LEVEL s_Loglevel = EN_LOG_LEVEL_N;
 
 void setLogLevel (EN_LOG_LEVEL enLvl)
 {
@@ -29,4 +29,4 @@ EN_LOG_LEVEL getLogLevel (void)
 	return s_Loglevel;
 }
 
-} // namespace LocalSocket
+} // namespace ImmSocketService

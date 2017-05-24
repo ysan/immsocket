@@ -11,7 +11,7 @@
 #include <sys/un.h>
 
 
-#define SOCK_NAME    "/tmp/pmanager_local_server"
+#define SOCK_NAME    "/tmp/pmanager_imm_server"
 
 pthread_mutex_t g_mutex;
 

@@ -1,5 +1,5 @@
-#ifndef _LOCAL_SOCKET_COMMON_H_
-#define _LOCAL_SOCKET_COMMON_H_
+#ifndef _IMM_SOCKET_COMMON_H_
+#define _IMM_SOCKET_COMMON_H_
 
 
 #include <stdio.h>
@@ -19,9 +19,9 @@
 using namespace std;
 
 
-namespace LocalSocket {
+namespace ImmSocket {
 
-#define DEFAULT_LOCALSOCKET_ENDPOINT_PATH	"./socket_endpoint"
+#define DEFAULT_IMMSOCKET_ENDPOINT_PATH	"./socket_endpoint"
 #define DEFAULT_TCP_SERVER_PORT				((uint16_t)65000)
 #define DEFAULT_TCP_SERVER_ADDR				"127.0.0.1"
 
@@ -54,55 +54,55 @@ extern EN_LOG_LEVEL getLogLevel (void);
 
 // --- Information ---
 #ifndef _LOG_ADD_FILE_INFO
-#define _LSOCK_LOG_I(fmt, ...) {\
+#define _IMMSOCK_LOG_I(fmt, ...) {\
 	CUtils::putsLogLW (stdout, getLogLevel(), EN_LOG_LEVEL_I, fmt, ##__VA_ARGS__);\
 }
 #else
-#define _LSOCK_LOG_I(fmt, ...) {\
+#define _IMMSOCK_LOG_I(fmt, ...) {\
 	CUtils::putsLog (stdout, getLogLevel(), EN_LOG_LEVEL_I, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
 #endif
 
 // --- Notice ---
 #ifndef _LOG_ADD_FILE_INFO
-#define _LSOCK_LOG_N(fmt, ...) {\
+#define _IMMSOCK_LOG_N(fmt, ...) {\
 	CUtils::putsLogLW (stdout, getLogLevel(), EN_LOG_LEVEL_N, fmt, ##__VA_ARGS__);\
 }
 #else
-#define _LSOCK_LOG_N(fmt, ...) {\
+#define _IMMSOCK_LOG_N(fmt, ...) {\
     CUtils::putsLog (stdout, getLogLevel(), EN_LOG_LEVEL_N, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
 #endif
 
 // --- Warning ---
 #ifndef _LOG_ADD_FILE_INFO
-#define _LSOCK_LOG_W(fmt, ...) {\
+#define _IMMSOCK_LOG_W(fmt, ...) {\
 	CUtils::putsLogLW (stdout, getLogLevel(), EN_LOG_LEVEL_W, fmt, ##__VA_ARGS__);\
 }
 #else
-#define _LSOCK_LOG_W(fmt, ...) {\
+#define _IMMSOCK_LOG_W(fmt, ...) {\
     CUtils::putsLog (stdout, getLogLevel(), EN_LOG_LEVEL_W, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
 #endif
 
 // --- Error ---
 #ifndef _LOG_ADD_FILE_INFO
-#define _LSOCK_LOG_E(fmt, ...) {\
+#define _IMMSOCK_LOG_E(fmt, ...) {\
 	CUtils::putsLogLW (stdout, getLogLevel(), EN_LOG_LEVEL_E, fmt, ##__VA_ARGS__);\
 }
 #else
-#define _LSOCK_LOG_E(fmt, ...) {\
+#define _IMMSOCK_LOG_E(fmt, ...) {\
     CUtils::putsLog (stdout, getLogLevel(), EN_LOG_LEVEL_E, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
 #endif
 
 // --- perror ---
 #ifndef _LOG_ADD_FILE_INFO
-#define _LSOCK_PERROR(fmt, ...) {\
+#define _IMMSOCK_PERROR(fmt, ...) {\
 	CUtils::putsLogLW (stdout, getLogLevel(), EN_LOG_LEVEL_PE, fmt, ##__VA_ARGS__);\
 }
 #else
-#define _LSOCK_PERROR(fmt, ...) {\
+#define _IMMSOCK_PERROR(fmt, ...) {\
 	CUtils::putsLog (stdout, getLogLevel(), EN_LOG_LEVEL_PE, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
 }
 #endif
@@ -110,27 +110,27 @@ extern EN_LOG_LEVEL getLogLevel (void);
 #else // _ANDROID_BUILD
 
 // --- Information ---
-#define _LSOCK_LOG_I(fmt, ...) do {\
+#define _IMMSOCK_LOG_I(fmt, ...) do {\
 	__android_log_print (ANDROID_LOG_DEBUG, __func__, fmt, ##__VA_ARGS__); \
 } while (0)
 
 // --- Notice ---
-#define _LSOCK_LOG_N(fmt, ...) do {\
+#define _IMMSOCK_LOG_N(fmt, ...) do {\
 	__android_log_print (ANDROID_LOG_INFO, __func__, fmt, ##__VA_ARGS__); \
 } while (0)
 
 // --- Warning ---
-#define _LSOCK_LOG_W(fmt, ...) do {\
+#define _IMMSOCK_LOG_W(fmt, ...) do {\
 	__android_log_print (ANDROID_LOG_WARN, __func__, fmt, ##__VA_ARGS__); \
 } while (0)
 
 // --- Error ---
-#define _LSOCK_LOG_E(fmt, ...) do {\
+#define _IMMSOCK_LOG_E(fmt, ...) do {\
 	__android_log_print (ANDROID_LOG_ERROR, __func__, fmt, ##__VA_ARGS__); \
 } while (0)
 
 // --- perror ---
-#define _LSOCK_PERROR(fmt, ...) do {\
+#define _IMMSOCK_PERROR(fmt, ...) do {\
 	__android_log_print (ANDROID_LOG_ERROR, __func__, fmt, ##__VA_ARGS__); \
 	char szPerror[32]; \
 	strerror_r(errno, szPerror, sizeof (szPerror)); \
@@ -139,6 +139,6 @@ extern EN_LOG_LEVEL getLogLevel (void);
 
 #endif
 
-} // namespace LocalSocket
+} // namespace ImmSocket
 
 #endif

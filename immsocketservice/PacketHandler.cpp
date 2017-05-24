@@ -4,15 +4,15 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "LocalSocketServer.h"
-#include "LocalSocketClient.h"
+#include "ImmSocketServer.h"
+#include "ImmSocketClient.h"
 #include "Utils.h"
 #include "ClientHandler.h"
 #include "PacketHandler.h"
 #include "Message.h"
 
 
-namespace LocalSocketService {
+namespace ImmSocketService {
 
 CPacketHandler::CPacketHandler (void) :
 	mId (0)
@@ -33,7 +33,7 @@ void CPacketHandler::addSyncRequestTable (CMessage *pMsg)
 
 
 	if (!pMsg) {
-		_LSS_LOG_E ("%s pMsg is null\n", __func__);
+		_ISS_LOG_E ("%s pMsg is null\n", __func__);
 		return;
 	}
 
@@ -60,7 +60,7 @@ void CPacketHandler::removeSyncRequestTable (CMessage *pMsg)
 
 
 	if (!pMsg) {
-		_LSS_LOG_E ("%s pMsg is null\n", __func__);
+		_ISS_LOG_E ("%s pMsg is null\n", __func__);
 		return;
 	}
 
@@ -94,7 +94,7 @@ CMessage *CPacketHandler::findSyncRequestMessage (uint8_t id)
 void CPacketHandler::checkSyncRequestMessage (CMessage *pReplyMsg)
 {
 	if (!pReplyMsg) {
-		_LSS_LOG_E ("%s pReplyMsg is null\n", __func__);
+		_ISS_LOG_E ("%s pReplyMsg is null\n", __func__);
 		return;
 	}
 
@@ -133,20 +133,20 @@ uint8_t CPacketHandler::generateId (void)
 
 void CPacketHandler::onHandleRequest (CMessage *pMsg)
 {
-	_LSS_LOG_I ("%s %s\n", __FILE__, __func__);
+	_ISS_LOG_I ("%s %s\n", __FILE__, __func__);
 }
 
 void CPacketHandler::onHandleReply (CMessage *pMsg)
 {
-	_LSS_LOG_I ("%s %s\n", __FILE__, __func__);
+	_ISS_LOG_I ("%s %s\n", __FILE__, __func__);
 }
 
 void CPacketHandler::onHandleNotify (CMessage *pMsg)
 {
-	_LSS_LOG_I ("%s %s\n", __FILE__, __func__);
+	_ISS_LOG_I ("%s %s\n", __FILE__, __func__);
 }
 
-void CPacketHandler::onSetup (CLocalSocketClient *pSelf)
+void CPacketHandler::onSetup (CImmSocketClient *pSelf)
 {
 	if (pSelf) {
 		mpClientInstance = pSelf;
@@ -156,23 +156,23 @@ void CPacketHandler::onSetup (CLocalSocketClient *pSelf)
 
 }
 
-void CPacketHandler::onTeardown (CLocalSocketClient *pSelf)
+void CPacketHandler::onTeardown (CImmSocketClient *pSelf)
 {
 
 	mAsyncProcProxy.syncStop();
 
 }
 
-void CPacketHandler::onReceivePacket (CLocalSocketClient *pSelf, uint8_t *pPacket, int size)
+void CPacketHandler::onReceivePacket (CImmSocketClient *pSelf, uint8_t *pPacket, int size)
 {
 	if ((!pPacket) || (size < (int)sizeof(ST_PACKET))) {
-		_LSS_LOG_E ("%s  invalid packet\n", __func__);
+		_ISS_LOG_E ("%s  invalid packet\n", __func__);
 		return ;
 	}
 
 
 	ST_PACKET *pstPacket = (ST_PACKET*)pPacket;
-	_LSS_LOG_N (
+	_ISS_LOG_N (
 		"%s  id=[0x%02x] type=[0x%02x] command=[0x%02x] size=[0x%02x]\n",
 		__func__,
 		pstPacket->id,
@@ -197,7 +197,7 @@ void CPacketHandler::onReceivePacket (CLocalSocketClient *pSelf, uint8_t *pPacke
 	if (pstPacket->size > 0) {
 		// data exist
 		if (size != (int)sizeof(ST_PACKET) + (int)pstPacket->size) {
-			_LSS_LOG_E ("%s  invalid packet (mismatch size)\n", __func__);
+			_ISS_LOG_E ("%s  invalid packet (mismatch size)\n", __func__);
 			return ;
 		}
 
@@ -207,7 +207,7 @@ void CPacketHandler::onReceivePacket (CLocalSocketClient *pSelf, uint8_t *pPacke
 	} else {
 		// data nothing
 		if (size != (int)sizeof(ST_PACKET)) {
-			_LSS_LOG_E ("%s  invalid packet (mismatch size)\n", __func__);
+			_ISS_LOG_E ("%s  invalid packet (mismatch size)\n", __func__);
 			return ;
 		}
 	}
@@ -226,7 +226,7 @@ void CPacketHandler::onReceivePacket (CLocalSocketClient *pSelf, uint8_t *pPacke
 void CPacketHandler::handleMsg (CMessage *pMsg, int msgType)
 {
 	if (!pMsg) {
-		_LSS_LOG_E ("%s pMsg is null\n", __func__);
+		_ISS_LOG_E ("%s pMsg is null\n", __func__);
 		return ;
 	}
 
@@ -251,10 +251,10 @@ void CPacketHandler::handleMsg (CMessage *pMsg, int msgType)
 		break;
 
 	default:
-		_LSS_LOG_E ("%s  invalid packet (unknown type)\n", __func__);
+		_ISS_LOG_E ("%s  invalid packet (unknown type)\n", __func__);
 		break;
 	}
 
 }
 
-} // namespace LocalSocketService
+} // namespace ImmSocketService

@@ -13,8 +13,8 @@
 #include "PacketHandler.h"
 
 using namespace std;
-using namespace LocalSocket;
-using namespace LocalSocketService;
+using namespace ImmSocket;
+using namespace ImmSocketService;
 
 
 class CClMessageHandler : public CPacketHandler

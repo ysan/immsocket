@@ -1,33 +1,33 @@
-LOCAL_PATH := $(call my-dir)
+IMM_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE := server_sample
+IMM_MODULE := server_sample
 
-LOCAL_LDLIBS := \
+IMM_LDLIBS := \
 	-llog \
-	-llocalsocketservice \
-	-llocalsocket \
+	-limmsocketservice \
+	-limmsocket \
 	-lcommon \
 
-LOCAL_PRELINK_MODULE := false
+IMM_PRELINK_MODULE := false
 
-LOCAL_CFLAGS := \
+IMM_CFLAGS := \
 	-D_ANDROID_BUILD \
 	-D_DEBUG_TCP \
 
-LOCAL_C_INCLUDES := \
-	$(LOCAL_PATH)/../common \
-	$(LOCAL_PATH)/../localsocket \
-	$(LOCAL_PATH)/../localsocketservice \
+IMM_C_INCLUDES := \
+	$(IMM_PATH)/../common \
+	$(IMM_PATH)/../immsocket \
+	$(IMM_PATH)/../immsocketservice \
 
 
-LOCAL_SHARED_LIBRARIES := \
+IMM_SHARED_LIBRARIES := \
 	libcommon \
-	liblocalsocket \
-	liblocalsocketservice \
+	libimmsocket \
+	libimmsocketservice \
 
-LOCAL_SRC_FILES := \
+IMM_SRC_FILES := \
 	SvrClientHandler.cpp \
 	SvrMessageHandler.cpp \
 	main.cpp \

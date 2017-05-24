@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <signal.h>
 
-#include "LocalSocketClient.h"
+#include "ImmSocketClient.h"
 #include "Utils.h"
 #include "PacketHandler.h"
 #include "Message.h"
@@ -13,8 +13,8 @@
 
  
 using namespace std;
-using namespace LocalSocket;
-using namespace LocalSocketService;
+using namespace ImmSocket;
+using namespace ImmSocketService;
 
 
 static void *sync_req_test (void *args);
@@ -32,10 +32,10 @@ int main (void)
 	CClMessageHandler *pHandler = new CClMessageHandler();
 
 #ifndef _DEBUG_TCP
-	CLocalSocketClient client ((const char*)"/tmp/local_socket_sample", pHandler);
+	CImmSocketClient client ((const char*)"/tmp/imm_socket_sample", pHandler);
 #else
-//	CLocalSocketClient client ((const char*)"43.3.177.96", 65000, pHandler);
-	CLocalSocketClient client ((const char*)"127.0.0.1", 65000, pHandler);
+//	CImmSocketClient client ((const char*)"43.3.177.96", 65000, pHandler);
+	CImmSocketClient client ((const char*)"127.0.0.1", 65000, pHandler);
 #endif
 	if (!client.connectToServer()) {
 		exit (EXIT_FAILURE);
@@ -106,7 +106,7 @@ int main (void)
 
 static void *sync_req_test (void *args)
 {
-	CLocalSocketClient* pcl = (CLocalSocketClient*)args;
+	CImmSocketClient* pcl = (CImmSocketClient*)args;
 
 	while (1) {
 		sleep (5);

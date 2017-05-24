@@ -1,5 +1,5 @@
-#ifndef _LOCAL_SOCKET_CLIENT_H_
-#define _LOCAL_SOCKET_CLIENT_H_
+#ifndef _IMM_SOCKET_CLIENT_H_
+#define _IMM_SOCKET_CLIENT_H_
 
 
 #include <stdio.h>
@@ -19,19 +19,19 @@
 
 #include "Utils.h"
 #include "WorkerThread.h"
-#include "LocalSocketCommon.h"
+#include "ImmSocketCommon.h"
 
 using namespace std;
 
 
-namespace LocalSocket {
+namespace ImmSocket {
 
-class CLocalSocketClient;
-typedef int (CLocalSocketClient:: *P_CB_SETUP_CLIENT_SOCKET) (void);
-typedef int (CLocalSocketClient:: *P_CB_RECEIVE_WRAPPER) (int fdClientSocket, uint8_t *pBuff, int size);
-typedef int (CLocalSocketClient:: *P_CB_SEND_WRAPPER) (int fdClientSocket, const uint8_t *pData, int size);
+class CImmSocketClient;
+typedef int (CImmSocketClient:: *P_CB_SETUP_CLIENT_SOCKET) (void);
+typedef int (CImmSocketClient:: *P_CB_RECEIVE_WRAPPER) (int fdClientSocket, uint8_t *pBuff, int size);
+typedef int (CImmSocketClient:: *P_CB_SEND_WRAPPER) (int fdClientSocket, const uint8_t *pData, int size);
 
-class CLocalSocketClient : public CWorkerThread
+class CImmSocketClient : public CWorkerThread
 {
 public:
 	class IPacketHandler
@@ -39,24 +39,24 @@ public:
 	public:
 		virtual ~IPacketHandler (void) {};
 
-		virtual void onSetup (CLocalSocketClient *pSelf) = 0;
-		virtual void onTeardown (CLocalSocketClient *pSelf) = 0;
-		virtual void onReceivePacket (CLocalSocketClient *pSelf, uint8_t *pPacket, int size) = 0;
+		virtual void onSetup (CImmSocketClient *pSelf) = 0;
+		virtual void onTeardown (CImmSocketClient *pSelf) = 0;
+		virtual void onReceivePacket (CImmSocketClient *pSelf, uint8_t *pPacket, int size) = 0;
 	};
 
 
 public:
 	// for client single
-	CLocalSocketClient (void);                                                                               // local
-	CLocalSocketClient (const char *pszPath);                                                                // local
-	CLocalSocketClient (const char *pszPath, CLocalSocketClient::IPacketHandler *pHandler);                  // local
-	CLocalSocketClient (const char *pszIpAddr, uint16_t port);                                               // tcp
-	CLocalSocketClient (const char *pszIpAddr, uint16_t port, CLocalSocketClient::IPacketHandler *pHandler); // tcp
+	CImmSocketClient (void);                                                                             // local
+	CImmSocketClient (const char *pszPath);                                                              // local
+	CImmSocketClient (const char *pszPath, CImmSocketClient::IPacketHandler *pHandler);                  // local
+	CImmSocketClient (const char *pszIpAddr, uint16_t port);                                             // tcp
+	CImmSocketClient (const char *pszIpAddr, uint16_t port, CImmSocketClient::IPacketHandler *pHandler); // tcp
 	// for sever side
-	CLocalSocketClient (int fdClientSocket);
-	CLocalSocketClient (int fdClientSocket, CLocalSocketClient::IPacketHandler *pHandler);
+	CImmSocketClient (int fdClientSocket);
+	CImmSocketClient (int fdClientSocket, CImmSocketClient::IPacketHandler *pHandler);
 
-	virtual ~CLocalSocketClient (void);
+	virtual ~CImmSocketClient (void);
 
 
 	bool startReceiver (void); // async
@@ -73,7 +73,7 @@ public:
 	void syncReceivePacketLoop (void);
 	int syncReceivePacketOnce (uint8_t *pBuff, int size);
 
-	CLocalSocketClient::IPacketHandler* getPacketHandler (void);
+	CImmSocketClient::IPacketHandler* getPacketHandler (void);
 
 	void setLocalSocket (void);
 	void setTcpSocket (void);
@@ -101,12 +101,12 @@ private:
 	int mCurrentPacketWritePos;
 	uint8_t mCurrentPacketDataSize;
 	
-	CLocalSocketClient::IPacketHandler *mpPacketHandler;
+	CImmSocketClient::IPacketHandler *mpPacketHandler;
 
 	pthread_mutex_t mMutex;
 	pthread_mutex_t mMutexSend;
 
-	char mSocketEndpointPath [64]; // local
+	char mSocketEndpointPath [64]; // imm
 	char mIpAddr [15+1];          // tcp
 	uint16_t mPort;               // tcp
 
@@ -118,6 +118,6 @@ private:
 
 };
 
-} // namespace LocalSocket
+} // namespace ImmSocket
 
 #endif

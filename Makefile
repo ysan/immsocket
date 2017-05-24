@@ -11,8 +11,8 @@ APPEND_OBJS	:=
 
 SUBDIRS		:= \
 	common \
-	localsocket \
-	localsocketservice \
+	immsocket \
+	immsocketservice \
 	client_sample \
 	server_sample \
 

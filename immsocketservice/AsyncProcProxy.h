@@ -9,20 +9,20 @@
 #include <errno.h>
 #include <pthread.h>
 
-#include "LocalSocketServer.h"
-#include "LocalSocketClient.h"
+#include "ImmSocketServer.h"
+#include "ImmSocketClient.h"
 #include "Message.h"
 #include "PacketHandler.h"
-#include "LocalSocketServiceCommon.h"
+#include "ImmSocketServiceCommon.h"
 
 #include <queue>
 
 
 using namespace std;
-using namespace LocalSocket;
+using namespace ImmSocket;
 
 
-namespace LocalSocketService {
+namespace ImmSocketService {
 
 #define PROXY_THREAD_POOL_NUM		(2)
 
@@ -114,6 +114,6 @@ private:
 
 };
 
-} // namespace LocalSocketService
+} // namespace ImmSocketService
 
 #endif

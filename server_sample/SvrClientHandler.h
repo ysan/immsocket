@@ -9,14 +9,14 @@
 #include <errno.h>
 #include <pthread.h>
 
-#include "LocalSocketServer.h"
-#include "LocalSocketClient.h"
+#include "ImmSocketServer.h"
+#include "ImmSocketClient.h"
 #include "PacketHandler.h"
 #include "ClientHandler.h"
 
 using namespace std;
-using namespace LocalSocket;
-using namespace LocalSocketService;
+using namespace ImmSocket;
+using namespace ImmSocketService;
 
 
 class CSvrClientHandler : public CClientHandler
@@ -26,7 +26,7 @@ public:
 	virtual ~CSvrClientHandler (void);
 
 private:
-	CLocalSocketClient* onAcceptClient (int fdClientSocket);
+	CImmSocketClient* onAcceptClient (int fdClientSocket);
 
 };
 

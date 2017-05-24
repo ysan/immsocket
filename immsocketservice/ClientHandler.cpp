@@ -4,14 +4,14 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include "LocalSocketServer.h"
-#include "LocalSocketClient.h"
+#include "ImmSocketServer.h"
+#include "ImmSocketClient.h"
 #include "Utils.h"
 #include "ClientHandler.h"
 #include "PacketHandler.h"
 
 
-namespace LocalSocketService {
+namespace ImmSocketService {
 
 CClientHandler::CClientHandler (void)
 {
@@ -21,14 +21,14 @@ CClientHandler::~CClientHandler (void)
 {
 }
 
-CLocalSocketClient *CClientHandler::onAcceptClient (int fdClientSocket)
+CImmSocketClient *CClientHandler::onAcceptClient (int fdClientSocket)
 {
 	CPacketHandler *pPacketHandler = new CPacketHandler();
 
-	CLocalSocketClient *pClient = new CLocalSocketClient (fdClientSocket, pPacketHandler);
+	CImmSocketClient *pClient = new CImmSocketClient (fdClientSocket, pPacketHandler);
 	pClient->startReceiver ();
 
 	return pClient;
 }
 
-} // namespace LocalSocketService
+} // namespace ImmSocketService
