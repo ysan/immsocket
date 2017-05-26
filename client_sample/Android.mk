@@ -1,33 +1,33 @@
-IMM_PATH := $(call my-dir)
+LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-IMM_MODULE := client_sample
+LOCAL_MODULE := client_sample
 
-IMM_LDLIBS := \
+LOCAL_LDLIBS := \
 	-llog \
 	-limmsocketservice \
 	-limmsocket \
 	-lcommon \
 
-IMM_PRELINK_MODULE := false
+LOCAL_PRELINK_MODULE := false
 
-IMM_CFLAGS := \
+LOCAL_CFLAGS := \
 	-D_ANDROID_BUILD \
 	-D_DEBUG_TCP \
 
-IMM_C_INCLUDES := \
-	$(IMM_PATH)/../common \
-	$(IMM_PATH)/../immsocket \
-	$(IMM_PATH)/../immsocketservice \
+LOCAL_C_INCLUDES := \
+	$(LOCAL_PATH)/../common \
+	$(LOCAL_PATH)/../immsocket \
+	$(LOCAL_PATH)/../immsocketservice \
 
 
-IMM_SHARED_LIBRARIES := \
+LOCAL_SHARED_LIBRARIES := \
 	libcommon \
 	libimmsocket \
 	libimmsocketservice \
 
-IMM_SRC_FILES := \
+LOCAL_SRC_FILES := \
 	ClMessageHandler.cpp \
 	main.cpp \
 
