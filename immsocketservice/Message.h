@@ -40,6 +40,7 @@ public:
 	public:
 		friend class CMessage;
 		friend class CPacketHandler;
+
 		CSync (void);
 		virtual ~CSync (void);
 
@@ -78,6 +79,7 @@ public:
 
 public:
 	friend class CPacketHandler;
+
 	CMessage (void);
 	CMessage (CImmSocketClient *pClient);
 	CMessage (CMessage *pRequestMsg); // for create reply message
@@ -109,6 +111,8 @@ public:
 	bool sendReplyOK (uint8_t *pReplyData, int size);
 	bool sendReplyNG (void);
 	bool sendReplyNG (uint8_t *pReplyData, int size);
+	bool sendNotify (uint8_t command);
+	bool sendNotify (uint8_t command, uint8_t *pData, int size);
 
 	CImmSocketClient *getClientInstance (void);
 

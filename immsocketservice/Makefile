@@ -38,7 +38,6 @@ SRCS		:=
 
 SRCS_CPP	:= \
 	PacketHandler.cpp \
-	ClientHandler.cpp \
 	Message.cpp \
 	AsyncProcProxy.cpp \
 	ImmSocketServiceCommon.cpp \

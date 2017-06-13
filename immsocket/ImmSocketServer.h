@@ -40,6 +40,10 @@ typedef struct client_info {
 
 typedef map<int, ST_CLIENT_INFO> CLIENT_TABLE; // <fd, ST_CLIENT_INFO>
 
+typedef struct client_ref {
+	CLIENT_TABLE *pTable;
+	pthread_mutex_t *pMutex;
+} ST_CLIENT_REF;
 
 class CImmSocketServer;
 typedef int (CImmSocketServer:: *P_CB_SETUP_SERVER_SOCKET) (void);
@@ -77,6 +81,11 @@ public:
 
 	void sendToClient (uint8_t *pData, int size);
 
+	ST_CLIENT_REF getClientRef (void) {
+		ST_CLIENT_REF ref = {&mClientTable, &mMutexClientTable};
+		return ref;
+	};
+
 	void setLocalSocket (void);
 	void setTcpSocket (void);
 
@@ -105,7 +114,7 @@ private:
 	CLIENT_TABLE mClientTable;
 	pthread_mutex_t mMutexClientTable;
 
-	char mSocketEndpointPath[64]; // imm
+	char mSocketEndpointPath[64]; // local
 	uint16_t mPort;               // tcp
 
 

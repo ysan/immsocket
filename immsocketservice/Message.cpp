@@ -7,7 +7,6 @@
 #include "ImmSocketServer.h"
 #include "ImmSocketClient.h"
 #include "Utils.h"
-#include "ClientHandler.h"
 #include "PacketHandler.h"
 #include "Message.h"
 
@@ -472,6 +471,20 @@ bool CMessage::sendReply (void)
 	mObjtype = EN_OBJTYPE_NOTHING;
 
 	return mpClientInstance->sendToConnection (buff, totalsize);
+}
+
+bool CMessage::sendNotify (uint8_t command)
+{
+	setCommand (command);
+	setData (NULL, 0, true);
+	return sendNotify();
+}
+
+bool CMessage::sendNotify (uint8_t command, uint8_t *pData, int size)
+{
+	setCommand (command);
+	setData (pData, size);
+	return sendNotify();
 }
 
 bool CMessage::sendNotify (void)

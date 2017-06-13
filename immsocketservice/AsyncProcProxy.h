@@ -90,6 +90,7 @@ public:
 
 public:
 	friend class CProxyThread;
+
 	CAsyncProcProxy (void);
 	virtual ~CAsyncProcProxy (void);
 

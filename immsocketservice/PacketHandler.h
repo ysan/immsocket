@@ -36,6 +36,7 @@ class CPacketHandler : public CImmSocketClient::IPacketHandler
 {
 public:
 	friend class CAsyncProcProxy;
+
 	CPacketHandler (void);
 	virtual ~CPacketHandler (void);
 

@@ -25,7 +25,6 @@ LOCAL_SHARED_LIBRARIES := \
 LOCAL_SRC_FILES := \
 	PacketHandler.cpp \
 	Message.cpp \
-	ClientHandler.cpp \
 	AsyncProcProxy.cpp \
 	ImmSocketServiceCommon.cpp \
 

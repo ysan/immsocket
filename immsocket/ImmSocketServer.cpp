@@ -19,7 +19,7 @@
 
 namespace ImmSocket {
 
-// imm
+// local
 CImmSocketServer::CImmSocketServer (void) :
 	mFdServerSocket (0),
 	mpClientHandler (NULL),
@@ -39,7 +39,7 @@ CImmSocketServer::CImmSocketServer (void) :
 	setLocalSocket ();
 }
 
-// imm
+// local
 CImmSocketServer::CImmSocketServer (const char *pPath) :
 	mFdServerSocket (0),
 	mpClientHandler (NULL),
@@ -61,7 +61,7 @@ CImmSocketServer::CImmSocketServer (const char *pPath) :
 	setLocalSocket ();
 }
 
-// imm
+// local
 CImmSocketServer::CImmSocketServer (const char *pPath, CImmSocketServer::IClientHandler *pHandler) :
 	mFdServerSocket (0),
 	mpClientHandler (NULL),
@@ -87,7 +87,7 @@ CImmSocketServer::CImmSocketServer (const char *pPath, CImmSocketServer::IClient
 	setLocalSocket ();
 }
 
-// imm // single client
+// local // single client
 CImmSocketServer::CImmSocketServer (const char *pPath, CImmSocketClient::IPacketHandler *pHandler) :
 	mFdServerSocket (0),
 	mpClientHandler (NULL),

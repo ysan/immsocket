@@ -29,12 +29,15 @@ int main (void)
 
 
 	CSvrClientHandler *pClientHandler = new CSvrClientHandler ();
+	CSvrMessageHandler *pMessageHandler = NULL;
 
 #ifndef _DEBUG_TCP
 	CImmSocketServer server ((char*)"/tmp/imm_socket_sample", pClientHandler);
 #else
 	CImmSocketServer server (65000, pClientHandler);
-//	CImmSocketServer server (65000, new CSvrMessageHandler()); // debug single client
+
+//	pMessageHandler = new CSvrMessageHandler();
+//	CImmSocketServer server (65000, pMessageHandler); // debug single client
 #endif
 	server.start();
 
@@ -50,6 +53,21 @@ int main (void)
 			if ((strlen(buf) == 1) && (strncmp(buf, "q", strlen(buf)) == 0)) {
 				// quit
 				break;
+
+			} else if (strlen(buf) > 0) {
+				ST_CLIENT_REF ref = server.getClientRef();
+				CUtils::CScopedMutex scopedMutex (ref.pMutex);
+				CLIENT_TABLE::iterator iter = ref.pTable->begin();
+				while (iter != ref.pTable->end()) {
+					CImmSocketClient *pClient = iter->second.pInstance;
+					if (pClient) {
+						CMessage *pMsg = new CMessage (pClient);
+						pMsg->sendNotify (0xee, (uint8_t*)buf, strlen(buf));
+						delete pMsg;
+						pMsg = NULL;
+					}
+					iter ++;
+				}
 			}
 		}
 	}
@@ -59,6 +77,11 @@ int main (void)
 	if (pClientHandler) {
 		delete pClientHandler;
 		pClientHandler = NULL;
+	}
+
+	if (pMessageHandler) {
+		delete pMessageHandler;
+		pMessageHandler = NULL;
 	}
 
 	exit (EXIT_SUCCESS);

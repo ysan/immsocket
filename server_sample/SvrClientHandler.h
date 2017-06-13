@@ -12,14 +12,13 @@
 #include "ImmSocketServer.h"
 #include "ImmSocketClient.h"
 #include "PacketHandler.h"
-#include "ClientHandler.h"
 
 using namespace std;
 using namespace ImmSocket;
 using namespace ImmSocketService;
 
 
-class CSvrClientHandler : public CClientHandler
+class CSvrClientHandler : public CImmSocketServer::IClientHandler
 {
 public:
 	CSvrClientHandler (void);

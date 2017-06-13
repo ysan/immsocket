@@ -5,7 +5,6 @@
 #include <errno.h>
 
 #include "Utils.h"
-#include "ClientHandler.h"
 #include "PacketHandler.h"
 #include "Message.h"
 #include "ClMessageHandler.h"
