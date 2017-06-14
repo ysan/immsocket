@@ -55,12 +55,14 @@ int main (void)
 				break;
 
 			} else if (strlen(buf) > 0) {
+				// notify test
 				ST_CLIENT_REF ref = server.getClientRef();
 				CUtils::CScopedMutex scopedMutex (ref.pMutex);
 				CLIENT_TABLE::iterator iter = ref.pTable->begin();
 				while (iter != ref.pTable->end()) {
 					CImmSocketClient *pClient = iter->second.pInstance;
 					if (pClient) {
+						_UTL_LOG_I ("send notify fd:[%d] [%s]\n", pClient->getFd(), buf);
 						CMessage *pMsg = new CMessage (pClient);
 						pMsg->sendNotify (0xee, (uint8_t*)buf, strlen(buf));
 						delete pMsg;

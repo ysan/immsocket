@@ -40,4 +40,13 @@ void CClMessageHandler::onHandleReply (CMessage *pMsg)
 void CClMessageHandler::onHandleNotify (CMessage *pMsg)
 {
 	_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
+
+
+	_UTL_LOG_I ("id[%d] command[%d]\n", (int)pMsg->getId(), (int)pMsg->getCommand());
+
+	if (pMsg->getDataSize() > 0) {
+		_UTL_LOG_I ("notifyData [%s]\n", (char*)(pMsg->getData()));
+	}
+
+
 }

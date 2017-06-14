@@ -443,6 +443,8 @@ void CImmSocketServer::acceptLoop (int fdServerSocket)
 				// sync
 				pClient->syncReceivePacketLoop ();
 
+				removeClientTable (fdClientSocket);
+
 			} else {
 				//---- multi client ----
 
@@ -539,7 +541,7 @@ void CImmSocketServer::refreshClientTable (void)
 	while (iter != mClientTable.end()) {
 		CImmSocketClient *pClient = iter->second.pInstance;
 		if (pClient) {
-			bool isAlive = pClient->isAlive();
+			bool isAlive = pClient->isAlive(); // Always false if do not startReceiver
 			int fd = pClient->getFd();
 			if (!isAlive) {
 				if (removeClientTable (fd)) {
