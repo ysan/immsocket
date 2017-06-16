@@ -613,6 +613,10 @@ int CImmSocketClient::checkData (uint8_t *pBuff, int size, bool isOnce)
 
 					if (mpPacketHandler) {
 						mpPacketHandler->onReceivePacket (this, mCurrentPacket, mCurrentPacketWritePos);
+
+					} else {
+						// default echo
+						sendToConnection (mCurrentPacket, mCurrentPacketWritePos);
 					}
 
 				} else {
@@ -674,6 +678,7 @@ bool CImmSocketClient::sendToConnection (const uint8_t *pData, int size)
 
 	int rtn = (this->*mpcbSendWrapper) (mFdClientSocket, buff, totalsize);
 	if (rtn < 0) {
+		_IMMSOCK_PERROR ("write()/send()");
 		return false;
 	}
 

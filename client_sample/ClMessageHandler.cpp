@@ -21,6 +21,14 @@ CClMessageHandler::~CClMessageHandler (void)
 void CClMessageHandler::onHandleRequest (CMessage *pMsg)
 {
 	_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
+
+
+	_UTL_LOG_I ("id[%d] command[%d]\n", (int)pMsg->getId(), (int)pMsg->getCommand());
+
+	if (pMsg->getDataSize() > 0) {
+		_UTL_LOG_I ("requestData [%s]\n", (char*)(pMsg->getData()));
+	}
+
 }
 
 void CClMessageHandler::onHandleReply (CMessage *pMsg)

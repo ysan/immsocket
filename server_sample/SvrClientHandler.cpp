@@ -24,9 +24,14 @@ CImmSocketClient *CSvrClientHandler::onAcceptClient (int fdClientSocket)
 {
 	_UTL_LOG_N ("%s\n", __PRETTY_FUNCTION__);
 
+#if 0
+	// echo server
+	CImmSocketClient *pClient = new CImmSocketClient (fdClientSocket);
+#else
 	CSvrMessageHandler *pHandler = new CSvrMessageHandler();
-
 	CImmSocketClient *pClient = new CImmSocketClient (fdClientSocket, pHandler);
+#endif
+
 #ifdef _DEBUG_TCP
 	pClient->setTcpSocket ();
 #endif

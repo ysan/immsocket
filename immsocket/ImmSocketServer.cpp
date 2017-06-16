@@ -452,7 +452,7 @@ void CImmSocketServer::acceptLoop (int fdServerSocket)
 					pClient = mpClientHandler->onAcceptClient (fdClientSocket);
 
 				} else {
-					// default client receiver
+					// default is echo server
 					pClient = new CImmSocketClient (fdClientSocket);
 					if (isConfigLocal) {
 						pClient->setLocalSocket();
