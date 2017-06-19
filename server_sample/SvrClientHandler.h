@@ -26,6 +26,7 @@ public:
 
 private:
 	CImmSocketClient* onAcceptClient (int fdClientSocket);
+	void onRemoveClient (CImmSocketClient *pClient);
 
 };
 

@@ -432,7 +432,7 @@ void CImmSocketServer::acceptLoop (int fdServerSocket)
 				//---- single client ----
 
 				pClient = new CImmSocketClient (fdClientSocket, mpPacketHandler);
-				if (isConfigLocal) {
+				if (mIsConfigLocal) {
 					pClient->setLocalSocket();
 				} else {
 					pClient->setTcpSocket();
@@ -451,10 +451,12 @@ void CImmSocketServer::acceptLoop (int fdServerSocket)
 				if (mpClientHandler) {
 					pClient = mpClientHandler->onAcceptClient (fdClientSocket);
 
+					addClientTable (fdClientSocket, pClient);
+
 				} else {
 					// default is echo server
 					pClient = new CImmSocketClient (fdClientSocket);
-					if (isConfigLocal) {
+					if (mIsConfigLocal) {
 						pClient->setLocalSocket();
 					} else {
 						pClient->setTcpSocket();
@@ -462,17 +464,16 @@ void CImmSocketServer::acceptLoop (int fdServerSocket)
 
 					// async
 					pClient->startReceiver ();
+
+					addClientTable (fdClientSocket, pClient, true);
 				}
-
-				addClientTable (fdClientSocket, pClient);
 			}
-
 		}
 	}
 
 }
 
-void CImmSocketServer::addClientTable (int fd, CImmSocketClient *pInstance)
+void CImmSocketServer::addClientTable (int fd, CImmSocketClient *pInstance, bool isEchoMode)
 {
 	CUtils::CScopedMutex scopedMutex (&mMutexClientTable);
 
@@ -481,14 +482,14 @@ void CImmSocketServer::addClientTable (int fd, CImmSocketClient *pInstance)
 
 	if (iter == mClientTable.end()) {
 		// new
-		ST_CLIENT_INFO st = {fd, pInstance};
+		ST_CLIENT_INFO st = {fd, pInstance, isEchoMode};
 		mClientTable.insert (pair<int, ST_CLIENT_INFO>(fd, st));
 
 	} else {
 //TODO
 		// already use
 		removeClientTable (fd);
-		addClientTable (fd, pInstance);
+		addClientTable (fd, pInstance, isEchoMode);
 	}
 }
 
@@ -504,25 +505,24 @@ bool CImmSocketServer::removeClientTable (int fd)
 
 		CImmSocketClient *pClient = iter->second.pInstance;
 		if (pClient) {
-			pClient->syncStopReceiver (); // thread end
 
-			_IMMSOCK_LOG_N ("client socket:[%d] close\n", fd);
-			close (fd);
+			if (iter->second.isEchoMode) {
+				pClient->syncStopReceiver (); // thread end
 
-			if (!mpPacketHandler) {
-				// multi client only
-				CImmSocketClient::IPacketHandler *pHandler = pClient->getPacketHandler();
-				if (pHandler) {
-					_IMMSOCK_LOG_N ("client socket:[%d] --> packetHandler delete\n", fd);
-					delete pHandler;
-					pHandler = NULL;
-				}
+				_IMMSOCK_LOG_N ("client socket:[%d] --> instance delete\n", fd);
+				delete iter->second.pInstance;
+				iter->second.pInstance = NULL;
+
+				_IMMSOCK_LOG_N ("client socket:[%d] close\n", fd);
+				close (fd);
+
+			} else {
+
+				mpClientHandler->onRemoveClient (pClient);
+
+				_IMMSOCK_LOG_N ("client socket:[%d] close\n", fd);
+				close (fd);
 			}
-
-			delete iter->second.pInstance;
-			iter->second.pInstance = NULL;
-
-			_IMMSOCK_LOG_N ("client socket:[%d] --> instance delete\n", fd);
 		}
 
 		mClientTable.erase (fd);
@@ -624,7 +624,7 @@ void CImmSocketServer::setLocalSocket (void)
 {
 	mpcbSetupServerSocket = &CImmSocketServer::setupServerSocket;
 	mpcbAcceptWrapper = &CImmSocketServer::acceptWrapper;
-	isConfigLocal = true;
+	mIsConfigLocal = true;
 }
 
 // socket config
@@ -632,7 +632,7 @@ void CImmSocketServer::setTcpSocket (void)
 {
 	mpcbSetupServerSocket = &CImmSocketServer::setupServerSocket_Tcp;
 	mpcbAcceptWrapper = &CImmSocketServer::acceptWrapper_Tcp;
-	isConfigLocal = false;
+	mIsConfigLocal = false;
 }
 
 } // namespace ImmSocket

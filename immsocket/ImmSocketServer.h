@@ -36,6 +36,7 @@ class CImmSocketClient;
 typedef struct client_info {
 	int fd;
 	CImmSocketClient *pInstance;
+	bool isEchoMode;
 } ST_CLIENT_INFO;
 
 typedef map<int, ST_CLIENT_INFO> CLIENT_TABLE; // <fd, ST_CLIENT_INFO>
@@ -59,6 +60,7 @@ public:
 		virtual ~IClientHandler (void) {};
 
 		virtual CImmSocketClient *onAcceptClient (int fdClientSocket) = 0;
+		virtual void onRemoveClient (CImmSocketClient *pClient) = 0;
 	};
 
 
@@ -81,7 +83,7 @@ public:
 
 	void sendToClient (uint8_t *pData, int size);
 
-	ST_CLIENT_REF getClientRef (void) {
+	const ST_CLIENT_REF getClientRef (void) {
 		ST_CLIENT_REF ref = {&mClientTable, &mMutexClientTable};
 		return ref;
 	};
@@ -92,7 +94,7 @@ public:
 private:
 	void onThreadMainRoutine (void);
 	void acceptLoop (int fdServerSocket);
-	void addClientTable (int fd, CImmSocketClient *pInstance);
+	void addClientTable (int fd, CImmSocketClient *pInstance, bool isEchoMode=false);
 	bool removeClientTable (int fd);
 	void refreshClientTable (void);
 	void forceClearClientTable (void);
@@ -121,7 +123,7 @@ private:
 	// setLocalSocket / setTcpSocket
 	P_CB_SETUP_SERVER_SOCKET mpcbSetupServerSocket;
 	P_CB_ACCEPT_WRAPPER mpcbAcceptWrapper;
-	bool isConfigLocal;
+	bool mIsConfigLocal;
 
 };
 

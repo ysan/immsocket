@@ -35,8 +35,29 @@ CImmSocketClient *CSvrClientHandler::onAcceptClient (int fdClientSocket)
 #ifdef _DEBUG_TCP
 	pClient->setTcpSocket ();
 #endif
+
 	pClient->startReceiver ();
 
 
 	return pClient;
+}
+
+void CSvrClientHandler::onRemoveClient (CImmSocketClient *pClient)
+{
+	if (!pClient) {
+		return ;
+	}
+
+	pClient->syncStopReceiver ();
+
+	CImmSocketClient::IPacketHandler *pHandler = pClient->getPacketHandler();
+	if (pHandler) {
+		_UTL_LOG_N ("client socket:[%d] --> packetHandler delete\n", pClient->getFd());
+		delete pHandler;
+		pHandler = NULL;
+	}
+
+	_UTL_LOG_N ("client socket:[%d] --> instance delete\n", pClient->getFd());
+	delete pClient;
+	pClient = NULL;
 }

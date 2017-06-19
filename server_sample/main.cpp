@@ -35,9 +35,11 @@ int main (void)
 	CImmSocketServer server ((char*)"/tmp/imm_socket_sample", pClientHandler);
 #else
 	CImmSocketServer server (65000, pClientHandler);
+//	CImmSocketServer server (65000); // debug echo server
 
 //	pMessageHandler = new CSvrMessageHandler();
 //	CImmSocketServer server (65000, pMessageHandler); // debug single client
+
 #endif
 	server.start();
 
