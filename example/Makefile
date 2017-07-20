@@ -3,41 +3,34 @@
 #
 BASEDIR		:=	../
 
-CFLAGS		:=
-
-INCLUDES    := -I./
-
-LIBS		:= -lpthread -rdynamic
+LIBS		:=
 
 LDFLAGS		:=
 
 APPEND_OBJS	:=
 
-SUBDIRS		:=
-
-#USERDEFS	:= -D_ANDROID_BUILD
+SUBDIRS		:= \
+	client \
+	server \
 
 
 #
 #   Target object
 #
-TARGET_NAME	:=	common
+TARGET_NAME	:=
 
 #
 #   Target type
 #     (EXEC/SHARED/STATIC/OBJECT)
 #
-TARGET_TYPE	:=	SHARED
+TARGET_TYPE	:=
 
 #
 #   Compile sources
 #
 SRCS		:=
 
-SRCS_CPP	:= \
-	Utils.cpp \
-	WorkerThread.cpp \
-	SigwaitThread.cpp \
+SRCS_CPP	:=
 
 #
 #   Configurations

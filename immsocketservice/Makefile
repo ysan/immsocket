@@ -3,6 +3,8 @@
 #
 BASEDIR		:=	../
 
+CFLAGS		:=
+
 INCLUDES	:= \
 	-I./ \
 	-I$(BASEDIR)/common \

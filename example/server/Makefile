@@ -1,7 +1,9 @@
 #
 #   Defines
 #
-BASEDIR		:=	../
+BASEDIR		:=	../../
+
+CFLAGS		:=
 
 INCLUDES	:= \
 	-I./ \
@@ -28,7 +30,7 @@ USERDEFS	:= -D_DEBUG_TCP
 #
 #   Target object
 #
-TARGET_NAME	:=	client_sample
+TARGET_NAME	:=	server
 
 #
 #   Target type
@@ -42,7 +44,8 @@ TARGET_TYPE	:=	EXEC
 SRCS		:=
 
 SRCS_CPP	:= \
-	ClMessageHandler.cpp \
+	SvrClientHandler.cpp\
+	SvrMessageHandler.cpp \
 	main.cpp \
 
 #

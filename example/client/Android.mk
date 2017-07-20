@@ -2,7 +2,7 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE := server_sample
+LOCAL_MODULE := client
 
 LOCAL_LDLIBS := \
 	-llog \
@@ -17,9 +17,9 @@ LOCAL_CFLAGS := \
 	-D_DEBUG_TCP \
 
 LOCAL_C_INCLUDES := \
-	$(LOCAL_PATH)/../common \
-	$(LOCAL_PATH)/../immsocket \
-	$(LOCAL_PATH)/../immsocketservice \
+	$(LOCAL_PATH)/../../common \
+	$(LOCAL_PATH)/../../immsocket \
+	$(LOCAL_PATH)/../../immsocketservice \
 
 
 LOCAL_SHARED_LIBRARIES := \
@@ -28,8 +28,7 @@ LOCAL_SHARED_LIBRARIES := \
 	libimmsocketservice \
 
 LOCAL_SRC_FILES := \
-	SvrClientHandler.cpp \
-	SvrMessageHandler.cpp \
+	ClMessageHandler.cpp \
 	main.cpp \
 
 

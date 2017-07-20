@@ -3,6 +3,8 @@
 #
 BASEDIR		:=	./
 
+CFLAGS		:=
+
 LIBS		:=
 
 LDFLAGS		:=
@@ -13,8 +15,7 @@ SUBDIRS		:= \
 	common \
 	immsocket \
 	immsocketservice \
-	client_sample \
-	server_sample \
+	example \
 
 
 #
