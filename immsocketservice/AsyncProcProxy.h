@@ -107,6 +107,7 @@ private:
 
 
 	CProxyThread mProxyThread [PROXY_THREAD_POOL_NUM]; // thread pool
+
 	REQ_QUEUE mQue;
 	pthread_mutex_t mMutexQue;
 

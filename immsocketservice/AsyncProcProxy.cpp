@@ -153,7 +153,6 @@ bool CAsyncProcProxy::start (void)
 		mProxyThread[i].setAsyncProcProxy (this);	
 		if (!mProxyThread[i].start()) {
 			_ISS_LOG_E ("mProxyThread[%d].start() is failure\n", i);
-			return false;
 		}
 	}
 
@@ -180,14 +179,11 @@ void CAsyncProcProxy::request (ST_REQ_QUEUE *pstReqQue)
 		return;
 	}
 
-	// lock
-	pthread_mutex_lock (&mMutexCond);
+	CUtils::CScopedMutex scopedMutex (&mMutexCond);
+
 
 	enQueue (pstReqQue);
 	pthread_cond_broadcast (&mCond); // thread pool start
-
-	// unlock
-	pthread_mutex_unlock (&mMutexCond);
 }
 
 void CAsyncProcProxy::enQueue (ST_REQ_QUEUE *pstReqQue)

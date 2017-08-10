@@ -239,7 +239,7 @@ void CPacketHandler::handleMsg (CMessage *pMsg, int msgType)
 	case MSG_TYPE_REPLY:
 		pMsg->setObjtype (EN_OBJTYPE_NOTHING);
 		onHandleReply (pMsg);
-
+//TODO syncだったらonHandleReplyやらないとか
 		checkSyncRequestMessage (pMsg);
 
 		break;
