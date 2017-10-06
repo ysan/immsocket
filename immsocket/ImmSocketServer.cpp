@@ -518,7 +518,9 @@ bool CImmSocketServer::removeClientTable (int fd)
 
 			} else {
 
-				mpClientHandler->onRemoveClient (pClient);
+				if (mpClientHandler) {
+					mpClientHandler->onRemoveClient (pClient);
+				}
 
 				_IMMSOCK_LOG_N ("client socket:[%d] close\n", fd);
 				close (fd);
