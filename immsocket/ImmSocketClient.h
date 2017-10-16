@@ -71,7 +71,7 @@ public:
 	bool sendToConnection (const uint8_t *pData, int size);
 
 	void syncReceivePacketLoop (void);
-	int syncReceivePacketOnce (uint8_t *pBuff, int size);
+	int syncReceivePacketOnce (uint8_t *pBuff, int size, uint32_t nTimeoutMsec=0);
 
 	CImmSocketClient::IPacketHandler* getPacketHandler (void);
 
@@ -81,7 +81,7 @@ public:
 private:
 	void onThreadMainRoutine (void);
 	void receiveLoop (int fdClientSocket);
-	void receiveOnce (int fdClientSocket);
+	int receiveOnce (int fdClientSocket, uint32_t nTimeoutMsec=0);
 	void clearReceiveDependVals (void);
 	int checkData (uint8_t *pBuff, int size, bool isOnce=false);
 	bool setPacket (const uint8_t *pIn, int insize, uint8_t *pOut, int outsize);

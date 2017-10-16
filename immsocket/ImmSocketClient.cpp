@@ -445,7 +445,7 @@ void CImmSocketClient::receiveLoop (int fdClientSocket)
 	}
 }
 
-void CImmSocketClient::receiveOnce (int fdClientSocket)
+int CImmSocketClient::receiveOnce (int fdClientSocket, uint32_t nTimeoutMsec)
 {
 	uint8_t buff[1024];
 	int rtn = 0;
@@ -454,6 +454,12 @@ void CImmSocketClient::receiveOnce (int fdClientSocket)
 	struct timeval stTimeout;
 
 
+	if (nTimeoutMsec < 0) {
+		nTimeoutMsec = 0;
+	} else if (nTimeoutMsec > RECEIVE_PACKET_ONCE_TIMEOUT_MAX) {
+		nTimeoutMsec = RECEIVE_PACKET_ONCE_TIMEOUT_MAX;
+	}	
+
 	// clear member
 	clearReceiveDependVals ();
 
@@ -461,20 +467,23 @@ void CImmSocketClient::receiveOnce (int fdClientSocket)
 
 		FD_ZERO (&stFds);
 		FD_SET (fdClientSocket, &stFds);
-		stTimeout.tv_sec = 1;
-		stTimeout.tv_usec = 0;
 
-		rtn = select (fdClientSocket+1, &stFds, NULL, NULL, &stTimeout);
+		if (nTimeoutMsec == 0) {
+			rtn = select (fdClientSocket+1, &stFds, NULL, NULL, NULL);
+		} else {
+			stTimeout.tv_sec = nTimeoutMsec / 1000;
+			stTimeout.tv_usec = nTimeoutMsec % 1000;
+			rtn = select (fdClientSocket+1, &stFds, NULL, NULL, &stTimeout);
+		}
+
 		if (rtn < 0) {
 			_IMMSOCK_PERROR ("select()");
-			break;
+			return -1;
 
 		} else if (rtn == 0) {
 			// timeout
-			if (mIsStop) {
-				_IMMSOCK_LOG_W ("stop --> receiveOnce break\n");
-				break;
-			}
+			_IMMSOCK_LOG_W ("receiveOnce timeout\n");
+			return 0;
 		}
 
 
@@ -483,10 +492,10 @@ void CImmSocketClient::receiveOnce (int fdClientSocket)
 			rtn = (this->*mpcbReceiveWrapper) (fdClientSocket, buff, sizeof(buff));
 			if (rtn == 0) {
 				_IMMSOCK_LOG_N ("disconnect.");
-				break;
+				return -2;
 			} else if (rtn < 0) {
 				_IMMSOCK_PERROR ("read()");
-				break;
+				return -1;
 			} else {
 				_IMMSOCK_LOG_I ("data come  size[%d]\n", rtn);
 				if (getLogLevel() <= EN_LOG_LEVEL_I) {
@@ -496,13 +505,13 @@ void CImmSocketClient::receiveOnce (int fdClientSocket)
 				chk = checkData (buff, rtn, true);
 				if (chk == -1) {
 					_IMMSOCK_LOG_E ("checkData()  error\n");
-					break;
+					return -1;
 				} else if (chk == -2) {
 					_IMMSOCK_LOG_E ("checkData()  buffer over\n");
-					break;
+					return -1;
 				} else if (chk == 1) {
 					// packet complete
-					break;
+					return 1;
 				} else {
 					_IMMSOCK_LOG_I ("continue\n");
 					continue;
@@ -528,19 +537,34 @@ void CImmSocketClient::syncReceivePacketLoop (void)
 	}
 }
 
-int CImmSocketClient::syncReceivePacketOnce (uint8_t *pBuff, int size)
+int CImmSocketClient::syncReceivePacketOnce (uint8_t *pBuff, int size, uint32_t nTimeoutMsec)
 {
 	if (!pBuff || size <= 0) {
-		return 0;
+		return -1;
 	}
 
+	if (nTimeoutMsec < 0) {
+		nTimeoutMsec = 0;
+	} else if (nTimeoutMsec > RECEIVE_PACKET_ONCE_TIMEOUT_MAX) {
+		nTimeoutMsec = RECEIVE_PACKET_ONCE_TIMEOUT_MAX;
+	}
+
+
 	// don't use receiveOnce and receiveLoop together
-	receiveOnce (mFdClientSocket);
+	int rtn = receiveOnce (mFdClientSocket, nTimeoutMsec);
+	if (rtn > 0) {
+		int cpsize = size > mCurrentPacketWritePos ? mCurrentPacketWritePos : size;
+		memcpy (pBuff, mCurrentPacket, cpsize);
+		return cpsize;
 
-	int cpsize = size > mCurrentPacketWritePos ? mCurrentPacketWritePos : size;
-	memcpy (pBuff, mCurrentPacket, cpsize);
+	} else if (rtn == 0) {
+		// timeout	
+		return 0;
 
-	return cpsize;
+	} else {
+		// error
+		return -1;
+	}
 }
 
 void CImmSocketClient::clearReceiveDependVals (void)

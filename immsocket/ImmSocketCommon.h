@@ -21,16 +21,17 @@ using namespace std;
 
 namespace ImmSocket {
 
-#define DEFAULT_IMMSOCKET_ENDPOINT_PATH	"./socket_endpoint"
+#define DEFAULT_IMMSOCKET_ENDPOINT_PATH		"./socket_endpoint"
 #define DEFAULT_TCP_SERVER_PORT				((uint16_t)65000)
 #define DEFAULT_TCP_SERVER_ADDR				"127.0.0.1"
 
-#define RECEIVED_SIZE_MAX		(4096)
+#define RECEIVED_SIZE_MAX					(4096)
+#define RECEIVE_PACKET_ONCE_TIMEOUT_MAX		(0x05265C00) // msec 24h
 
-#define SOH						(0x01) // start of heading
-#define EOT						(0x04) // end of transfer
-#define ACK						(0x06)
-#define NAK						(0x15)
+#define SOH									(0x01) // start of heading
+#define EOT									(0x04) // end of transfer
+#define ACK									(0x06)
+#define NAK									(0x15)
 
 
 typedef enum {
