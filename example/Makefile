@@ -12,6 +12,7 @@ APPEND_OBJS	:=
 SUBDIRS		:= \
 	client \
 	server \
+	sigwait_test \
 
 
 #

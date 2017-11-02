@@ -14,11 +14,13 @@ CSigwaitThread::CSigwaitThread (void) :
 {
 	sigemptyset (&mSigset);
 	pthread_mutex_init (&mMutex, NULL);
+	pthread_mutex_init (&mMutexSigproc, NULL);
 }
 
 CSigwaitThread::~CSigwaitThread (void)
 {
 	pthread_mutex_destroy (&mMutex);
+	pthread_mutex_destroy (&mMutexSigproc);
 }
 
 
@@ -51,15 +53,70 @@ void CSigwaitThread::syncStop (void)
 	waitDestroy ();
 }
 
-bool CSigwaitThread::setSignalMask (void)
+void CSigwaitThread::regSignalHandler (const CSigwaitThread::ISignalHandler* pHandler)
 {
-	CUtils::CScopedMutex scopedMutex (&mMutex);
+	CUtils::CScopedMutex scopedMutex (&mMutexSigproc);
+
+	if (!pHandler) {
+		return ;
+	}
+
+	mHandlerList.push_back (const_cast<CSigwaitThread::ISignalHandler*>(pHandler));
+}
+
+void CSigwaitThread::unregSignalHandler (const CSigwaitThread::ISignalHandler* pHandler)
+{
+	CUtils::CScopedMutex scopedMutex (&mMutexSigproc);
+
+	if (!pHandler) {
+		return ;
+	}
+
+	if (mHandlerList.size() == 0) {
+		return ;
+	}
+
+	vector <CSigwaitThread::ISignalHandler*>::iterator iter = mHandlerList.begin();
+	while (iter != mHandlerList.end()) {
+		if (*iter == pHandler) {
+			// erase & update next iter
+			iter = mHandlerList.erase (iter);
+			continue;
+		}
+
+		++ iter;
+	}
+}
+
+bool CSigwaitThread::watchSignal (const int *pSetArray)
+{
+	if (!pSetArray) {
+		return false;
+	}
+
+	return setSignalMask (pSetArray);
+}
+
+bool CSigwaitThread::unwatchSignal (void)
+{
+	return unsetSignalMask ();
+}
+
+bool CSigwaitThread::setSignalMask (const int *pSetArray)
+{
+	CUtils::CScopedMutex scopedMutex (&mMutexSigproc);
+
+	if (!pSetArray) {
+		return false;
+	}
 
 	sigemptyset (&mSigset);
-//	sigaddset (&mSigset, SIGINT);
-	sigaddset (&mSigset, SIGTERM);
-	sigaddset (&mSigset, SIGPIPE);
-	sigaddset (&mSigset, SIGQUIT); //TODO terminal (ctrl + \)
+
+	while (*pSetArray != 0) {
+		sigaddset (&mSigset, *pSetArray);
+		++ pSetArray;
+	}
+
 	int rtn = pthread_sigmask (SIG_BLOCK, &mSigset, NULL);
 	if (rtn != 0) {
 		_UTL_PERROR ("pthread_sigmask");
@@ -71,50 +128,29 @@ bool CSigwaitThread::setSignalMask (void)
 
 bool CSigwaitThread::unsetSignalMask (void)
 {
-	CUtils::CScopedMutex scopedMutex (&mMutex);
+	CUtils::CScopedMutex scopedMutex (&mMutexSigproc);
 
-	sigemptyset (&mSigset);
-//	sigaddset (&mSigset, SIGINT);
-	sigaddset (&mSigset, SIGTERM);
-	sigaddset (&mSigset, SIGPIPE);
-	sigaddset (&mSigset, SIGQUIT); //TODO terminal (ctrl + \)
 	int rtn = pthread_sigmask (SIG_UNBLOCK, &mSigset, NULL);
 	if (rtn != 0) {
 		_UTL_PERROR ("pthread_sigmask");
 		return false;
 	}
 
+	sigemptyset (&mSigset);
+
 	return true;
 }
 
-void CSigwaitThread::onHandleSignal (int sig)
+void CSigwaitThread::execHandler (int signo)
 {
-	switch (sig) {
-	case SIGINT:
-		_UTL_LOG_W ("catch SIGINT\n");
+	CUtils::CScopedMutex scopedMutex (&mMutexSigproc);
 
-		mIsStop = true;
-
-		break;
-
-	case SIGTERM:
-		_UTL_LOG_W ("catch SIGTERM\n");
-
-		mIsStop = true;
-
-		break;
-
-	case SIGPIPE:
-		_UTL_LOG_W ("catch SIGPIPE\n");
-		break;
-
-	case SIGQUIT:
-		_UTL_LOG_W ("catch SIGQUIT\n");
-		break;
-
-	default:
-		_UTL_LOG_E ("unexpected signal.\n");
-		break;
+	vector <CSigwaitThread::ISignalHandler*>::iterator iter;
+	for (iter = mHandlerList.begin(); iter != mHandlerList.end(); ++ iter) {
+		CSigwaitThread::ISignalHandler *pHandler = *iter;
+		if (pHandler) {
+			pHandler->onHandleSignal (signo);
+		}
 	}
 }
 
@@ -132,7 +168,8 @@ void CSigwaitThread::onThreadMainRoutine (void)
 		memset (&stSiginfo, 0x00, sizeof(stSiginfo));
 
 		if (sigtimedwait(&mSigset, &stSiginfo, &stTimeout) > 0) {
-			onHandleSignal (stSiginfo.si_signo);
+
+			execHandler (stSiginfo.si_signo);
 
 		} else {
 			if (errno == EAGAIN) {
@@ -146,7 +183,6 @@ void CSigwaitThread::onThreadMainRoutine (void)
 			}
 		}
 	}
-
 
 
 	_UTL_LOG_I ("%s %s end...\n", __FILE__, __func__);
