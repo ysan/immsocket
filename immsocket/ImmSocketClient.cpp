@@ -305,7 +305,7 @@ bool CImmSocketClient::connectToServer (void)
 		return true;
 	} 
 
-	int fd = (this->*mpcbSetupClientSocket) ();
+	int fd = (this->*mpfnSetupClientSocket) ();
 	if (fd < 0) {
 		return  false;
 	}
@@ -416,7 +416,7 @@ void CImmSocketClient::receiveLoop (int fdClientSocket)
 
 		if (FD_ISSET (fdClientSocket, &stFds)) {
 			memset (buff, 0x00, sizeof(buff));
-			rtn = (this->*mpcbReceiveWrapper) (fdClientSocket, buff, sizeof(buff));
+			rtn = (this->*mpfnReceiveWrapper) (fdClientSocket, buff, sizeof(buff));
 			if (rtn == 0) {
 				_IMMSOCK_LOG_N ("disconnect.");
 				break;
@@ -489,7 +489,7 @@ int CImmSocketClient::receiveOnce (int fdClientSocket, uint32_t nTimeoutMsec)
 
 		if (FD_ISSET (fdClientSocket, &stFds)) {
 			memset (buff, 0x00, sizeof(buff));
-			rtn = (this->*mpcbReceiveWrapper) (fdClientSocket, buff, sizeof(buff));
+			rtn = (this->*mpfnReceiveWrapper) (fdClientSocket, buff, sizeof(buff));
 			if (rtn == 0) {
 				_IMMSOCK_LOG_N ("disconnect.");
 				return -2;
@@ -700,7 +700,7 @@ bool CImmSocketClient::sendToConnection (const uint8_t *pData, int size)
 	}
 
 
-	int rtn = (this->*mpcbSendWrapper) (mFdClientSocket, buff, totalsize);
+	int rtn = (this->*mpfnSendWrapper) (mFdClientSocket, buff, totalsize);
 	if (rtn < 0) {
 		_IMMSOCK_PERROR ("write()/send()");
 		return false;
@@ -757,17 +757,17 @@ CImmSocketClient::IPacketHandler *CImmSocketClient::getPacketHandler (void)
 // socket config
 void CImmSocketClient::setLocalSocket (void)
 {
-	mpcbSetupClientSocket = &CImmSocketClient::setupClientSocket;
-	mpcbReceiveWrapper = &CImmSocketClient::receiveWrapper;
-	mpcbSendWrapper = &CImmSocketClient::sendWrapper;
+	mpfnSetupClientSocket = &CImmSocketClient::setupClientSocket;
+	mpfnReceiveWrapper = &CImmSocketClient::receiveWrapper;
+	mpfnSendWrapper = &CImmSocketClient::sendWrapper;
 }
 
 // socket config
 void CImmSocketClient::setTcpSocket (void)
 {
-	mpcbSetupClientSocket = &CImmSocketClient::setupClientSocket_Tcp;
-	mpcbReceiveWrapper = &CImmSocketClient::receiveWrapper_Tcp;
-	mpcbSendWrapper = &CImmSocketClient::sendWrapper_Tcp;
+	mpfnSetupClientSocket = &CImmSocketClient::setupClientSocket_Tcp;
+	mpfnReceiveWrapper = &CImmSocketClient::receiveWrapper_Tcp;
+	mpfnSendWrapper = &CImmSocketClient::sendWrapper_Tcp;
 }
 
 } // namespace ImmSocket

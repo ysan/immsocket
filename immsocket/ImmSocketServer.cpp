@@ -246,7 +246,7 @@ void CImmSocketServer::onThreadMainRoutine (void)
 	_IMMSOCK_LOG_I ("%s %s\n", __FILE__, __func__);
 
 
-	int fd = (this->*mpcbSetupServerSocket) ();
+	int fd = (this->*mpfnSetupServerSocket) ();
 	if (fd < 0) {
 		return  ;
 	}
@@ -419,7 +419,7 @@ void CImmSocketServer::acceptLoop (int fdServerSocket)
 
 
 		if (FD_ISSET (fdServerSocket, &stFds)) {
-			if ((fdClientSocket = (this->*mpcbAcceptWrapper) (fdServerSocket)) < 0) {
+			if ((fdClientSocket = (this->*mpfnAcceptWrapper) (fdServerSocket)) < 0) {
 				_IMMSOCK_PERROR ("accept");
 				continue ;
 			}
@@ -624,16 +624,16 @@ void CImmSocketServer::sendToClient (uint8_t *pData, int size)
 // socket config
 void CImmSocketServer::setLocalSocket (void)
 {
-	mpcbSetupServerSocket = &CImmSocketServer::setupServerSocket;
-	mpcbAcceptWrapper = &CImmSocketServer::acceptWrapper;
+	mpfnSetupServerSocket = &CImmSocketServer::setupServerSocket;
+	mpfnAcceptWrapper = &CImmSocketServer::acceptWrapper;
 	mIsConfigLocal = true;
 }
 
 // socket config
 void CImmSocketServer::setTcpSocket (void)
 {
-	mpcbSetupServerSocket = &CImmSocketServer::setupServerSocket_Tcp;
-	mpcbAcceptWrapper = &CImmSocketServer::acceptWrapper_Tcp;
+	mpfnSetupServerSocket = &CImmSocketServer::setupServerSocket_Tcp;
+	mpfnAcceptWrapper = &CImmSocketServer::acceptWrapper_Tcp;
 	mIsConfigLocal = false;
 }
 

@@ -47,8 +47,8 @@ typedef struct client_ref {
 } ST_CLIENT_REF;
 
 class CImmSocketServer;
-typedef int (CImmSocketServer:: *P_CB_SETUP_SERVER_SOCKET) (void);
-typedef int (CImmSocketServer:: *P_CB_ACCEPT_WRAPPER) (int fdServerSocket);
+typedef int (CImmSocketServer:: *P_FN_SETUP_SERVER_SOCKET) (void);
+typedef int (CImmSocketServer:: *P_FN_ACCEPT_WRAPPER) (int fdServerSocket);
 
 
 class CImmSocketServer : public CWorkerThread
@@ -121,8 +121,8 @@ private:
 
 
 	// setLocalSocket / setTcpSocket
-	P_CB_SETUP_SERVER_SOCKET mpcbSetupServerSocket;
-	P_CB_ACCEPT_WRAPPER mpcbAcceptWrapper;
+	P_FN_SETUP_SERVER_SOCKET mpfnSetupServerSocket;
+	P_FN_ACCEPT_WRAPPER mpfnAcceptWrapper;
 	bool mIsConfigLocal;
 
 };

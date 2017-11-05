@@ -35,7 +35,7 @@ TARGET_TYPE	:=	EXEC
 #
 SRCS		:=
 
-SRCS_CPP	:= sigwait_test.cpp
+SRCS_CPP	:= main.cpp
 
 #
 #   Configurations

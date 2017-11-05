@@ -27,9 +27,9 @@ using namespace std;
 namespace ImmSocket {
 
 class CImmSocketClient;
-typedef int (CImmSocketClient:: *P_CB_SETUP_CLIENT_SOCKET) (void);
-typedef int (CImmSocketClient:: *P_CB_RECEIVE_WRAPPER) (int fdClientSocket, uint8_t *pBuff, int size);
-typedef int (CImmSocketClient:: *P_CB_SEND_WRAPPER) (int fdClientSocket, const uint8_t *pData, int size);
+typedef int (CImmSocketClient:: *P_FN_SETUP_CLIENT_SOCKET) (void);
+typedef int (CImmSocketClient:: *P_FN_RECEIVE_WRAPPER) (int fdClientSocket, uint8_t *pBuff, int size);
+typedef int (CImmSocketClient:: *P_FN_SEND_WRAPPER) (int fdClientSocket, const uint8_t *pData, int size);
 
 class CImmSocketClient : public CWorkerThread
 {
@@ -112,9 +112,9 @@ private:
 
 
 	// setLocalSocket / setTcpSocket
-	P_CB_SETUP_CLIENT_SOCKET mpcbSetupClientSocket;
-	P_CB_RECEIVE_WRAPPER mpcbReceiveWrapper;
-	P_CB_SEND_WRAPPER mpcbSendWrapper;
+	P_FN_SETUP_CLIENT_SOCKET mpfnSetupClientSocket;
+	P_FN_RECEIVE_WRAPPER mpfnReceiveWrapper;
+	P_FN_SEND_WRAPPER mpfnSendWrapper;
 
 };
 
