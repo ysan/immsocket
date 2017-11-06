@@ -21,10 +21,10 @@ using namespace std;
 class CSigwaitThread : public CWorkerThread
 {
 public:
-	class ISignalHandler
+	class ISigwaitHandler
 	{
 	public:
-		virtual ~ISignalHandler (void) {};
+		virtual ~ISigwaitHandler (void) {};
 
 		virtual void onHandleSignal (int signo) = 0;
     };
@@ -37,8 +37,8 @@ public:
 	void stop (void); // async
 	void syncStop (void);
 
-	void regSignalHandler (const CSigwaitThread::ISignalHandler* pHandler);
-	void unregSignalHandler (const CSigwaitThread::ISignalHandler* pHandler);
+	void regSigwaitHandler (const CSigwaitThread::ISigwaitHandler* pHandler);
+	void unregSigwaitHandler (const CSigwaitThread::ISigwaitHandler* pHandler);
 
 	bool watchSignal (const int *pSetArray);
 	bool unwatchSignal (void);
@@ -55,7 +55,7 @@ private:
 	pthread_mutex_t mMutex;
 	pthread_mutex_t mMutexSigproc;
 
-	vector <CSigwaitThread::ISignalHandler*> mHandlerList;
+	vector <CSigwaitThread::ISigwaitHandler*> mHandlerList;
 };
 
 #endif

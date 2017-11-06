@@ -18,8 +18,7 @@ LDFLAGS		:= \
 
 APPEND_OBJS	:=
 
-SUBDIRS		:= \
-	send_test \
+SUBDIRS		:=
 
 USERDEFS	:=
 

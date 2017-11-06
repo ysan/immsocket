@@ -31,7 +31,7 @@ TARGET_TYPE	:=	EXEC
 #
 SRCS		:=
 
-SRCS_CPP	:= send_test.cpp
+SRCS_CPP	:= main.cpp
 
 #
 #   Configurations

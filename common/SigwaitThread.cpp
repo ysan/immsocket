@@ -53,7 +53,7 @@ void CSigwaitThread::syncStop (void)
 	waitDestroy ();
 }
 
-void CSigwaitThread::regSignalHandler (const CSigwaitThread::ISignalHandler* pHandler)
+void CSigwaitThread::regSigwaitHandler (const CSigwaitThread::ISigwaitHandler* pHandler)
 {
 	CUtils::CScopedMutex scopedMutex (&mMutexSigproc);
 
@@ -61,10 +61,10 @@ void CSigwaitThread::regSignalHandler (const CSigwaitThread::ISignalHandler* pHa
 		return ;
 	}
 
-	mHandlerList.push_back (const_cast<CSigwaitThread::ISignalHandler*>(pHandler));
+	mHandlerList.push_back (const_cast<CSigwaitThread::ISigwaitHandler*>(pHandler));
 }
 
-void CSigwaitThread::unregSignalHandler (const CSigwaitThread::ISignalHandler* pHandler)
+void CSigwaitThread::unregSigwaitHandler (const CSigwaitThread::ISigwaitHandler* pHandler)
 {
 	CUtils::CScopedMutex scopedMutex (&mMutexSigproc);
 
@@ -76,7 +76,7 @@ void CSigwaitThread::unregSignalHandler (const CSigwaitThread::ISignalHandler* p
 		return ;
 	}
 
-	vector <CSigwaitThread::ISignalHandler*>::iterator iter = mHandlerList.begin();
+	vector <CSigwaitThread::ISigwaitHandler*>::iterator iter = mHandlerList.begin();
 	while (iter != mHandlerList.end()) {
 		if (*iter == pHandler) {
 			// erase & update next iter
@@ -145,9 +145,9 @@ void CSigwaitThread::execHandler (int signo)
 {
 	CUtils::CScopedMutex scopedMutex (&mMutexSigproc);
 
-	vector <CSigwaitThread::ISignalHandler*>::iterator iter;
+	vector <CSigwaitThread::ISigwaitHandler*>::iterator iter;
 	for (iter = mHandlerList.begin(); iter != mHandlerList.end(); ++ iter) {
-		CSigwaitThread::ISignalHandler *pHandler = *iter;
+		CSigwaitThread::ISigwaitHandler *pHandler = *iter;
 		if (pHandler) {
 			pHandler->onHandleSignal (signo);
 		}

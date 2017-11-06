@@ -13,6 +13,7 @@ SUBDIRS		:= \
 	client \
 	server \
 	sigwait_test \
+	send_test \
 
 
 #

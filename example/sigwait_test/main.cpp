@@ -19,7 +19,7 @@ static const int g_set [] = {
 	0 // term
 };
 
-class CHandler : public CSigwaitThread::ISignalHandler {
+class CHandler : public CSigwaitThread::ISigwaitHandler {
 public:
 	CHandler (void) : mIsLock (false) {};
 	virtual ~CHandler (void) {};
@@ -89,7 +89,7 @@ int main (void)
 	CSigwaitThread st;
 
 
-	st.regSignalHandler (&handler);
+	st.regSigwaitHandler (&handler);
 	st.watchSignal (g_set);
 	st.start();
 
@@ -99,7 +99,7 @@ int main (void)
 
 	st.syncStop();
 	st.unwatchSignal();
-	st.unregSignalHandler (&handler);
+	st.unregSigwaitHandler (&handler);
 
 
 	exit (EXIT_SUCCESS);
