@@ -113,24 +113,33 @@ static void *sync_req_test (void *args)
 
 		_UTL_LOG_I ("sync request\n");
 		CMessage *pMsg = new CMessage(pcl);
-		if (!pMsg->sendRequestSync ((uint8_t)0x02)) { // reply wait
+		int rtn = pMsg->sendRequestSync ((uint8_t)0x02, 500); // reply wait
+		if (rtn == ETIMEDOUT) {
+			_UTL_LOG_E ("timeout\n");
 			delete pMsg;
 			pMsg = NULL;
 			continue;
-		}
 
-		if (pMsg->sync()->isReplyResultOK()) {
-			_UTL_LOG_I ("REPLY_OK\n");
-		} else {
-			_UTL_LOG_I ("REPLY_NG\n");
-		}
+		} else if (rtn == EINTR) {
+			_UTL_LOG_E ("singnal intr.\n");
+			delete pMsg;
+			pMsg = NULL;
+			continue;
 
-		if (pMsg->sync()->getDataSize() > 0) {
-			_UTL_LOG_I ("replyData [%s]\n", (char*)(pMsg->sync()->getData()));
-		}
+		} else if (rtn == 0) {
+			if (pMsg->sync()->isReplyResultOK()) {
+				_UTL_LOG_I ("REPLY_OK\n");
+			} else {
+				_UTL_LOG_I ("REPLY_NG\n");
+			}
 
-		delete pMsg;
-		pMsg = NULL;
+			if (pMsg->sync()->getDataSize() > 0) {
+				_UTL_LOG_I ("replyData [%s]\n", (char*)(pMsg->sync()->getData()));
+			}
+
+			delete pMsg;
+			pMsg = NULL;
+		}
 	}
 
 	return NULL;

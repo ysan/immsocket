@@ -13,6 +13,14 @@
 
 namespace ImmSocketService {
 
+const uint8_t CMessage::MSG_TYPE_REQUEST = 0x00;
+const uint8_t CMessage::MSG_TYPE_REPLY = 0x01;
+const uint8_t CMessage::MSG_TYPE_NOTIFY = 0x02;
+
+const uint32_t CMessage::REQUEST_TIMEOUT_MAX = 0x05265C00; // 24時間 msec
+const uint32_t CMessage::REQUEST_TIMEOUT_FEVER = 0xffffffff;
+
+
 CMessage::CSync::CSync (void) :
 	mCommand (0),
 	mIsReplyResultOK (false),
@@ -22,6 +30,7 @@ CMessage::CSync::CSync (void) :
 	pthread_mutex_init (&mMutexCond, NULL);
 	memset (mEntityData, 0x00, sizeof(mEntityData));
 }
+
 CMessage::CSync::~CSync (void)
 {
 	pthread_cond_destroy (&mCond);
@@ -38,9 +47,46 @@ void CMessage::CSync::condUnlock (void)
 	pthread_mutex_unlock (&mMutexCond);
 }
 
-void CMessage::CSync::condWait (void)
+int CMessage::CSync::condWait (uint32_t nTimeoutMsec)
 {
-	pthread_cond_wait (&mCond, &mMutexCond);
+	// pthread_cond_wait
+	if (nTimeoutMsec == REQUEST_TIMEOUT_FEVER) {
+		pthread_cond_wait (&mCond, &mMutexCond);
+		return 0;
+	}
+
+
+	// pthread_cond_timedwait
+
+	if (nTimeoutMsec < 0) {
+		nTimeoutMsec = 0;
+	} else if (nTimeoutMsec > REQUEST_TIMEOUT_MAX) {
+		nTimeoutMsec = REQUEST_TIMEOUT_MAX;
+	}
+
+	struct timespec stTimeout = {0};
+	struct timeval stNowTimeval = {0};
+
+	CUtils::getTimeOfDay (&stNowTimeval);
+
+	time_t after_decpoint = (stNowTimeval.tv_usec * 1000 + nTimeoutMsec * 1000000) % 1000000000;
+	long adv = (stNowTimeval.tv_usec * 1000 + nTimeoutMsec * 1000000) / 1000000000;
+
+	stTimeout.tv_sec = stNowTimeval.tv_sec + adv;
+	stTimeout.tv_nsec = after_decpoint;
+
+	int nRtn = pthread_cond_timedwait (&mCond, &mMutexCond, &stTimeout);
+	switch (nRtn) {
+	case 0:
+	case ETIMEDOUT:
+	case EINTR:
+		break;
+	default:
+		_ISS_LOG_E ("BUG: pthread_cond_timedwait() => unexpected return value [%d]\n", nRtn);
+		break;
+	}
+
+	return nRtn;
 }
 
 void CMessage::CSync::condSignal (void)
@@ -270,17 +316,17 @@ uint8_t CMessage::generateId (void)
 	return id;
 }
 
-bool CMessage::sendRequestSync (void)
+int CMessage::sendRequestSync (uint32_t nTimeoutMsec)
 {
 	if (!mpClientInstance) {
 		_ISS_LOG_E ("mpClientInstance is null\n");
-		return false;
+		return -1;
 	}
 
 	CPacketHandler *pPacketHandler = (CPacketHandler*)mpClientInstance->getPacketHandler();
 	if (!pPacketHandler) {
 		_ISS_LOG_E ("PacketHandler is null\n");
-		return false;
+		return -1;
 	}
 
 	// lock
@@ -297,11 +343,11 @@ bool CMessage::sendRequestSync (void)
 		// unlock
 		sync()->condUnlock();
 		// send error
-		return false;
+		return -1;
 	}
 
 	// condition wait
-	sync()->condWait();
+	int nRtn = sync()->condWait (nTimeoutMsec);
 
 	// unlock
 	sync()->condUnlock();
@@ -313,21 +359,21 @@ bool CMessage::sendRequestSync (void)
 	// remove
 	pPacketHandler->removeSyncRequestTable (this);
 
-	return true;
+	return nRtn;
 }
 
-bool CMessage::sendRequestSync (uint8_t command)
+int CMessage::sendRequestSync (uint8_t command, uint32_t nTimeoutMsec)
 {
 	setCommand (command);
 	setData (NULL, 0, true);
-	return sendRequestSync();
+	return sendRequestSync (nTimeoutMsec);
 }
 
-bool CMessage::sendRequestSync (uint8_t command, uint8_t *pData, int size)
+int CMessage::sendRequestSync (uint8_t command, uint8_t *pData, int size, uint32_t nTimeoutMsec)
 {
 	setCommand (command);
 	setData (pData, size);
-	return sendRequestSync();
+	return sendRequestSync (nTimeoutMsec);
 }
 
 bool CMessage::sendRequestAsync (uint8_t id)

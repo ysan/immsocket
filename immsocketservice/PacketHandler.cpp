@@ -115,6 +115,8 @@ void CPacketHandler::checkSyncRequestMessage (CMessage *pReplyMsg)
 	pWaitMsg->sync()->condLock();
 	pWaitMsg->sync()->condSignal();
 	pWaitMsg->sync()->condUnlock();
+
+	return;
 }
 
 uint8_t CPacketHandler::generateId (void)
@@ -184,7 +186,7 @@ void CPacketHandler::onReceivePacket (CImmSocketClient *pSelf, uint8_t *pPacket,
 	CMessage msg(pSelf, pstPacket->id, pstPacket->command, EN_OBJTYPE_NOTHING);
 
 	int type = (int)(pstPacket->type & 0x0f);
-	if (type == MSG_TYPE_REPLY) {
+	if (type == CMessage::MSG_TYPE_REPLY) {
 		// replyの場合のみ上位4bitに結果(OK/NG)が入っています
 		if ((pstPacket->type & 0xf0) == 0) {
 			msg.setReplyResult (true);
@@ -230,28 +232,21 @@ void CPacketHandler::handleMsg (CMessage *pMsg, int msgType)
 	}
 
 
-	switch (msgType) {
-	case MSG_TYPE_REQUEST:
+	if (msgType == CMessage::MSG_TYPE_REQUEST) {
 		pMsg->setObjtype (EN_OBJTYPE_REPLYABLE);
 		onHandleRequest (pMsg);
-		break;
 
-	case MSG_TYPE_REPLY:
+	} else if (msgType == CMessage::MSG_TYPE_REPLY) {
 		pMsg->setObjtype (EN_OBJTYPE_NOTHING);
 		onHandleReply (pMsg);
-//TODO syncだったらonHandleReplyやらないとか
 		checkSyncRequestMessage (pMsg);
 
-		break;
-
-	case MSG_TYPE_NOTIFY:
+	} else if (msgType == CMessage::MSG_TYPE_NOTIFY) {
 		pMsg->setObjtype (EN_OBJTYPE_NOTHING);
 		onHandleNotify (pMsg);
-		break;
 
-	default:
+	} else {
 		_ISS_LOG_E ("%s  invalid packet (unknown type)\n", __func__);
-		break;
 	}
 
 }

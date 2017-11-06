@@ -26,13 +26,17 @@ typedef enum {
 	EN_OBJTYPE_NOTHING,
 } EN_OBJTYPE;
 
-#define MSG_TYPE_REQUEST		((uint8_t)0x00)
-#define MSG_TYPE_REPLY			((uint8_t)0x01)
-#define MSG_TYPE_NOTIFY			((uint8_t)0x02)
-
 
 class CMessage
 {
+public:
+	static const uint8_t MSG_TYPE_REQUEST;
+	static const uint8_t MSG_TYPE_REPLY;
+	static const uint8_t MSG_TYPE_NOTIFY;
+
+	static const uint32_t REQUEST_TIMEOUT_MAX;
+	static const uint32_t REQUEST_TIMEOUT_FEVER;
+
 public:
 	// for syncRequest -> reply
 	class CSync
@@ -63,7 +67,7 @@ public:
 
 		void condLock (void);   // friend access
 		void condUnlock (void); // friend access
-		void condWait (void);   // friend access
+		int condWait (uint32_t nTimeoutMsec=REQUEST_TIMEOUT_FEVER);   // friend access
 		void condSignal (void); // friend access
 
 		pthread_cond_t mCond;
@@ -103,8 +107,8 @@ public:
 	uint8_t getId (void); // reference current id value
 	uint8_t generateId (void);
 
-	bool sendRequestSync (uint8_t command);
-	bool sendRequestSync (uint8_t command, uint8_t *pData, int size);
+	int sendRequestSync (uint8_t command, uint32_t nTimeoutMsec=REQUEST_TIMEOUT_FEVER);
+	int sendRequestSync (uint8_t command, uint8_t *pData, int size, uint32_t nTimeoutMsec=REQUEST_TIMEOUT_FEVER);
 	bool sendRequestAsync (uint8_t id, uint8_t command);
 	bool sendRequestAsync (uint8_t id, uint8_t command, uint8_t *pData, int size);
 	bool sendReplyOK (void);
@@ -132,7 +136,7 @@ private:
 	void setObjtype (EN_OBJTYPE type); // friend access
 
 
-	bool sendRequestSync (void);
+	int sendRequestSync (uint32_t nTimeoutMsec=REQUEST_TIMEOUT_FEVER);
 	bool sendRequestAsync (uint8_t id);
 
 	bool sendRequest (uint8_t id);
