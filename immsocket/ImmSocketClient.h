@@ -106,7 +106,7 @@ private:
 	pthread_mutex_t mMutex;
 	pthread_mutex_t mMutexSend;
 
-	char mSocketEndpointPath [64]; // imm
+	char mSocketEndpointPath [64]; // local
 	char mIpAddr [15+1];          // tcp
 	uint16_t mPort;               // tcp
 
