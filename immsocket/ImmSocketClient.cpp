@@ -17,7 +17,7 @@
 
 namespace ImmSocket {
 
-// for client single // local
+#if 0
 CImmSocketClient::CImmSocketClient (void) :
 	mIsStop (false),
 	mState (EN_RECEIVE_STATE_STANDBY__WAIT_SOH),
@@ -39,6 +39,7 @@ CImmSocketClient::CImmSocketClient (void) :
 
 	setLocalSocket ();
 }
+#endif
 
 // for client single // local
 CImmSocketClient::CImmSocketClient (const char *pPath) :

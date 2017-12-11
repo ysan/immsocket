@@ -46,8 +46,8 @@ public:
 
 
 public:
+//	CImmSocketClient (void);
 	// for client single
-	CImmSocketClient (void);                                                                             // local
 	CImmSocketClient (const char *pszPath);                                                              // local
 	CImmSocketClient (const char *pszPath, CImmSocketClient::IPacketHandler *pHandler);                  // local
 	CImmSocketClient (const char *pszIpAddr, uint16_t port);                                             // tcp
