@@ -421,10 +421,15 @@ void CImmSocketServer::acceptLoop (int fdServerSocket)
 						pClient->setTcpSocket();
 					}
 
-					addClientTable (fdClientSocket, pClient);
-
 					// ## sync ##
 					pClient->syncReceivePacketLoop ();
+
+					_IMMSOCK_LOG_W ("- single client - client socket:[%d] --> instance delete\n", fdClientSocket);
+					delete pClient;
+					pClient = NULL;
+
+					_IMMSOCK_LOG_W ("- single client - client socket:[%d] close\n", fdClientSocket);
+					close (fdClientSocket);
 
 				} else {
 					_IMMSOCK_LOG_E ("BUG:mpPacketHandler is null.\n");

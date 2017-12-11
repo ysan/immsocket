@@ -34,8 +34,7 @@ int main (void)
 #else
 	CImmSocketServer server (65000, pMessageHandler);
 //	CImmSocketServer server (65000); // debug echo server
-
-//	CImmSocketServer server (65000, pMessageHandler, true); // debug single client
+//	CImmSocketServer server (65000, pMessageHandler, false); // debug single client
 
 #endif
 	server.start();
