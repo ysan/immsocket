@@ -44,7 +44,6 @@ TARGET_TYPE	:=	EXEC
 SRCS		:=
 
 SRCS_CPP	:= \
-	SvrClientHandler.cpp\
 	SvrMessageHandler.cpp \
 	main.cpp \
 

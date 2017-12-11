@@ -20,11 +20,12 @@
 namespace ImmSocket {
 
 // local
+#if 0
 CImmSocketServer::CImmSocketServer (void) :
 	mFdServerSocket (0),
-	mpClientHandler (NULL),
 	mpPacketHandler (NULL),
 	mIsStop (false),
+	mIsMultiClient (false),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
 	pthread_mutex_init (&mMutex, NULL);
@@ -38,13 +39,14 @@ CImmSocketServer::CImmSocketServer (void) :
 
 	setLocalSocket ();
 }
+#endif
 
-// local
+// local echo server
 CImmSocketServer::CImmSocketServer (const char *pPath) :
 	mFdServerSocket (0),
-	mpClientHandler (NULL),
 	mpPacketHandler (NULL),
 	mIsStop (false),
+	mIsMultiClient (false),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
 	pthread_mutex_init (&mMutex, NULL);
@@ -62,39 +64,15 @@ CImmSocketServer::CImmSocketServer (const char *pPath) :
 }
 
 // local
-CImmSocketServer::CImmSocketServer (const char *pPath, CImmSocketServer::IClientHandler *pHandler) :
+CImmSocketServer::CImmSocketServer (const char *pPath, CImmSocketClient::IPacketHandler *pHandler, bool isMultiClient) :
 	mFdServerSocket (0),
-	mpClientHandler (NULL),
 	mpPacketHandler (NULL),
 	mIsStop (false),
+	mIsMultiClient (false),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
-	pthread_mutex_init (&mMutex, NULL);
-	pthread_mutexattr_t attr;
-	pthread_mutexattr_init (&attr);
-	pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE_NP);
-	pthread_mutex_init (&mMutexClientTable, &attr);
+	mIsMultiClient = isMultiClient;
 
-	if (pHandler) {
-		mpClientHandler = pHandler;
-	}
-
-	memset (mSocketEndpointPath, 0x00, sizeof(mSocketEndpointPath));
-	if ((pPath) && (strlen(pPath) > 0)) {
-		strncpy (mSocketEndpointPath, pPath, sizeof (mSocketEndpointPath) -1);
-	}
-
-	setLocalSocket ();
-}
-
-// local // single client
-CImmSocketServer::CImmSocketServer (const char *pPath, CImmSocketClient::IPacketHandler *pHandler) :
-	mFdServerSocket (0),
-	mpClientHandler (NULL),
-	mpPacketHandler (NULL),
-	mIsStop (false),
-	mPort (DEFAULT_TCP_SERVER_PORT)
-{
 	pthread_mutex_init (&mMutex, NULL);
 	pthread_mutexattr_t attr;
 	pthread_mutexattr_init (&attr);
@@ -113,12 +91,12 @@ CImmSocketServer::CImmSocketServer (const char *pPath, CImmSocketClient::IPacket
 	setLocalSocket ();
 }
 
-// tcp
+// tcp echo server
 CImmSocketServer::CImmSocketServer (uint16_t port) :
 	mFdServerSocket (0),
-	mpClientHandler (NULL),
 	mpPacketHandler (NULL),
 	mIsStop (false),
+	mIsMultiClient (false),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
 	pthread_mutex_init (&mMutex, NULL);
@@ -126,32 +104,6 @@ CImmSocketServer::CImmSocketServer (uint16_t port) :
 	pthread_mutexattr_init (&attr);
 	pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE_NP);
 	pthread_mutex_init (&mMutexClientTable, &attr);
-
-	memset (mSocketEndpointPath, 0x00, sizeof(mSocketEndpointPath));
-	strncpy (mSocketEndpointPath, DEFAULT_IMMSOCKET_ENDPOINT_PATH, sizeof(mSocketEndpointPath)-1);
-
-	mPort = port;
-
-	setTcpSocket ();
-}
-
-// tcp
-CImmSocketServer::CImmSocketServer (uint16_t port, CImmSocketServer::IClientHandler *pHandler) :
-	mFdServerSocket (0),
-	mpClientHandler (NULL),
-	mpPacketHandler (NULL),
-	mIsStop (false),
-	mPort (DEFAULT_TCP_SERVER_PORT)
-{
-	pthread_mutex_init (&mMutex, NULL);
-	pthread_mutexattr_t attr;
-	pthread_mutexattr_init (&attr);
-	pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE_NP);
-	pthread_mutex_init (&mMutexClientTable, &attr);
-
-	if (pHandler) {
-		mpClientHandler = pHandler;
-	}
 
 	memset (mSocketEndpointPath, 0x00, sizeof(mSocketEndpointPath));
 	strncpy (mSocketEndpointPath, DEFAULT_IMMSOCKET_ENDPOINT_PATH, sizeof(mSocketEndpointPath)-1);
@@ -162,13 +114,14 @@ CImmSocketServer::CImmSocketServer (uint16_t port, CImmSocketServer::IClientHand
 }
 
 // tcp // single client
-CImmSocketServer::CImmSocketServer (uint16_t port, CImmSocketClient::IPacketHandler *pHandler) :
+CImmSocketServer::CImmSocketServer (uint16_t port, CImmSocketClient::IPacketHandler *pHandler, bool isMultiClient) :
 	mFdServerSocket (0),
-	mpClientHandler (NULL),
 	mpPacketHandler (NULL),
 	mIsStop (false),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
+	mIsMultiClient = isMultiClient;
+
 	pthread_mutex_init (&mMutex, NULL);
 	pthread_mutexattr_t attr;
 	pthread_mutexattr_init (&attr);
@@ -428,28 +381,18 @@ void CImmSocketServer::acceptLoop (int fdServerSocket)
 
 			CImmSocketClient *pClient = NULL;
 
-			if (mpPacketHandler) {
-				//---- single client ----
-
-				pClient = new CImmSocketClient (fdClientSocket, mpPacketHandler);
-				if (mIsConfigLocal) {
-					pClient->setLocalSocket();
-				} else {
-					pClient->setTcpSocket();
-				}
-
-				addClientTable (fdClientSocket, pClient);
-
-				// sync
-				pClient->syncReceivePacketLoop ();
-
-				removeClientTable (fdClientSocket);
-
-			} else {
+			if (mIsMultiClient) {
 				//---- multi client ----
+				if (mpPacketHandler) {
+					pClient = new CImmSocketClient (fdClientSocket, mpPacketHandler);
+					if (mIsConfigLocal) {
+						pClient->setLocalSocket();
+					} else {
+						pClient->setTcpSocket();
+					}
 
-				if (mpClientHandler) {
-					pClient = mpClientHandler->onAcceptClient (fdClientSocket);
+					// async
+					pClient->startReceiver ();
 
 					addClientTable (fdClientSocket, pClient);
 
@@ -466,6 +409,25 @@ void CImmSocketServer::acceptLoop (int fdServerSocket)
 					pClient->startReceiver ();
 
 					addClientTable (fdClientSocket, pClient, true);
+				}
+
+			} else {
+				//---- single client ----
+				if (mpPacketHandler) {
+					pClient = new CImmSocketClient (fdClientSocket, mpPacketHandler);
+					if (mIsConfigLocal) {
+						pClient->setLocalSocket();
+					} else {
+						pClient->setTcpSocket();
+					}
+
+					addClientTable (fdClientSocket, pClient);
+
+					// ## sync ##
+					pClient->syncReceivePacketLoop ();
+
+				} else {
+					_IMMSOCK_LOG_E ("BUG:mpPacketHandler is null.\n");
 				}
 			}
 		}
@@ -505,26 +467,14 @@ bool CImmSocketServer::removeClientTable (int fd)
 
 		CImmSocketClient *pClient = iter->second.pInstance;
 		if (pClient) {
+			pClient->syncStopReceiver (); // thread end
 
-			if (iter->second.isEchoMode) {
-				pClient->syncStopReceiver (); // thread end
+			_IMMSOCK_LOG_W ("client socket:[%d] --> instance delete\n", fd);
+			delete iter->second.pInstance;
+			iter->second.pInstance = NULL;
 
-				_IMMSOCK_LOG_N ("client socket:[%d] --> instance delete\n", fd);
-				delete iter->second.pInstance;
-				iter->second.pInstance = NULL;
-
-				_IMMSOCK_LOG_N ("client socket:[%d] close\n", fd);
-				close (fd);
-
-			} else {
-
-				if (mpClientHandler) {
-					mpClientHandler->onRemoveClient (pClient);
-				}
-
-				_IMMSOCK_LOG_N ("client socket:[%d] close\n", fd);
-				close (fd);
-			}
+			_IMMSOCK_LOG_W ("client socket:[%d] close\n", fd);
+			close (fd);
 		}
 
 		mClientTable.erase (fd);

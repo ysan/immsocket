@@ -54,6 +54,7 @@ typedef int (CImmSocketServer:: *P_FN_ACCEPT_WRAPPER) (int fdServerSocket);
 class CImmSocketServer : public CWorkerThread
 {
 public:
+#if 0
 	class IClientHandler
 	{
 	public:
@@ -62,20 +63,17 @@ public:
 		virtual CImmSocketClient *onAcceptClient (int fdClientSocket) = 0;
 		virtual void onRemoveClient (CImmSocketClient *pClient) = 0;
 	};
-
+#endif
 
 public:
-	CImmSocketServer (void);                                                          // local
-	CImmSocketServer (const char *pPath);                                             // local
-	CImmSocketServer (const char *pPath, CImmSocketServer::IClientHandler *pHandler); // local
-	CImmSocketServer (const char *pPath, CImmSocketClient::IPacketHandler *pHandler); // local // single client
-	CImmSocketServer (uint16_t port);                                                 // tcp
-	CImmSocketServer (uint16_t port, CImmSocketServer::IClientHandler *pHandler);     // tcp
-	CImmSocketServer (uint16_t port, CImmSocketClient::IPacketHandler *pHandler);     // tcp // single client
+//	CImmSocketServer (void); // local
+	CImmSocketServer (const char *pPath); // local echo server
+	CImmSocketServer (const char *pPath, CImmSocketClient::IPacketHandler *pHandler, bool isMultiClient=true); // local
+	CImmSocketServer (uint16_t port); // tcp echo server
+	CImmSocketServer (uint16_t port, CImmSocketClient::IPacketHandler *pHandler, bool isMultiClient=true); // tcp
 	virtual ~CImmSocketServer (void);
 
 
-//	CImmSocketServer *getInstance (void);
 	bool start (void); // async
 	void stop (void); // async
 	void syncStop (void);
@@ -107,7 +105,6 @@ private:
 
 
 	int mFdServerSocket;
-	CImmSocketServer::IClientHandler *mpClientHandler;
 	CImmSocketClient::IPacketHandler *mpPacketHandler;
 	bool mIsStop;
 
@@ -115,6 +112,8 @@ private:
 
 	CLIENT_TABLE mClientTable;
 	pthread_mutex_t mMutexClientTable;
+
+	bool mIsMultiClient;
 
 	char mSocketEndpointPath[64]; // local
 	uint16_t mPort;               // tcp
