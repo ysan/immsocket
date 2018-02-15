@@ -11,7 +11,7 @@
 #include <sys/un.h>
 
 
-#define SOCK_NAME    "/tmp/pmanager_imm_server"
+#define SOCK_NAME    "/tmp/imm_socket_sample"
 
 pthread_mutex_t g_mutex;
 
@@ -25,8 +25,20 @@ static void *threadHandler (void *args)
 	int fd = (int)(*(int*)args);
 	printf ("%s fd %d\n", __func__, fd);
 
-	char buf[] = {0x01, 0x00, 0x00 ,0x00, 0x04};
-	char buf2[] = {0x01, 0x00, 0x00, 0x02, 'a', 'b', 0x04};
+	char buf[]   = {0x01, 0x00, 0x00 ,0x00, 0x04}; //null packet
+	char buf2[]  = {0x01, 0x00, 0x00, 0x02, 'a', 'b', 0x04}; // 1packet
+	char buf3[]  = {0x01, 0x00, 0x00, 0x02, 'c', 'd', 0x04, 0x01, 0x00, 0x00, 0x03, 'e', 'f', 'g', 0x04}; // 2packet set
+
+	// divide test
+//	char buf3[]  = {0x01, 0x00, 0x00, 0x02, 'c', 'd', 0x04, 0x01, 0x00, 0x00, 0x03, 'e', 'f', 'g', 0x04};
+	char buf4[]  = {0x01, 0x00, 0x00                                                                   };
+	char buf5[]  = {                  0x02, 'c'                                                        };
+	char buf6[]  = {                             'd', 0x04, 0x01, 0x00                                 };
+	char buf7[]  = {                                                    0x00, 0x03, 'e'                };
+	char buf8[]  = {                                                                     'f'           };
+	char buf9[]  = {                                                                          'g'      };
+	char buf10[] = {                                                                               0x04};
+
 
 	while (1) {
 		sleep (5);
@@ -37,12 +49,77 @@ static void *threadHandler (void *args)
 		}
 		pthread_mutex_unlock (&g_mutex);
 
+		sleep (5);
+
 		pthread_mutex_lock (&g_mutex);
 		if (write (fd, buf2, sizeof(buf2)) < 0) {
 			perror("write");
 		}
 		pthread_mutex_unlock (&g_mutex);
 		
+		sleep (5);
+
+		pthread_mutex_lock (&g_mutex);
+		if (write (fd, buf3, sizeof(buf3)) < 0) {
+			perror("write");
+		}
+		pthread_mutex_unlock (&g_mutex);
+		
+		sleep (5);
+
+		pthread_mutex_lock (&g_mutex);
+		if (write (fd, buf4, sizeof(buf4)) < 0) {
+			perror("write");
+		}
+		pthread_mutex_unlock (&g_mutex);
+		
+		sleep (5);
+
+		pthread_mutex_lock (&g_mutex);
+		if (write (fd, buf5, sizeof(buf5)) < 0) {
+			perror("write");
+		}
+		pthread_mutex_unlock (&g_mutex);
+		
+		sleep (5);
+
+		pthread_mutex_lock (&g_mutex);
+		if (write (fd, buf6, sizeof(buf6)) < 0) {
+			perror("write");
+		}
+		pthread_mutex_unlock (&g_mutex);
+		
+		sleep (5);
+
+		pthread_mutex_lock (&g_mutex);
+		if (write (fd, buf7, sizeof(buf7)) < 0) {
+			perror("write");
+		}
+		pthread_mutex_unlock (&g_mutex);
+		
+		sleep (5);
+
+		pthread_mutex_lock (&g_mutex);
+		if (write (fd, buf8, sizeof(buf8)) < 0) {
+			perror("write");
+		}
+		pthread_mutex_unlock (&g_mutex);
+
+		sleep (5);
+
+		pthread_mutex_lock (&g_mutex);
+		if (write (fd, buf9, sizeof(buf9)) < 0) {
+			perror("write");
+		}
+		pthread_mutex_unlock (&g_mutex);
+
+		sleep (5);
+
+		pthread_mutex_lock (&g_mutex);
+		if (write (fd, buf10, sizeof(buf10)) < 0) {
+			perror("write");
+		}
+		pthread_mutex_unlock (&g_mutex);
 	}
 
     return NULL;
@@ -95,11 +172,13 @@ int main (void)
 
 		fgets(buf, sizeof(buf)-1, stdin);
 
+		// delete LF
+		*(buf + strlen(buf) - 1) = 0x00;
+
 		if (
 			(*(buf+0) == 'S') &&
 			(*(buf+1) == 'O') &&
-			(*(buf+2) == 'H') &&
-			(*(buf+3) == '\n')
+			(*(buf+2) == 'H')
 		) {
 			pthread_mutex_lock (&g_mutex);
 			memset (buf, 0x00, sizeof(buf));
@@ -108,8 +187,7 @@ int main (void)
 		} else if (
 			(*(buf+0) == 'E') &&
 			(*(buf+1) == 'O') &&
-			(*(buf+2) == 'T') &&
-			(*(buf+3) == '\n')
+			(*(buf+2) == 'T')
 		) {
 			memset (buf, 0x00, sizeof(buf));
 			*(buf+0) = 0x04;

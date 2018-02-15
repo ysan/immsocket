@@ -601,8 +601,8 @@ void CUtils::dumper (const uint8_t *pSrc, int nSrcLen, bool isAddAscii)
 
 		// ascii文字表示
 		if (isAddAscii) {
-//			fprintf (stdout, "  ");
-			rtn = snprintf (pszWk, size, "  ");
+//			fprintf (stdout, "  |");
+			rtn = snprintf (pszWk, size, "  |");
 			pszWk += rtn;
 			size -= rtn;
 
@@ -627,8 +627,12 @@ void CUtils::dumper (const uint8_t *pSrc, int nSrcLen, bool isAddAscii)
 			}
 		}
 
-//		fprintf (stdout, "\n");
-		_UTL_LOG_I ("%s\n", szWk);
+//		fprintf (stdout, "|\n");
+		rtn = snprintf (pszWk, size, "|\n");
+		pszWk += rtn;
+		size -= rtn;
+
+		_UTL_LOG_I ("%s", szWk);
 
 		pSrc += 16;
 		i += 16;
@@ -696,8 +700,8 @@ void CUtils::dumper (const uint8_t *pSrc, int nSrcLen, bool isAddAscii)
 
 		// ascii文字表示
 		if (isAddAscii) {
-//			fprintf (stdout, "  ");
-			rtn = snprintf (pszWk, size, "  ");
+//			fprintf (stdout, "  |");
+			rtn = snprintf (pszWk, size, "  |");
 			pszWk += rtn;
 			size -= rtn;
 
@@ -711,9 +715,19 @@ void CUtils::dumper (const uint8_t *pSrc, int nSrcLen, bool isAddAscii)
 
 				k ++;
 			}
+			for (int i = 0; i < (16 - nSrcLen); ++ i) {
+//				fprintf (stdout, " ");
+				rtn = snprintf (pszWk, size, " ");
+				pszWk += rtn;
+				size -= rtn;
+			}
 		}
 
-//		fprintf (stdout, "\n");
-		_UTL_LOG_I ("%s\n", szWk);
+//		fprintf (stdout, "|\n");
+		rtn = snprintf (pszWk, size, "|\n");
+		pszWk += rtn;
+		size -= rtn;
+
+		_UTL_LOG_I ("%s", szWk);
 	}
 }

@@ -613,7 +613,7 @@ int CImmSocketClient::checkData (uint8_t *pBuff, int size, bool isOnce)
 			}
 
 		} else if (mState == EN_RECEIVE_STATE_WORKING__CHECK_DATA) {
-//TODO
+/**
 			mCurrentPacket [mCurrentPacketWritePos] = *pBuff;
 			mCurrentPacketWritePos ++;
 
@@ -621,6 +621,44 @@ int CImmSocketClient::checkData (uint8_t *pBuff, int size, bool isOnce)
 			if (mCurrentPacketDataSize == 0) {
 				mState = EN_RECEIVE_STATE_WORKING__CHECK_EOT;
 			}
+**/
+
+			if (mCurrentPacketDataSize <= (size - 1)) {
+//puts ("EN_RECEIVE_STATE_WORKING__CHECK_DATA aaaa bef");
+//printf ("mCurrentPacketDataSize %d\n", mCurrentPacketDataSize);
+//printf ("size %d\n", size);
+//printf ("mCurrentPacketWritePos %d\n", mCurrentPacketWritePos);
+				memcpy (mCurrentPacket + mCurrentPacketWritePos, pBuff, mCurrentPacketDataSize);
+				size -= mCurrentPacketDataSize;
+				mCurrentPacketWritePos += mCurrentPacketDataSize;
+				pBuff += mCurrentPacketDataSize;
+				mCurrentPacketDataSize = 0;
+//puts ("EN_RECEIVE_STATE_WORKING__CHECK_DATA aaaa aft");
+//printf ("mCurrentPacketDataSize %d\n", mCurrentPacketDataSize);
+//printf ("size %d\n", size);
+//printf ("mCurrentPacketWritePos %d\n", mCurrentPacketWritePos);
+
+			} else {
+//puts ("EN_RECEIVE_STATE_WORKING__CHECK_DATA bbbb bef");
+//printf ("mCurrentPacketDataSize %d\n", mCurrentPacketDataSize);
+//printf ("size %d\n", size);
+//printf ("mCurrentPacketWritePos %d\n", mCurrentPacketWritePos);
+				memcpy (mCurrentPacket + mCurrentPacketWritePos, pBuff, size);
+				pBuff += size;
+				mCurrentPacketDataSize -= size;
+				mCurrentPacketWritePos += size;
+				size = 0;
+//puts ("EN_RECEIVE_STATE_WORKING__CHECK_DATA bbbb aft");
+//printf ("mCurrentPacketDataSize %d\n", mCurrentPacketDataSize);
+//printf ("size %d\n", size);
+//printf ("mCurrentPacketWritePos %d\n", mCurrentPacketWritePos);
+			}
+
+			if (mCurrentPacketDataSize == 0) {
+				mState = EN_RECEIVE_STATE_WORKING__CHECK_EOT;
+			}
+
+			continue;
 
 		} else if (mState == EN_RECEIVE_STATE_WORKING__CHECK_EOT) {
 
