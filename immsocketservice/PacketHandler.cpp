@@ -189,10 +189,10 @@ void CPacketHandler::onReceivePacket (CImmSocketClient *pSelf, uint8_t *pPacket,
 	id.setTime (ntohl(pstPacket->id.time));
 	CMessage msg(pSelf, &id, pstPacket->command, EN_OBJTYPE_NOTHING);
 
-	int type = (int)(pstPacket->type & 0x0f);
+	int type = (int)(pstPacket->type & CMessage::MASK_MSG_TYPE);
 	if (type == CMessage::MSG_TYPE_REPLY) {
-		// replyの場合のみ上位4bitに結果(OK/NG)が入っています
-		if ((pstPacket->type & 0xf0) == 0) {
+		// replyの場合のみ上位4bitの内下3bitに結果(OK/NG)が入っています
+		if (pstPacket->type & CMessage::MASK_REPLY_RESULT) {
 			msg.setReplyResult (true);
 		} else {
 			msg.setReplyResult (false);

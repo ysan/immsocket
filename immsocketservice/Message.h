@@ -37,6 +37,10 @@ public:
 	static const uint8_t MSG_TYPE_REPLY;
 	static const uint8_t MSG_TYPE_NOTIFY;
 
+	static const uint8_t MASK_IS_SYNC;
+	static const uint8_t MASK_REPLY_RESULT;
+	static const uint8_t MASK_MSG_TYPE;
+
 	static const uint32_t REQUEST_TIMEOUT_MAX;
 	static const uint32_t REQUEST_TIMEOUT_FEVER;
 

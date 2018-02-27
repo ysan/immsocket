@@ -17,6 +17,10 @@ const uint8_t CMessage::MSG_TYPE_REQUEST = 0x00;
 const uint8_t CMessage::MSG_TYPE_REPLY = 0x01;
 const uint8_t CMessage::MSG_TYPE_NOTIFY = 0x02;
 
+const uint8_t CMessage::MASK_IS_SYNC = 0x80;
+const uint8_t CMessage::MASK_REPLY_RESULT = 0x70;
+const uint8_t CMessage::MASK_MSG_TYPE = 0x0f;
+
 const uint32_t CMessage::REQUEST_TIMEOUT_MAX = 0x05265C00; // 24時間 msec
 const uint32_t CMessage::REQUEST_TIMEOUT_FEVER = 0xffffffff;
 
@@ -491,12 +495,12 @@ bool CMessage::sendReply (void)
 	}
 
 
-	// reply結果をtypeの上位4bitに埋め込みます
+	// reply結果をtypeの上位4bitに埋め込みます (実際には上位4bitの内3bit)
 	uint8_t type = 0x00;
 	if (mIsReplyResultOK) {
-		type = MSG_TYPE_REPLY;
-	} else {
 		type = MSG_TYPE_REPLY | ((0x01 << 4) & 0xff);
+	} else {
+		type = MSG_TYPE_REPLY;
 	}
 
 
