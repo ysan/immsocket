@@ -43,6 +43,7 @@ SRCS_CPP	:= \
 	Message.cpp \
 	AsyncProcProxy.cpp \
 	ImmSocketServiceCommon.cpp \
+	MessageId.cpp \
 
 #
 #   Configurations

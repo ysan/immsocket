@@ -53,7 +53,7 @@ int main (void)
 
 	char buf[1024] = {0};
 	int n = 0;
-	uint8_t id = 0x00;
+	CMessageId::CId id;
 	while (1) {
 		memset (buf, 0x00, sizeof(buf));
 		fgets (buf, sizeof(buf)-1, stdin);
@@ -70,7 +70,7 @@ int main (void)
 		CMessage *pMsg = new CMessage(&client);
 		if ((int)strlen(buf) > 0) {
 			id = pMsg->generateId();
-			if (!pMsg->sendRequestAsync(id, (uint8_t)0x01, (uint8_t*)buf, (int)strlen(buf))) {
+			if (!pMsg->sendRequestAsync(&id, (uint8_t)0x01, (uint8_t*)buf, (int)strlen(buf))) {
 				delete pMsg;
 				pMsg = NULL;
 				continue;
@@ -79,7 +79,7 @@ int main (void)
 		} else {
 			n ++;
 			id = pMsg->generateId();
-			if (!pMsg->sendRequestAsync(id, (uint8_t)0x05, (uint8_t*)&n, sizeof(int))) {
+			if (!pMsg->sendRequestAsync(&id, (uint8_t)0x05, (uint8_t*)&n, sizeof(int))) {
 				delete pMsg;
 				pMsg = NULL;
 				continue;
@@ -108,12 +108,47 @@ static void *sync_req_test (void *args)
 {
 	CImmSocketClient* pcl = (CImmSocketClient*)args;
 
+	CMessage *pMsg = NULL;
+	int rtn = 0;
+
 	while (1) {
 		sleep (5);
 
 		_UTL_LOG_I ("sync request\n");
-		CMessage *pMsg = new CMessage(pcl);
-		int rtn = pMsg->sendRequestSync ((uint8_t)0x02, 500); // reply wait
+		pMsg = new CMessage(pcl);
+		rtn = pMsg->sendRequestSync ((uint8_t)0x02);
+		if (rtn == ETIMEDOUT) {
+			_UTL_LOG_E ("timeout\n");
+			delete pMsg;
+			pMsg = NULL;
+			continue;
+
+		} else if (rtn == EINTR) {
+			_UTL_LOG_E ("singnal intr.\n");
+			delete pMsg;
+			pMsg = NULL;
+			continue;
+
+		} else if (rtn == 0) {
+			if (pMsg->sync()->isReplyResultOK()) {
+				_UTL_LOG_I ("REPLY_OK\n");
+			} else {
+				_UTL_LOG_I ("REPLY_NG\n");
+			}
+
+			if (pMsg->sync()->getDataSize() > 0) {
+				_UTL_LOG_I ("replyData [%s]\n", (char*)(pMsg->sync()->getData()));
+			}
+
+			delete pMsg;
+			pMsg = NULL;
+		}
+
+		sleep (5);
+
+		_UTL_LOG_I ("sync request 2\n");
+		pMsg = new CMessage(pcl);
+		rtn = pMsg->sendRequestSync ((uint8_t)0x02, 500); // timeout test
 		if (rtn == ETIMEDOUT) {
 			_UTL_LOG_E ("timeout\n");
 			delete pMsg;

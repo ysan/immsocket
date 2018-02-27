@@ -9,10 +9,13 @@
 #include <errno.h>
 #include <pthread.h>
 
+#include <arpa/inet.h>
+
 #include "ImmSocketServer.h"
 #include "ImmSocketClient.h"
 #include "PacketHandler.h"
 #include "ImmSocketServiceCommon.h"
+#include "MessageId.h"
 
 using namespace std;
 using namespace ImmSocket;
@@ -87,9 +90,9 @@ public:
 	CMessage (void);
 	CMessage (CImmSocketClient *pClient);
 	CMessage (CMessage *pRequestMsg); // for create reply message
-	CMessage (CImmSocketClient *pClient, uint8_t id);
-	CMessage (CImmSocketClient *pClient, uint8_t id, uint8_t command);
-	CMessage (CImmSocketClient *pClient, uint8_t id, uint8_t command, EN_OBJTYPE enType);
+	CMessage (CImmSocketClient *pClient, CMessageId::CId *pId);
+	CMessage (CImmSocketClient *pClient, CMessageId::CId *pId, uint8_t command);
+	CMessage (CImmSocketClient *pClient, CMessageId::CId *pId, uint8_t command, EN_OBJTYPE enType);
 //	CMessage (const CMessage &obj); // copy constructor
 	virtual ~CMessage (void);
 
@@ -104,13 +107,13 @@ public:
 	}
 
 
-	uint8_t getId (void); // reference current id value
-	uint8_t generateId (void);
+	CMessageId::CId *getId (void); // reference current id value
+	CMessageId::CId generateId (void);
 
 	int sendRequestSync (uint8_t command, uint32_t nTimeoutMsec=REQUEST_TIMEOUT_FEVER);
 	int sendRequestSync (uint8_t command, uint8_t *pData, int size, uint32_t nTimeoutMsec=REQUEST_TIMEOUT_FEVER);
-	bool sendRequestAsync (uint8_t id, uint8_t command);
-	bool sendRequestAsync (uint8_t id, uint8_t command, uint8_t *pData, int size);
+	bool sendRequestAsync (CMessageId::CId *pId, uint8_t command);
+	bool sendRequestAsync (CMessageId::CId *pId, uint8_t command, uint8_t *pData, int size);
 	bool sendReplyOK (void);
 	bool sendReplyOK (uint8_t *pReplyData, int size);
 	bool sendReplyNG (void);
@@ -137,16 +140,16 @@ private:
 
 
 	int sendRequestSync (uint32_t nTimeoutMsec=REQUEST_TIMEOUT_FEVER);
-	bool sendRequestAsync (uint8_t id);
+	bool sendRequestAsync (CMessageId::CId *pId);
 
-	bool sendRequest (uint8_t id);
+	bool sendRequest (CMessageId::CId *pId);
 	bool sendReply (void);
 	bool sendNotify (void);
 
-	bool setPacket (uint8_t id, uint8_t type, uint8_t command, uint8_t *pOut, int outsize);
+	bool setPacket (CMessageId::CId *pId, uint8_t type, uint8_t command, uint8_t *pOut, int outsize);
 
 
-	uint8_t mId;
+	CMessageId::CId mId;
 	uint8_t mCommand;
 	bool mIsReplyResultOK;
 	CImmSocketClient *mpClientInstance;

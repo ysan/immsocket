@@ -136,7 +136,6 @@ int CMessage::CSync::getDataSize (void)
 
 
 CMessage::CMessage (void) :
-	mId (0),
 	mCommand (0),
 	mIsReplyResultOK (false),
 	mpClientInstance (NULL),
@@ -149,7 +148,6 @@ CMessage::CMessage (void) :
 
 // for create reply message
 CMessage::CMessage (CMessage *pRequestMsg) :
-	mId (0),
 	mCommand (0),
 	mIsReplyResultOK (false),
 	mpClientInstance (NULL),
@@ -158,7 +156,7 @@ CMessage::CMessage (CMessage *pRequestMsg) :
 	mObjtype (EN_OBJTYPE_REQUESTER)
 {
 	if (pRequestMsg) {
-		mId = pRequestMsg->getId();
+		mId = *(pRequestMsg->getId());
 		mCommand = pRequestMsg->getCommand();
 		mpClientInstance = pRequestMsg->getClientInstance();
 
@@ -175,7 +173,6 @@ CMessage::CMessage (CMessage *pRequestMsg) :
 }
 
 CMessage::CMessage (CImmSocketClient *pClient) :
-	mId (0),
 	mCommand (0),
 	mIsReplyResultOK (false),
 	mpClientInstance (NULL),
@@ -190,8 +187,7 @@ CMessage::CMessage (CImmSocketClient *pClient) :
 	memset (mEntityData, 0x00, sizeof(mEntityData));
 }
 
-CMessage::CMessage (CImmSocketClient *pClient, uint8_t id) :
-	mId (0),
+CMessage::CMessage (CImmSocketClient *pClient, CMessageId::CId *pId) :
 	mCommand (0),
 	mIsReplyResultOK (false),
 	mpClientInstance (NULL),
@@ -203,13 +199,14 @@ CMessage::CMessage (CImmSocketClient *pClient, uint8_t id) :
 		mpClientInstance = pClient;
 	}
 
-	mId = id;
+	if (pId) {
+		mId = *pId;
+	}
 
 	memset (mEntityData, 0x00, sizeof(mEntityData));
 }
 
-CMessage::CMessage (CImmSocketClient *pClient, uint8_t id, uint8_t command) :
-	mId (0),
+CMessage::CMessage (CImmSocketClient *pClient, CMessageId::CId *pId, uint8_t command) :
 	mCommand (0),
 	mIsReplyResultOK (false),
 	mpClientInstance (NULL),
@@ -221,14 +218,16 @@ CMessage::CMessage (CImmSocketClient *pClient, uint8_t id, uint8_t command) :
 		mpClientInstance = pClient;
 	}
 
-	mId = id;
+	if (pId) {
+		mId = *pId;
+	}
+
 	mCommand = command;
 
 	memset (mEntityData, 0x00, sizeof(mEntityData));
 }
 
-CMessage::CMessage (CImmSocketClient *pClient, uint8_t id, uint8_t command, EN_OBJTYPE enType) :
-	mId (0),
+CMessage::CMessage (CImmSocketClient *pClient, CMessageId::CId *pId, uint8_t command, EN_OBJTYPE enType) :
 	mCommand (0),
 	mIsReplyResultOK (false),
 	mpClientInstance (NULL),
@@ -240,7 +239,10 @@ CMessage::CMessage (CImmSocketClient *pClient, uint8_t id, uint8_t command, EN_O
 		mpClientInstance = pClient;
 	}
 
-	mId = id;
+	if (pId) {
+		mId = *pId;
+	}
+
 	mCommand = command;
 	mObjtype = enType;
 
@@ -296,21 +298,14 @@ int CMessage::getDataSize (void)
 	return mDataSize;
 }
 
-uint8_t CMessage::getId (void)
+CMessageId::CId *CMessage::getId (void)
 {
-	return mId;
+	return &mId;
 }
 
-uint8_t CMessage::generateId (void)
+CMessageId::CId CMessage::generateId (void)
 {
-	CPacketHandler *pPacketHandler = (CPacketHandler*)mpClientInstance->getPacketHandler();
-	if (!pPacketHandler) {
-		_ISS_LOG_E ("PacketHandler is null\n");
-		return 0x00;
-	}
-
-	uint8_t id = 0x00;
-	id = pPacketHandler->generateId();
+	CMessageId::CId id = CMessageId::getInstance()->generateId();
 	mId = id;
 
 	return id;
@@ -334,10 +329,10 @@ int CMessage::sendRequestSync (uint32_t nTimeoutMsec)
 
 
 	// add 
-	uint8_t id = generateId(); // need new id
+	CMessageId::CId id = generateId(); // need new id
 	pPacketHandler->addSyncRequestTable (this);
 
-	if (!sendRequest (id)) {
+	if (!sendRequest (&id)) {
 		// remove
 		pPacketHandler->removeSyncRequestTable (this);
 		// unlock
@@ -376,27 +371,31 @@ int CMessage::sendRequestSync (uint8_t command, uint8_t *pData, int size, uint32
 	return sendRequestSync (nTimeoutMsec);
 }
 
-bool CMessage::sendRequestAsync (uint8_t id)
+bool CMessage::sendRequestAsync (CMessageId::CId *pId)
 {
-	return sendRequest (id);
+	return sendRequest (pId);
 }
 
-bool CMessage::sendRequestAsync (uint8_t id, uint8_t command)
+bool CMessage::sendRequestAsync (CMessageId::CId *pId, uint8_t command)
 {
 	setCommand (command);
 	setData (NULL, 0, true);
-	return sendRequestAsync (id);
+	return sendRequestAsync (pId);
 }
 
-bool CMessage::sendRequestAsync (uint8_t id, uint8_t command, uint8_t *pData, int size)
+bool CMessage::sendRequestAsync (CMessageId::CId *pId, uint8_t command, uint8_t *pData, int size)
 {
 	setCommand (command);
 	setData (pData, size);
-	return sendRequestAsync (id);
+	return sendRequestAsync (pId);
 }
 
-bool CMessage::sendRequest (uint8_t id)
+bool CMessage::sendRequest (CMessageId::CId *pId)
 {
+	if (!pId) {
+		_ISS_LOG_E ("pId is null.\n");
+		return false;
+	}
 	if (mObjtype != EN_OBJTYPE_REQUESTER) {
 		_ISS_LOG_E ("mObjType:[%d]\n", mObjtype);
 		return false;
@@ -432,7 +431,7 @@ bool CMessage::sendRequest (uint8_t id)
 	}
 	uint8_t buff [totalsize];
 	memset (buff, 0x00, sizeof(buff));
-	if (!setPacket (id, MSG_TYPE_REQUEST, mCommand, buff, totalsize)) {
+	if (!setPacket (pId, MSG_TYPE_REQUEST, mCommand, buff, totalsize)) {
 		return false;
 	}
 
@@ -509,7 +508,7 @@ bool CMessage::sendReply (void)
 	}
 	uint8_t buff [totalsize];
 	memset (buff, 0x00, sizeof(buff));
-	if (!setPacket (mId, type, mCommand, buff, totalsize)) {
+	if (!setPacket (&mId, type, mCommand, buff, totalsize)) {
 		return false;
 	}
 
@@ -565,7 +564,8 @@ bool CMessage::sendNotify (void)
 	}
 	uint8_t buff [totalsize];
 	memset (buff, 0x00, sizeof(buff));
-	if (!setPacket (0x00, MSG_TYPE_NOTIFY, mCommand, buff, totalsize)) {
+	CMessageId::CId id; // dummy
+	if (!setPacket (&id, MSG_TYPE_NOTIFY, mCommand, buff, totalsize)) {
 		return false;
 	}
 
@@ -573,8 +573,12 @@ bool CMessage::sendNotify (void)
 	return mpClientInstance->sendToConnection (buff, totalsize);
 }
 
-bool CMessage::setPacket (uint8_t id, uint8_t type, uint8_t command, uint8_t *pOut, int outsize)
+bool CMessage::setPacket (CMessageId::CId *pId, uint8_t type, uint8_t command, uint8_t *pOut, int outsize)
 {
+	if (!pId) {
+		return false;
+	}
+
 	if ((!pOut) || (outsize <= 0)) {
 		return false;
 	}
@@ -595,7 +599,8 @@ bool CMessage::setPacket (uint8_t id, uint8_t type, uint8_t command, uint8_t *pO
 
 	ST_PACKET stPacket;
 	memset (&stPacket, 0x00, sizeof(stPacket));
-	stPacket.id = id ;
+	stPacket.id.num = pId->getNum();
+	stPacket.id.time = htonl(pId->getTime());
 	stPacket.type = type;
 	stPacket.command = command;
 	stPacket.size = mDataSize;

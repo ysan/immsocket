@@ -13,8 +13,7 @@
 
 namespace ImmSocketService {
 
-CPacketHandler::CPacketHandler (void) :
-	mId (0)
+CPacketHandler::CPacketHandler (void)
 {
 	pthread_mutex_init (&mMutexGenId, NULL);
 	pthread_mutex_init (&mMutexSyncRequestTable, NULL);
@@ -36,20 +35,21 @@ void CPacketHandler::addSyncRequestTable (CMessage *pMsg)
 		return;
 	}
 
-	uint8_t id = pMsg->getId();
+	SYNC_REQUEST_TABLE::iterator iter = mSyncRequestTable.begin();
+	while (iter != mSyncRequestTable.end()) {
+		if (*((*iter)->getId()) == *(pMsg->getId())) {
+			break;
+		}
 
-	SYNC_REQUEST_TABLE::iterator iter;
-	iter = mSyncRequestTable.find (id);
+		++ iter;
+	}
 
 	if (iter == mSyncRequestTable.end()) {
-		// new
-		mSyncRequestTable.insert (pair<uint8_t, CMessage*>(id, pMsg));
+		mSyncRequestTable.push_back (pMsg);
 
 	} else {
-//TODO
-		// already use
-		removeSyncRequestTable (pMsg);
-		addSyncRequestTable (pMsg);
+		// already use // bug
+		_ISS_LOG_E ("BUG: CMessageId::CId is already use.\n");
 	}
 }
 
@@ -63,28 +63,42 @@ void CPacketHandler::removeSyncRequestTable (CMessage *pMsg)
 		return;
 	}
 
-	uint8_t id = pMsg->getId();
+	SYNC_REQUEST_TABLE::iterator iter = mSyncRequestTable.begin();
+	while (iter != mSyncRequestTable.end()) {
+		if (*((*iter)->getId()) == *(pMsg->getId())) {
+			break;
+		}
 
-	SYNC_REQUEST_TABLE::iterator iter;
-	iter = mSyncRequestTable.find (id);
+		++ iter;
+	}
 
 	if (iter != mSyncRequestTable.end()) {
-		mSyncRequestTable.erase (id);
+		mSyncRequestTable.erase (iter);
 	}
 }
 
-CMessage *CPacketHandler::findSyncRequestMessage (uint8_t id)
+CMessage *CPacketHandler::findSyncRequestMessage (const CMessageId::CId *pId)
 {
 	CUtils::CScopedMutex scopedMutex (&mMutexSyncRequestTable);
 
+	if (!pId) {
+		_ISS_LOG_E ("%s pId is null\n", __func__);
+		return NULL;
+	}
 
 	CMessage *pRtn = NULL;
 
-	SYNC_REQUEST_TABLE::iterator iter;
-	iter = mSyncRequestTable.find (id);
+	SYNC_REQUEST_TABLE::iterator iter = mSyncRequestTable.begin();
+	while (iter != mSyncRequestTable.end()) {
+		if (*((*iter)->getId()) == *pId) {
+			break;
+		}
+
+		++ iter;
+	}
 
 	if (iter != mSyncRequestTable.end()) {
-		pRtn = iter->second;
+		pRtn = *iter;
 	}
 
 	return pRtn;
@@ -97,8 +111,8 @@ void CPacketHandler::checkSyncRequestMessage (CMessage *pReplyMsg)
 		return;
 	}
 
-	uint8_t id = pReplyMsg->getId();
-	CMessage *pWaitMsg = findSyncRequestMessage (id);
+	CMessageId::CId *pId = pReplyMsg->getId();
+	CMessage *pWaitMsg = findSyncRequestMessage (pId);
 	if (!pWaitMsg) {
 		return ;
 	}
@@ -117,19 +131,6 @@ void CPacketHandler::checkSyncRequestMessage (CMessage *pReplyMsg)
 	pWaitMsg->sync()->condUnlock();
 
 	return;
-}
-
-uint8_t CPacketHandler::generateId (void)
-{
-	CUtils::CScopedMutex scopedMutex (&mMutexGenId);
-
-
-	uint8_t rtn = 0;
-
-	rtn = mId & 0xff;
-	mId ++;
-
-	return rtn;
 }
 
 void CPacketHandler::onHandleRequest (CMessage *pMsg)
@@ -174,16 +175,19 @@ void CPacketHandler::onReceivePacket (CImmSocketClient *pSelf, uint8_t *pPacket,
 
 	ST_PACKET *pstPacket = (ST_PACKET*)pPacket;
 	_ISS_LOG_N (
-		"%s  id=[0x%02x] type=[0x%02x] command=[0x%02x] size=[0x%02x]\n",
+		"%s  id.num=[0x%02x] id.time=[%ld] type=[0x%02x] command=[0x%02x] size=[0x%02x]\n",
 		__func__,
-		pstPacket->id,
+		pstPacket->id.num,
+		pstPacket->id.time,
 		pstPacket->type,
 		pstPacket->command,
 		pstPacket->size
 	);
 
-
-	CMessage msg(pSelf, pstPacket->id, pstPacket->command, EN_OBJTYPE_NOTHING);
+	CMessageId::CId id;
+	id.setNum (pstPacket->id.num);
+	id.setTime (ntohl(pstPacket->id.time));
+	CMessage msg(pSelf, &id, pstPacket->command, EN_OBJTYPE_NOTHING);
 
 	int type = (int)(pstPacket->type & 0x0f);
 	if (type == CMessage::MSG_TYPE_REPLY) {

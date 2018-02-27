@@ -29,7 +29,7 @@ void CSvrMessageHandler::onHandleRequest (CMessage *pMsg)
 		_UTL_LOG_I ("received ->  [%d]\n", data);
 
 		CMessage *pReplyMsg = new CMessage(pMsg);
-		if (((int)pMsg->getId() % 10) != 0) { // debug
+		if (((int)pMsg->getId()->getNum() % 10) != 0) { // debug
 			pReplyMsg->sendReplyOK();
 		} else {
 			pReplyMsg->sendReplyNG();

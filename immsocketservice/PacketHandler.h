@@ -21,7 +21,10 @@ using namespace ImmSocket;
 namespace ImmSocketService {
 
 typedef struct {
-	uint8_t id;
+	struct _id {
+		uint8_t num;
+		time_t time;
+	} id;
 	uint8_t type;
 	uint8_t command;
 	uint8_t reserve_0;
@@ -29,7 +32,7 @@ typedef struct {
 	uint8_t size;
 } ST_PACKET;
 
-typedef map<uint8_t, CMessage*> SYNC_REQUEST_TABLE; // <id, CMessage>
+typedef vector <CMessage*> SYNC_REQUEST_TABLE;
 
 
 class CPacketHandler : public CImmSocketClient::IPacketHandler
@@ -43,10 +46,8 @@ public:
 
 	void addSyncRequestTable (CMessage *pMsg);
 	void removeSyncRequestTable (CMessage *pMsg);
-	CMessage *findSyncRequestMessage (uint8_t id);
+	CMessage *findSyncRequestMessage (const CMessageId::CId *pId);
 	void checkSyncRequestMessage (CMessage *pMsg);
-
-	uint8_t generateId (void);
 
 
 protected:
@@ -64,7 +65,6 @@ private:
 
 	CImmSocketClient *mpClientInstance;
 
-	uint8_t mId;
 	pthread_mutex_t mMutexGenId;
 
 	SYNC_REQUEST_TABLE mSyncRequestTable;
