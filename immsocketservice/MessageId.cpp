@@ -68,7 +68,8 @@ CMessageId::CId CMessageId::generateId (void)
 	mIncId ++;
 
 	struct timespec t;
-	clock_gettime (CLOCK_MONOTONIC, &t);
+	clock_gettime (CLOCK_MONOTONIC_RAW, &t);
+	_ISS_LOG_N ("generateId  clock_gettime t.tv_sec=[%ld]\n", t.tv_sec);
 	id.setTime (t.tv_sec);
 
 	return id;

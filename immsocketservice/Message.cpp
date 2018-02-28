@@ -14,25 +14,26 @@
 namespace ImmSocketService {
 
 const uint8_t CMessage::MSG_TYPE_REQUEST = 0x00;
-const uint8_t CMessage::MSG_TYPE_REPLY = 0x01;
-const uint8_t CMessage::MSG_TYPE_NOTIFY = 0x02;
+const uint8_t CMessage::MSG_TYPE_REPLY   = 0x01;
+const uint8_t CMessage::MSG_TYPE_NOTIFY  = 0x02;
 
-const uint8_t CMessage::MASK_IS_SYNC = 0x80;
+const uint8_t CMessage::MASK_IS_SYNC      = 0x80;
 const uint8_t CMessage::MASK_REPLY_RESULT = 0x70;
-const uint8_t CMessage::MASK_MSG_TYPE = 0x0f;
+const uint8_t CMessage::MASK_MSG_TYPE     = 0x0f;
 
-const uint32_t CMessage::REQUEST_TIMEOUT_MAX = 0x05265C00; // 24時間 msec
+const uint32_t CMessage::REQUEST_TIMEOUT_MAX   = 0x05265C00; // 24時間 msec
 const uint32_t CMessage::REQUEST_TIMEOUT_FEVER = 0xffffffff;
 
+const int CMessage::CSyncException::INTERNAL_ERROR   = 0;
+const int CMessage::CSyncException::TIMEOUT          = 1;
+const int CMessage::CSyncException::SIGNAL_INTERRUPT = 2;
+const int CMessage::CSyncException::UNEXPCTED_ERROR  = 3;
 
-CMessage::CSync::CSync (void) :
-	mCommand (0),
-	mIsReplyResultOK (false),
-	mDataSize (0)
+
+CMessage::CSync::CSync (void)
 {
 	pthread_cond_init (&mCond, NULL);
 	pthread_mutex_init (&mMutexCond, NULL);
-	memset (mEntityData, 0x00, sizeof(mEntityData));
 }
 
 CMessage::CSync::~CSync (void)
@@ -98,91 +99,54 @@ void CMessage::CSync::condSignal (void)
 	pthread_cond_signal (&mCond);
 }
 
-uint8_t CMessage::CSync::getCommand (void)
-{
-	return mCommand;
-}
 
-void CMessage::CSync::setCommand (uint8_t command)
-{
-	mCommand = command;
-}
-
-uint8_t* CMessage::CSync::getData (void)
-{
-//	return mpData;
-	return &mEntityData[0];
-}
-
-void CMessage::CSync::setData (uint8_t *pData, int size, bool isClear)
-{
-	if (isClear) {
-		memset (mEntityData, 0x00, sizeof(mEntityData));
-		mDataSize = 0;
-		return;
-	}
-
-	if ((!pData) || (size == 0)) {
-		return;
-	}
-
-//	mpData= pData;
-	int cpsize = size > (0xff - (int)sizeof(ST_PACKET)) ? (0xff - (int)sizeof(ST_PACKET)) : size;
-	memset (mEntityData, 0x00, sizeof(mEntityData));
-	memcpy (mEntityData, pData, cpsize);
-	mDataSize = cpsize;
-}
-
-int CMessage::CSync::getDataSize (void)
-{
-	return mDataSize;
-}
-
-
-CMessage::CMessage (void) :
-	mCommand (0),
-	mIsReplyResultOK (false),
-	mpClientInstance (NULL),
-//	mpData (NULL),
-	mDataSize (0),
-	mObjtype (EN_OBJTYPE_REQUESTER)
+CMessage::CMessage (void)
+	:mCommand (0)
+	,mIsReplyResultOK (false)
+	,mpClientInstance (NULL)
+	,mDataSize (0)
+	,mObjtype (EN_OBJTYPE_REQUESTER)
+	,mIsSync (false)
 {
 	mObjtype = EN_OBJTYPE_NOTHING;
 }
 
 // for create reply message
-CMessage::CMessage (CMessage *pRequestMsg) :
-	mCommand (0),
-	mIsReplyResultOK (false),
-	mpClientInstance (NULL),
-//	mpData (NULL),
-	mDataSize (0),
-	mObjtype (EN_OBJTYPE_REQUESTER)
+CMessage::CMessage (CMessage *pRequestMsg)
+	:mCommand (0)
+	,mIsReplyResultOK (false)
+	,mpClientInstance (NULL)
+	,mDataSize (0)
+	,mObjtype (EN_OBJTYPE_REQUESTER)
+	,mIsSync (false)
 {
 	if (pRequestMsg) {
 		mId = *(pRequestMsg->getId());
 		mCommand = pRequestMsg->getCommand();
 		mpClientInstance = pRequestMsg->getClientInstance();
+		mIsSync = pRequestMsg->isSync();
 
 		if (pRequestMsg->getObjtype() == EN_OBJTYPE_REPLYABLE) { 
 			mObjtype = EN_OBJTYPE_REPLYER;
 		} else {
-			_ISS_LOG_W ("not EN_OBJTYPE_REPLYABLE\n");
+			_ISS_LOG_E ("not EN_OBJTYPE_REPLYABLE\n");
+			mObjtype = EN_OBJTYPE_NOTHING;
 		}
 
 	} else {
 		_ISS_LOG_E ("pRequestMsg is null\n");
+		mObjtype = EN_OBJTYPE_NOTHING;
 	}
 
 }
 
-CMessage::CMessage (CImmSocketClient *pClient) :
-	mCommand (0),
-	mIsReplyResultOK (false),
-	mpClientInstance (NULL),
-//	mpData (NULL),
-	mDataSize (0),
-	mObjtype (EN_OBJTYPE_REQUESTER)
+CMessage::CMessage (CImmSocketClient *pClient)
+	:mCommand (0)
+	,mIsReplyResultOK (false)
+	,mpClientInstance (NULL)
+	,mDataSize (0)
+	,mObjtype (EN_OBJTYPE_REQUESTER)
+	,mIsSync (false)
 {
 	if (pClient) {
 		mpClientInstance = pClient;
@@ -191,13 +155,13 @@ CMessage::CMessage (CImmSocketClient *pClient) :
 	memset (mEntityData, 0x00, sizeof(mEntityData));
 }
 
-CMessage::CMessage (CImmSocketClient *pClient, CMessageId::CId *pId) :
-	mCommand (0),
-	mIsReplyResultOK (false),
-	mpClientInstance (NULL),
-//	mpData (NULL),
-	mDataSize (0),
-	mObjtype (EN_OBJTYPE_REQUESTER)
+CMessage::CMessage (CImmSocketClient *pClient, CMessageId::CId *pId)
+	:mCommand (0)
+	,mIsReplyResultOK (false)
+	,mpClientInstance (NULL)
+	,mDataSize (0)
+	,mObjtype (EN_OBJTYPE_REQUESTER)
+	,mIsSync (false)
 {
 	if (pClient) {
 		mpClientInstance = pClient;
@@ -210,13 +174,13 @@ CMessage::CMessage (CImmSocketClient *pClient, CMessageId::CId *pId) :
 	memset (mEntityData, 0x00, sizeof(mEntityData));
 }
 
-CMessage::CMessage (CImmSocketClient *pClient, CMessageId::CId *pId, uint8_t command) :
-	mCommand (0),
-	mIsReplyResultOK (false),
-	mpClientInstance (NULL),
-//	mpData (NULL),
-	mDataSize (0),
-	mObjtype (EN_OBJTYPE_REQUESTER)
+CMessage::CMessage (CImmSocketClient *pClient, CMessageId::CId *pId, uint8_t command)
+	:mCommand (0)
+	,mIsReplyResultOK (false)
+	,mpClientInstance (NULL)
+	,mDataSize (0)
+	,mObjtype (EN_OBJTYPE_REQUESTER)
+	,mIsSync (false)
 {
 	if (pClient) {
 		mpClientInstance = pClient;
@@ -231,13 +195,13 @@ CMessage::CMessage (CImmSocketClient *pClient, CMessageId::CId *pId, uint8_t com
 	memset (mEntityData, 0x00, sizeof(mEntityData));
 }
 
-CMessage::CMessage (CImmSocketClient *pClient, CMessageId::CId *pId, uint8_t command, EN_OBJTYPE enType) :
-	mCommand (0),
-	mIsReplyResultOK (false),
-	mpClientInstance (NULL),
-//	mpData (NULL),
-	mDataSize (0),
-	mObjtype (EN_OBJTYPE_REQUESTER)
+CMessage::CMessage (CImmSocketClient *pClient, CMessageId::CId *pId, uint8_t command, EN_OBJTYPE enType)
+	:mCommand (0)
+	,mIsReplyResultOK (false)
+	,mpClientInstance (NULL)
+	,mDataSize (0)
+	,mObjtype (EN_OBJTYPE_REQUESTER)
+	,mIsSync (false)
 {
 	if (pClient) {
 		mpClientInstance = pClient;
@@ -253,7 +217,7 @@ CMessage::CMessage (CImmSocketClient *pClient, CMessageId::CId *pId, uint8_t com
 	memset (mEntityData, 0x00, sizeof(mEntityData));
 }
 
-// copy constructor
+// copy ctor
 //CMessage::CMessage (const CMessage &obj)
 //{
 //}
@@ -274,7 +238,6 @@ void CMessage::setCommand (uint8_t command)
 
 uint8_t* CMessage::getData (void)
 {
-//	return mpData;
 	return &mEntityData[0];
 }
 
@@ -290,7 +253,6 @@ void CMessage::setData (uint8_t *pData, int size, bool isClear)
 		return;
 	}
 
-//	mpData= pData;
 	int cpsize = size > (0xff - (int)sizeof(ST_PACKET)) ? (0xff - (int)sizeof(ST_PACKET)) : size;
 	memset (mEntityData, 0x00, sizeof(mEntityData));
 	memcpy (mEntityData, pData, cpsize);
@@ -300,6 +262,14 @@ void CMessage::setData (uint8_t *pData, int size, bool isClear)
 int CMessage::getDataSize (void)
 {
 	return mDataSize;
+}
+
+void CMessage::setReplyResult (bool isReplyResultOK) {
+	mIsReplyResultOK = isReplyResultOK;
+}
+
+bool CMessage::isReplyResultOK (void) {
+	return mIsReplyResultOK;
 }
 
 CMessageId::CId *CMessage::getId (void)
@@ -336,7 +306,7 @@ int CMessage::sendRequestSync (uint32_t nTimeoutMsec)
 	CMessageId::CId id = generateId(); // need new id
 	pPacketHandler->addSyncRequestTable (this);
 
-	if (!sendRequest (&id)) {
+	if (!sendRequest (&id, true)) {
 		// remove
 		pPacketHandler->removeSyncRequestTable (this);
 		// unlock
@@ -361,18 +331,56 @@ int CMessage::sendRequestSync (uint32_t nTimeoutMsec)
 	return nRtn;
 }
 
-int CMessage::sendRequestSync (uint8_t command, uint32_t nTimeoutMsec)
+int CMessage::sendRequestSync (uint8_t command, uint32_t nTimeoutMsec) throw (CMessage::CSyncException)
 {
 	setCommand (command);
 	setData (NULL, 0, true);
-	return sendRequestSync (nTimeoutMsec);
+	int rtn = sendRequestSync (nTimeoutMsec);
+	switch (rtn) {
+	case 0:
+		// success
+		break;
+	case -1:
+		throw CSyncException ("exception: internal error", CMessage::CSyncException::INTERNAL_ERROR);
+		break;
+	case ETIMEDOUT:
+		throw CSyncException ("exception: timeout", CMessage::CSyncException::TIMEOUT);
+		break;
+	case EINTR:
+		throw CSyncException ("exception: signal interrupt", CMessage::CSyncException::SIGNAL_INTERRUPT);
+		break;
+	default:
+		throw CSyncException ("exception: unexpected error", CMessage::CSyncException::UNEXPCTED_ERROR);
+		break;
+	}
+
+	return rtn;
 }
 
-int CMessage::sendRequestSync (uint8_t command, uint8_t *pData, int size, uint32_t nTimeoutMsec)
+int CMessage::sendRequestSync (uint8_t command, uint8_t *pData, int size, uint32_t nTimeoutMsec) throw (CMessage::CSyncException)
 {
 	setCommand (command);
 	setData (pData, size);
-	return sendRequestSync (nTimeoutMsec);
+	int rtn = sendRequestSync (nTimeoutMsec);
+	switch (rtn) {
+	case 0:
+		// success
+		break;
+	case -1:
+		throw CSyncException ("exception: internal error", CMessage::CSyncException::INTERNAL_ERROR);
+		break;
+	case ETIMEDOUT:
+		throw CSyncException ("exception: timeout", CMessage::CSyncException::TIMEOUT);
+		break;
+	case EINTR:
+		throw CSyncException ("exception: signal interrupt", CMessage::CSyncException::SIGNAL_INTERRUPT);
+		break;
+	default:
+		throw CSyncException ("exception: unexpected error", CMessage::CSyncException::UNEXPCTED_ERROR);
+		break;
+	}
+
+	return rtn;
 }
 
 bool CMessage::sendRequestAsync (CMessageId::CId *pId)
@@ -394,7 +402,7 @@ bool CMessage::sendRequestAsync (CMessageId::CId *pId, uint8_t command, uint8_t 
 	return sendRequestAsync (pId);
 }
 
-bool CMessage::sendRequest (CMessageId::CId *pId)
+bool CMessage::sendRequest (CMessageId::CId *pId, bool isSync)
 {
 	if (!pId) {
 		_ISS_LOG_E ("pId is null.\n");
@@ -408,14 +416,6 @@ bool CMessage::sendRequest (CMessageId::CId *pId)
 		_ISS_LOG_E ("mpClientInstance is null\n");
 		return false;
 	}
-//	if ((mDataSize == 0) && mpData) {
-//		_ISS_LOG_E ("(mDataSize == 0) && mpData --> invalid data\n");
-//		return false;
-//	}
-//	if ((mDataSize > 0) && !mpData) {
-//		_ISS_LOG_E ("(mDataSize > 0) && !mpData --> invalid data\n");
-//		return false;
-//	}
 	if (mDataSize > (0xff - (int)sizeof(ST_PACKET))) {
 		_ISS_LOG_E ("data size over\n");
 		return false;
@@ -427,6 +427,12 @@ bool CMessage::sendRequest (CMessageId::CId *pId)
 		return false;
 	}
 
+	// 同期の場合 最上位bitを立てる
+	uint8_t type = MSG_TYPE_REQUEST;
+	if (isSync) {
+		type |= MASK_IS_SYNC;
+	}
+
 	int totalsize = 0;
 	if (mDataSize == 0) {
 		totalsize = (int)sizeof(ST_PACKET);
@@ -435,7 +441,7 @@ bool CMessage::sendRequest (CMessageId::CId *pId)
 	}
 	uint8_t buff [totalsize];
 	memset (buff, 0x00, sizeof(buff));
-	if (!setPacket (pId, MSG_TYPE_REQUEST, mCommand, buff, totalsize)) {
+	if (!setPacket (pId, type, mCommand, buff, totalsize)) {
 		return false;
 	}
 
@@ -481,28 +487,22 @@ bool CMessage::sendReply (void)
 		_ISS_LOG_E ("mpClientInstance is null\n");
 		return false;
 	}
-//	if ((mDataSize == 0) && mpData) {
-//		_ISS_LOG_E ("(mDataSize == 0) && mpData --> invalid data\n");
-//		return false;
-//	}
-//	if ((mDataSize > 0) && !mpData) {
-//		_ISS_LOG_E ("(mDataSize > 0) && !mpData --> invalid data\n");
-//		return false;
-//	}
 	if (mDataSize > (0xff - (int)sizeof(ST_PACKET))) {
 		_ISS_LOG_E ("data size over\n");
 		return false;
 	}
 
 
-	// reply結果をtypeの上位4bitに埋め込みます (実際には上位4bitの内3bit)
-	uint8_t type = 0x00;
+	// reply結果をtypeの上位4bitの内3bitに埋め込み 実際には1bit分
+	uint8_t type = MSG_TYPE_REPLY;
 	if (mIsReplyResultOK) {
-		type = MSG_TYPE_REPLY | ((0x01 << 4) & 0xff);
-	} else {
-		type = MSG_TYPE_REPLY;
+		type |= 0x10;
 	}
 
+	// 同期の場合 最上位bitを立てる
+	if (isSync()) {
+		type |= MASK_IS_SYNC;
+	}
 
 	int totalsize = 0;
 	if (mDataSize == 0) {
@@ -546,14 +546,6 @@ bool CMessage::sendNotify (void)
 		_ISS_LOG_E ("mpClientInstance is null\n");
 		return false;
 	}
-//	if ((mDataSize == 0) && mpData) {
-//		_ISS_LOG_E ("(mDataSize == 0) && mpData --> invalid data\n");
-//		return false;
-//	}
-//	if ((mDataSize > 0) && !mpData) {
-//		_ISS_LOG_E ("(mDataSize > 0) && !mpData --> invalid data\n");
-//		return false;
-//	}
 	if (mDataSize > (0xff - (int)sizeof(ST_PACKET))) {
 		_ISS_LOG_E ("data size over\n");
 		return false;
@@ -587,14 +579,6 @@ bool CMessage::setPacket (CMessageId::CId *pId, uint8_t type, uint8_t command, u
 		return false;
 	}
 
-//	if ((mDataSize == 0) && mpData) {
-//		_ISS_LOG_E ("(mDataSize == 0) && mpData --> invalid data\n");
-//		return false;
-//	}
-//	if ((mDataSize > 0) && !mpData) {
-//		_ISS_LOG_E ("(mDataSize > 0) && !mpData --> invalid data\n");
-//		return false;
-//	}
 	if (mDataSize > (0xff - (int)sizeof(ST_PACKET))) {
 		_ISS_LOG_E ("data size over\n");
 		return false;
@@ -614,7 +598,6 @@ bool CMessage::setPacket (CMessageId::CId *pId, uint8_t type, uint8_t command, u
 		memcpy (pOut, &stPacket, outsize);
 	} else {
 		memcpy (pOut, &stPacket, sizeof(stPacket));
-//		memcpy (pOut+sizeof(stPacket), mpData, mDataSize);
 		memcpy (pOut+sizeof(stPacket), mEntityData, mDataSize);
 	}
 
@@ -638,6 +621,16 @@ void CMessage::setObjtype (EN_OBJTYPE type)
 	} else {
 		mObjtype = type;
 	}
+}
+
+bool CMessage::isSync (void)
+{
+	return mIsSync;
+}
+
+void CMessage::setSync (void)
+{
+	mIsSync = true;
 }
 
 } // namespace ImmSocketService

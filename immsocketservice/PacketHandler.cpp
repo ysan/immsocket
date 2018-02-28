@@ -16,7 +16,11 @@ namespace ImmSocketService {
 CPacketHandler::CPacketHandler (void)
 {
 	pthread_mutex_init (&mMutexGenId, NULL);
-	pthread_mutex_init (&mMutexSyncRequestTable, NULL);
+
+	pthread_mutexattr_t attrMutexWorker;
+	pthread_mutexattr_init (&attrMutexWorker);
+	pthread_mutexattr_settype (&attrMutexWorker, PTHREAD_MUTEX_RECURSIVE_NP);
+	pthread_mutex_init (&mMutexSyncRequestTable, &attrMutexWorker);
 }
 
 CPacketHandler::~CPacketHandler (void)
@@ -106,6 +110,8 @@ CMessage *CPacketHandler::findSyncRequestMessage (const CMessageId::CId *pId)
 
 void CPacketHandler::checkSyncRequestMessage (CMessage *pReplyMsg)
 {
+	CUtils::CScopedMutex scopedMutex (&mMutexSyncRequestTable);
+
 	if (!pReplyMsg) {
 		_ISS_LOG_E ("%s pReplyMsg is null\n", __func__);
 		return;
@@ -114,16 +120,17 @@ void CPacketHandler::checkSyncRequestMessage (CMessage *pReplyMsg)
 	CMessageId::CId *pId = pReplyMsg->getId();
 	CMessage *pWaitMsg = findSyncRequestMessage (pId);
 	if (!pWaitMsg) {
+		_ISS_LOG_E ("%s meybe timeout droped.\n", __func__);
 		return ;
 	}
 
 	bool isOK = pReplyMsg->isReplyResultOK();
-	pWaitMsg->sync()->setReplyResult (isOK);
+	pWaitMsg->setReplyResult (isOK);
 
 	int replyDataSize = pReplyMsg->getDataSize();
 	uint8_t* pReplyData = pReplyMsg->getData();
 	if ((replyDataSize > 0) && (pReplyData)) {
-		pWaitMsg->sync()->setData(pReplyData, replyDataSize);
+		pWaitMsg->setData(pReplyData, replyDataSize);
 	}
 
 	pWaitMsg->sync()->condLock();
@@ -178,7 +185,7 @@ void CPacketHandler::onReceivePacket (CImmSocketClient *pSelf, uint8_t *pPacket,
 		"%s  id.num=[0x%02x] id.time=[%ld] type=[0x%02x] command=[0x%02x] size=[0x%02x]\n",
 		__func__,
 		pstPacket->id.num,
-		pstPacket->id.time,
+		ntohl(pstPacket->id.time),
 		pstPacket->type,
 		pstPacket->command,
 		pstPacket->size
@@ -190,12 +197,28 @@ void CPacketHandler::onReceivePacket (CImmSocketClient *pSelf, uint8_t *pPacket,
 	CMessage msg(pSelf, &id, pstPacket->command, EN_OBJTYPE_NOTHING);
 
 	int type = (int)(pstPacket->type & CMessage::MASK_MSG_TYPE);
-	if (type == CMessage::MSG_TYPE_REPLY) {
+	if (type == CMessage::MSG_TYPE_REQUEST) {
+		// check sync
+		int isSync = ((pstPacket->type & CMessage::MASK_IS_SYNC) >> 7);
+		if (isSync == 1) {
+			_ISS_LOG_I ("MSG_TYPE_REQUEST sync\n");
+			msg.setSync();
+		}
+
+	} else if (type == CMessage::MSG_TYPE_REPLY) {
 		// replyの場合のみ上位4bitの内下3bitに結果(OK/NG)が入っています
-		if (pstPacket->type & CMessage::MASK_REPLY_RESULT) {
+		int res = ((pstPacket->type & CMessage::MASK_REPLY_RESULT) >> 4);
+		if (res == 1) {
 			msg.setReplyResult (true);
 		} else {
 			msg.setReplyResult (false);
+		}
+
+		// check sync
+		int isSync = ((pstPacket->type & CMessage::MASK_IS_SYNC) >> 7);
+		if (isSync == 1) {
+			_ISS_LOG_I ("MSG_TYPE_REPLY sync\n");
+			msg.setSync();
 		}
 	}
 
@@ -237,16 +260,25 @@ void CPacketHandler::handleMsg (CMessage *pMsg, int msgType)
 
 
 	if (msgType == CMessage::MSG_TYPE_REQUEST) {
+
 		pMsg->setObjtype (EN_OBJTYPE_REPLYABLE);
+
 		onHandleRequest (pMsg);
 
 	} else if (msgType == CMessage::MSG_TYPE_REPLY) {
+
 		pMsg->setObjtype (EN_OBJTYPE_NOTHING);
-		onHandleReply (pMsg);
-		checkSyncRequestMessage (pMsg);
+
+		if (pMsg->isSync()) {
+			checkSyncRequestMessage (pMsg);
+		} else  {
+			onHandleReply (pMsg);
+		}
 
 	} else if (msgType == CMessage::MSG_TYPE_NOTIFY) {
+
 		pMsg->setObjtype (EN_OBJTYPE_NOTHING);
+
 		onHandleNotify (pMsg);
 
 	} else {

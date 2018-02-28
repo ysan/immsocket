@@ -12,6 +12,7 @@
 
 #include "Utils.h"
 #include "Defs.h"
+#include "ImmSocketServiceCommon.h"
 
 
 using namespace std;

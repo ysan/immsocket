@@ -116,64 +116,74 @@ static void *sync_req_test (void *args)
 
 		_UTL_LOG_I ("sync request\n");
 		pMsg = new CMessage(pcl);
-		rtn = pMsg->sendRequestSync ((uint8_t)0x02);
-		if (rtn == ETIMEDOUT) {
-			_UTL_LOG_E ("timeout\n");
-			delete pMsg;
-			pMsg = NULL;
-			continue;
+		try {
+			rtn = pMsg->sendRequestSync ((uint8_t)0x02);
+			if (rtn == 0) {
+				if (pMsg->isReplyResultOK()) {
+					_UTL_LOG_I ("REPLY_OK\n");
+				} else {
+					_UTL_LOG_I ("REPLY_NG\n");
+				}
 
-		} else if (rtn == EINTR) {
-			_UTL_LOG_E ("singnal intr.\n");
-			delete pMsg;
-			pMsg = NULL;
-			continue;
+				if (pMsg->getDataSize() > 0) {
+					_UTL_LOG_I ("replyData [%s]\n", (char*)(pMsg->getData()));
+				}
 
-		} else if (rtn == 0) {
-			if (pMsg->sync()->isReplyResultOK()) {
-				_UTL_LOG_I ("REPLY_OK\n");
+				delete pMsg;
+				pMsg = NULL;
+			}
+
+		} catch (CMessage::CSyncException& e) {
+
+			if (e.code() == CMessage::CSyncException::INTERNAL_ERROR) {
+			} else if (e.code() == CMessage::CSyncException::TIMEOUT) {
+			} else if (e.code() == CMessage::CSyncException::SIGNAL_INTERRUPT) {
 			} else {
-				_UTL_LOG_I ("REPLY_NG\n");
+				// UNEXPCTED_ERROR
 			}
 
-			if (pMsg->sync()->getDataSize() > 0) {
-				_UTL_LOG_I ("replyData [%s]\n", (char*)(pMsg->sync()->getData()));
-			}
-
+			_UTL_LOG_E (e.what());
 			delete pMsg;
 			pMsg = NULL;
+			continue;
 		}
+
+
 
 		sleep (5);
 
 		_UTL_LOG_I ("sync request 2\n");
 		pMsg = new CMessage(pcl);
-		rtn = pMsg->sendRequestSync ((uint8_t)0x02, 500); // timeout test
-		if (rtn == ETIMEDOUT) {
-			_UTL_LOG_E ("timeout\n");
-			delete pMsg;
-			pMsg = NULL;
-			continue;
+		try {
+			rtn = pMsg->sendRequestSync ((uint8_t)0x02, 500);
+			if (rtn == 0) {
+				if (pMsg->isReplyResultOK()) {
+					_UTL_LOG_I ("REPLY_OK\n");
+				} else {
+					_UTL_LOG_I ("REPLY_NG\n");
+				}
 
-		} else if (rtn == EINTR) {
-			_UTL_LOG_E ("singnal intr.\n");
-			delete pMsg;
-			pMsg = NULL;
-			continue;
+				if (pMsg->getDataSize() > 0) {
+					_UTL_LOG_I ("replyData [%s]\n", (char*)(pMsg->getData()));
+				}
 
-		} else if (rtn == 0) {
-			if (pMsg->sync()->isReplyResultOK()) {
-				_UTL_LOG_I ("REPLY_OK\n");
+				delete pMsg;
+				pMsg = NULL;
+			}
+
+		} catch (CMessage::CSyncException& e) {
+
+			if (e.code() == CMessage::CSyncException::INTERNAL_ERROR) {
+			} else if (e.code() == CMessage::CSyncException::TIMEOUT) {
+			} else if (e.code() == CMessage::CSyncException::SIGNAL_INTERRUPT) {
 			} else {
-				_UTL_LOG_I ("REPLY_NG\n");
+				// UNEXPCTED_ERROR
 			}
 
-			if (pMsg->sync()->getDataSize() > 0) {
-				_UTL_LOG_I ("replyData [%s]\n", (char*)(pMsg->sync()->getData()));
-			}
-
+			_UTL_LOG_E (e.what());
 			delete pMsg;
 			pMsg = NULL;
+			continue;
 		}
 	}
 

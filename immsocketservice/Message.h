@@ -11,6 +11,8 @@
 
 #include <arpa/inet.h>
 
+#include <stdexcept>
+
 #include "ImmSocketServer.h"
 #include "ImmSocketClient.h"
 #include "PacketHandler.h"
@@ -55,23 +57,7 @@ public:
 		CSync (void);
 		virtual ~CSync (void);
 
-
-		uint8_t getCommand (void);
-
-		uint8_t* getData (void);
-		int getDataSize (void);
-
-		bool isReplyResultOK (void) {
-			return mIsReplyResultOK;
-		}
-
 	private:
-		void setCommand (uint8_t command); // friend access
-		void setData (uint8_t *pData, int size, bool isClear=false); // friend access
-		void setReplyResult (bool isReplyResultOK) { // friend access
-			mIsReplyResultOK = isReplyResultOK;
-		}
-
 		void condLock (void);   // friend access
 		void condUnlock (void); // friend access
 		int condWait (uint32_t nTimeoutMsec=REQUEST_TIMEOUT_FEVER);   // friend access
@@ -79,13 +65,26 @@ public:
 
 		pthread_cond_t mCond;
 		pthread_mutex_t mMutexCond;
+	};
 
-		uint8_t mCommand;
-		bool mIsReplyResultOK;
-//		uint8_t *mpData;
-		int mDataSize;
+	class CSyncException : public std::runtime_error {
+	public:
+		const static int INTERNAL_ERROR;
+		const static int TIMEOUT;
+		const static int SIGNAL_INTERRUPT;
+		const static int UNEXPCTED_ERROR;
 
-		uint8_t mEntityData [0xff]; // 0xff - sizeof(ST_PACKET)
+	public:
+		CSyncException (const std::string& arg, int code) : runtime_error (arg) {
+			mErrcode = code;
+		}
+
+		int code() {
+			return mErrcode;
+		}
+
+	private:
+		int mErrcode;
 	};
 
 public:
@@ -97,7 +96,7 @@ public:
 	CMessage (CImmSocketClient *pClient, CMessageId::CId *pId);
 	CMessage (CImmSocketClient *pClient, CMessageId::CId *pId, uint8_t command);
 	CMessage (CImmSocketClient *pClient, CMessageId::CId *pId, uint8_t command, EN_OBJTYPE enType);
-//	CMessage (const CMessage &obj); // copy constructor
+//	CMessage (const CMessage &obj); // copy ctor
 	virtual ~CMessage (void);
 
 
@@ -106,22 +105,22 @@ public:
 	uint8_t* getData (void);
 	int getDataSize (void);
 
-	bool isReplyResultOK (void) {
-		return mIsReplyResultOK;
-	}
+	bool isReplyResultOK (void);
 
 
 	CMessageId::CId *getId (void); // reference current id value
 	CMessageId::CId generateId (void);
 
-	int sendRequestSync (uint8_t command, uint32_t nTimeoutMsec=REQUEST_TIMEOUT_FEVER);
-	int sendRequestSync (uint8_t command, uint8_t *pData, int size, uint32_t nTimeoutMsec=REQUEST_TIMEOUT_FEVER);
+	int sendRequestSync (uint8_t command, uint32_t nTimeoutMsec=REQUEST_TIMEOUT_FEVER) throw (CSyncException);
+	int sendRequestSync (uint8_t command, uint8_t *pData, int size, uint32_t nTimeoutMsec=REQUEST_TIMEOUT_FEVER) throw (CSyncException);
 	bool sendRequestAsync (CMessageId::CId *pId, uint8_t command);
 	bool sendRequestAsync (CMessageId::CId *pId, uint8_t command, uint8_t *pData, int size);
+
 	bool sendReplyOK (void);
 	bool sendReplyOK (uint8_t *pReplyData, int size);
 	bool sendReplyNG (void);
 	bool sendReplyNG (uint8_t *pReplyData, int size);
+
 	bool sendNotify (uint8_t command);
 	bool sendNotify (uint8_t command, uint8_t *pData, int size);
 
@@ -135,18 +134,19 @@ public:
 private:
 	void setCommand (uint8_t command);
 	void setData (uint8_t *pData, int size, bool isClear=false); // friend access
-	void setReplyResult (bool isReplyResultOK) { // friend access
-		mIsReplyResultOK = isReplyResultOK;
-	}
+	void setReplyResult (bool isReplyResultOK); // friend access
 
 	EN_OBJTYPE getObjtype (void);      // friend access
 	void setObjtype (EN_OBJTYPE type); // friend access
+
+	bool isSync (void);  // friend access
+	void setSync (void); // friend access
 
 
 	int sendRequestSync (uint32_t nTimeoutMsec=REQUEST_TIMEOUT_FEVER);
 	bool sendRequestAsync (CMessageId::CId *pId);
 
-	bool sendRequest (CMessageId::CId *pId);
+	bool sendRequest (CMessageId::CId *pId, bool isSync=false);
 	bool sendReply (void);
 	bool sendNotify (void);
 
@@ -157,14 +157,13 @@ private:
 	uint8_t mCommand;
 	bool mIsReplyResultOK;
 	CImmSocketClient *mpClientInstance;
-//	uint8_t *mpData;
 	int mDataSize;
 	EN_OBJTYPE mObjtype;
+	bool mIsSync;
 
 	uint8_t mEntityData [0xff]; // 0xff - sizeof(ST_PACKET)
 
 	CSync mSync;
-
 };
 
 } // namespace ImmSocketService
