@@ -14,13 +14,14 @@
 namespace ImmSocketService {
 
 CPacketHandler::CPacketHandler (void)
+	:mAsyncProcProxy (this)
 {
 	pthread_mutex_init (&mMutexGenId, NULL);
 
 	pthread_mutexattr_t attrMutexWorker;
 	pthread_mutexattr_init (&attrMutexWorker);
 	pthread_mutexattr_settype (&attrMutexWorker, PTHREAD_MUTEX_RECURSIVE_NP);
-	pthread_mutex_init (&mMutexSyncRequestTable, &attrMutexWorker);
+	pthread_mutex_init (&mMutexSyncRequestTable, &attrMutexWorker);	
 }
 
 CPacketHandler::~CPacketHandler (void)
@@ -285,6 +286,13 @@ void CPacketHandler::handleMsg (CMessage *pMsg, int msgType)
 		_ISS_LOG_E ("%s  invalid packet (unknown type)\n", __func__);
 	}
 
+}
+
+void CPacketHandler::onAsyncProc (ST_REQ_QUEUE *pReq)
+{
+	if (pReq) {
+		handleMsg (&(pReq->msg), pReq->msgType);
+	}
 }
 
 } // namespace ImmSocketService

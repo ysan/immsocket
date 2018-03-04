@@ -35,11 +35,9 @@ typedef struct {
 typedef vector <CMessage*> SYNC_REQUEST_TABLE;
 
 
-class CPacketHandler : public CImmSocketClient::IPacketHandler
+class CPacketHandler : public CImmSocketClient::IPacketHandler, CAsyncProcProxy::IAsyncHandler
 {
 public:
-	friend class CAsyncProcProxy;
-
 	CPacketHandler (void);
 	virtual ~CPacketHandler (void);
 
@@ -60,7 +58,9 @@ private:
 	void onSetup (CImmSocketClient *pSelf);
 	void onTeardown (CImmSocketClient *pSelf);
 	void onReceivePacket (CImmSocketClient *pSelf, uint8_t *pPacket, int size);
-	void handleMsg (CMessage *pMsg, int msgType); // friend access
+	void handleMsg (CMessage *pMsg, int msgType);
+
+	void onAsyncProc (ST_REQ_QUEUE *pReq);
 
 
 	CImmSocketClient *mpClientInstance;

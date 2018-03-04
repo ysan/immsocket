@@ -363,7 +363,7 @@ void CImmSocketServer::acceptLoop (int fdServerSocket)
 			}
 
 
-			n ++;
+			++ n;
 			if (n >= 10) {
 				dumpClientTable ();
 				n = 0;
@@ -509,7 +509,7 @@ void CImmSocketServer::refreshClientTable (void)
 			}
 		}
 
-		iter ++;
+		++ iter;
 	}
 }
 
@@ -530,7 +530,7 @@ void CImmSocketServer::forceClearClientTable (void)
 			}
 		}
 
-		iter ++;
+		++ iter;
 	}
 }
 
@@ -551,7 +551,7 @@ void CImmSocketServer::dumpClientTable (void)
 			_IMMSOCK_LOG_I (" fd:[%d] isAlive:[%d]\n", fd, isAlive);
 		}
 
-		iter ++;
+		++ iter;
 	}
 
 	_IMMSOCK_LOG_I ("-----------------------\n");
@@ -572,7 +572,7 @@ void CImmSocketServer::sendToClient (uint8_t *pData, int size)
 			pClient->sendToConnection (pData, size);
 		}
 
-		iter ++;
+		++ iter;
 	}
 }
 

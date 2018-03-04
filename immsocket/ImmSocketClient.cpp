@@ -615,7 +615,7 @@ int CImmSocketClient::checkData (uint8_t *pBuff, int size, bool isOnce)
 		} else if (mState == EN_RECEIVE_STATE_WORKING__CHECK_DATA) {
 /**
 			mCurrentPacket [mCurrentPacketWritePos] = *pBuff;
-			mCurrentPacketWritePos ++;
+			++ mCurrentPacketWritePos;
 
 			mCurrentPacketDataSize --;
 			if (mCurrentPacketDataSize == 0) {
@@ -709,8 +709,8 @@ int CImmSocketClient::checkData (uint8_t *pBuff, int size, bool isOnce)
 			return -2;
 		}
 
-		pBuff ++;
-		size --;
+		++ pBuff;
+		-- size;
 	}
 
 	return 0;

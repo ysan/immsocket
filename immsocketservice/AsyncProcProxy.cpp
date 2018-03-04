@@ -14,10 +14,24 @@
 
 namespace ImmSocketService {
 
-CAsyncProcProxy::CProxyThread::CProxyThread (void) :
-	mIsStop (false),
-	mpAsyncProcProxy (NULL)
+const int CAsyncProcProxy::PROXY_THREAD_POOL_NUM = 2;
+
+
+CAsyncProcProxy::CProxyThread::CProxyThread (void)
+	:mIsStop (false)
+	,mpAsyncProcProxy (NULL)
 {
+	pthread_mutex_init (&mMutex, NULL);
+}
+
+CAsyncProcProxy::CProxyThread::CProxyThread (CAsyncProcProxy *pProxy)
+	:mIsStop (false)
+	,mpAsyncProcProxy (NULL)
+{
+	if (pProxy) {
+		mpAsyncProcProxy = pProxy;
+	}
+
 	pthread_mutex_init (&mMutex, NULL);
 }
 
@@ -31,6 +45,7 @@ bool CAsyncProcProxy::CProxyThread::start (void)
 {
 	CUtils::CScopedMutex scopedMutex (&mMutex);
 
+_ISS_LOG_E ("%p\n", this);
 	if (isAlive()) {
 		_ISS_LOG_W ("already started\n");
 		return true;
@@ -58,7 +73,7 @@ void CAsyncProcProxy::CProxyThread::syncStop (void)
 
 void CAsyncProcProxy::CProxyThread::setAsyncProcProxy (CAsyncProcProxy *pAsyncProcProxy)
 {
-	if (pAsyncProcProxy) {
+	if (pAsyncProcProxy) { 
 		mpAsyncProcProxy = pAsyncProcProxy;
 	}
 }
@@ -77,10 +92,10 @@ void CAsyncProcProxy::CProxyThread::onThreadMainRoutine (void)
 	}
 
 	pthread_mutex_t *pMutexCond = &(mpAsyncProcProxy->mMutexCond);
-	pthread_cond_t *pCond = &(mpAsyncProcProxy->mCond);
+	pthread_cond_t *pCond = &(mpAsyncProcProxy->mCondMulti);
 
-	CImmSocketClient *pClient = NULL;
-	CPacketHandler *pHandler = NULL;
+//	CImmSocketClient *pClient = NULL;
+//	CPacketHandler *pHandler = NULL;
 	ST_REQ_QUEUE q ;
 
 	int rtn = 0;
@@ -113,14 +128,17 @@ void CAsyncProcProxy::CProxyThread::onThreadMainRoutine (void)
 			// unlock
 			pthread_mutex_unlock (pMutexCond);
 
-			pClient = q.msg.getClientInstance();
-			if (pClient) {
-				pHandler = (CPacketHandler*)(pClient->getPacketHandler());
-				if (pHandler) {
-					// ####   execute   ####
-					pHandler->handleMsg (&q.msg, q.msgType);
-				}
-			}
+//			pClient = q.msg.getClientInstance();
+//			if (pClient) {
+//				pHandler = (CPacketHandler*)(pClient->getPacketHandler());
+//				if (pHandler) {
+//					// ####   execute   ####
+//					pHandler->handleMsg (&q.msg, q.msgType);
+//				}
+//			}
+			
+			mpAsyncProcProxy->mpAsyncHandler->onAsyncProc (&q);
+
 		}
 	}
 
@@ -131,28 +149,47 @@ void CAsyncProcProxy::CProxyThread::onThreadMainRoutine (void)
 }
 
 
-CAsyncProcProxy::CAsyncProcProxy (void)
+
+CAsyncProcProxy::CAsyncProcProxy (CAsyncProcProxy::IAsyncHandler *pHandler)
+	:mpProxyThread (NULL)
+	,mpAsyncHandler (NULL)
 {
+	mpProxyThread = new CAsyncProcProxy::CProxyThread [PROXY_THREAD_POOL_NUM];
+//	for (int i = 0; i < PROXY_THREAD_POOL_NUM; ++ i) {
+//		*(mpProxyThread + i) = CAsyncProcProxy::CProxyThread (this);
+//	}
+
+	if (pHandler) {
+		mpAsyncHandler = pHandler;
+	}
+
 	pthread_mutex_init (&mMutexQue, NULL);
 	pthread_mutex_init (&mMutexCond, NULL);
-	pthread_cond_init (&mCond, NULL);
+	pthread_cond_init (&mCondMulti, NULL);
 }
 
 CAsyncProcProxy::~CAsyncProcProxy (void)
 {
+	if (mpProxyThread) {
+		delete [] mpProxyThread;
+		mpProxyThread = NULL;
+	}
+
 	pthread_mutex_destroy (&mMutexQue);
 	pthread_mutex_destroy (&mMutexCond);
-	pthread_cond_destroy (&mCond);
+	pthread_cond_destroy (&mCondMulti);
 }
 
 bool CAsyncProcProxy::start (void)
 {
 	bool rtn = true;
 
-	for (int i = 0; i < PROXY_THREAD_POOL_NUM; i ++) {
-		mProxyThread[i].setAsyncProcProxy (this);	
-		if (!mProxyThread[i].start()) {
-			_ISS_LOG_E ("mProxyThread[%d].start() is failure\n", i);
+	for (int i = 0; i < PROXY_THREAD_POOL_NUM; ++ i) {
+
+		(mpProxyThread + i)->setAsyncProcProxy (this);
+
+		if (!((mpProxyThread + i)->start())) {
+			_ISS_LOG_E ("mpProxyThread %d ->start() is failure\n", i);
 		}
 	}
 
@@ -161,15 +198,15 @@ bool CAsyncProcProxy::start (void)
 
 void CAsyncProcProxy::stop (void)
 {
-	for (int i = 0; i < PROXY_THREAD_POOL_NUM; i ++) {
-		mProxyThread[i].stop();
+	for (int i = 0; i < PROXY_THREAD_POOL_NUM; ++ i) {
+		(mpProxyThread + i)->stop();
 	}
 }
 
 void CAsyncProcProxy::syncStop (void)
 {
-	for (int i = 0; i < PROXY_THREAD_POOL_NUM; i ++) {
-		mProxyThread[i].syncStop();
+	for (int i = 0; i < PROXY_THREAD_POOL_NUM; ++ i) {
+		(mpProxyThread + i)->syncStop();
 	}
 }
 
@@ -183,7 +220,7 @@ void CAsyncProcProxy::request (ST_REQ_QUEUE *pstReqQue)
 
 
 	enQueue (pstReqQue);
-	pthread_cond_broadcast (&mCond); // thread pool start
+	pthread_cond_broadcast (&mCondMulti); // thread pool start
 }
 
 void CAsyncProcProxy::enQueue (ST_REQ_QUEUE *pstReqQue)

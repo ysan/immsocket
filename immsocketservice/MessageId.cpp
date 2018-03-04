@@ -65,7 +65,7 @@ CMessageId::CId CMessageId::generateId (void)
 	CId id;
 
 	id.setNum (mIncId & 0xff);
-	mIncId ++;
+	++ mIncId;
 
 	struct timespec t;
 	clock_gettime (CLOCK_MONOTONIC_RAW, &t);

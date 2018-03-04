@@ -24,7 +24,7 @@ using namespace ImmSocket;
 
 namespace ImmSocketService {
 
-#define PROXY_THREAD_POOL_NUM		(2)
+
 
 struct ST_REQ_QUEUE {
 public:
@@ -63,10 +63,15 @@ typedef queue <ST_REQ_QUEUE> REQ_QUEUE;
 class CAsyncProcProxy
 {
 public:
+	static const int PROXY_THREAD_POOL_NUM;
+
+
+public:
 	class CProxyThread : public CWorkerThread
 	{
 	public:
 		CProxyThread (void);
+		CProxyThread (CAsyncProcProxy *pProxy);
 		virtual ~CProxyThread (void);
 
 		bool start (void); // async
@@ -74,7 +79,6 @@ public:
 		void syncStop (void);
 
 		void setAsyncProcProxy (CAsyncProcProxy *pAsyncProcProxy);
-
 
 	private:
 		void onThreadMainRoutine (void);
@@ -84,14 +88,20 @@ public:
 		CAsyncProcProxy *mpAsyncProcProxy;
 
 		pthread_mutex_t mMutex;
-
 	};
 
+public:
+	class IAsyncHandler
+	{
+	public:
+		virtual ~IAsyncHandler (void) {};
+		virtual void onAsyncProc (ST_REQ_QUEUE *pReq) = 0;
+	};
 
 public:
 	friend class CProxyThread;
 
-	CAsyncProcProxy (void);
+	CAsyncProcProxy (CAsyncProcProxy::IAsyncHandler *pHandler);
 	virtual ~CAsyncProcProxy (void);
 
 	bool start (void);
@@ -106,14 +116,14 @@ private:
 	ST_REQ_QUEUE deQueue (bool isPeep=false); // friend access
 
 
-	CProxyThread mProxyThread [PROXY_THREAD_POOL_NUM]; // thread pool
+	CAsyncProcProxy::CProxyThread *mpProxyThread; // thread pool
+	CAsyncProcProxy::IAsyncHandler *mpAsyncHandler; // friend access
 
 	REQ_QUEUE mQue;
 	pthread_mutex_t mMutexQue;
 
 	pthread_mutex_t mMutexCond; // friend access
-	pthread_cond_t mCond;       // friend access
-
+	pthread_cond_t mCondMulti;  // friend access
 };
 
 } // namespace ImmSocketService

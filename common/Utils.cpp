@@ -36,7 +36,7 @@ static _Unwind_Reason_Code unwind_callback (struct _Unwind_Context* context, voi
 	if (pc) {
 		if (data->current < data->size) {
 			data->array[data->current] = (void *)pc;
-			data->current++;
+			++ data->current;
 		} else {
 			return _URC_END_OF_STACK;
 		}
@@ -60,7 +60,7 @@ char **bionic_backtrace_symbols (void *const *array, int size)
 	char **line_addr = (char **)buff;
 	char *ptr = (char *)buff + sizeof(void *) * size;
 
-	for (int i = 0; i < size; i++) {
+	for (int i = 0; i < size; ++ i) {
 		line_addr[i] = ptr;
 		const void *addr = array[i];
 		const char *symbol = "";
@@ -149,7 +149,7 @@ void CUtils::getThreadName (char *pszOut, size_t nSize)
 	int len = strlen(pszOut);
 	if (len < THREAD_NAME_STRING_SIZE -1) {
 		int i = 0;
-		for (i = 0; i < (THREAD_NAME_STRING_SIZE -1 -len); i ++) {
+		for (i = 0; i < (THREAD_NAME_STRING_SIZE -1 -len); ++ i) {
 			*(pszOut + len + i) = ' ';
 		}
 	}
@@ -545,7 +545,7 @@ void CUtils::putsBackTrace (void)
 
 	_UTL_LOG_W ("============================================================\n");
 	_UTL_LOG_W ("----- pid=%d tid=%ld -----\n", getpid(), syscall(SYS_gettid));
-	for (i = 0; i < n; i ++) {
+	for (i = 0; i < n; ++ i) {
 		_UTL_LOG_W ("%s\n", pRtn[i]);
 	}
 	_UTL_LOG_W ("============================================================\n");
@@ -623,7 +623,7 @@ void CUtils::dumper (const uint8_t *pSrc, int nSrcLen, bool isAddAscii)
 				pszWk += rtn;
 				size -= rtn;
 
-				k ++;
+				++ k;
 			}
 		}
 
@@ -695,7 +695,7 @@ void CUtils::dumper (const uint8_t *pSrc, int nSrcLen, bool isAddAscii)
 				}
 			}
 
-			j ++;
+			++ j;
 		}
 
 		// ascii文字表示
@@ -713,7 +713,7 @@ void CUtils::dumper (const uint8_t *pSrc, int nSrcLen, bool isAddAscii)
 				pszWk += rtn;
 				size -= rtn;
 
-				k ++;
+				++ k;
 			}
 			for (int i = 0; i < (16 - nSrcLen); ++ i) {
 //				fprintf (stdout, " ");
