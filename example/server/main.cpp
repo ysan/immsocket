@@ -11,6 +11,7 @@
 #include "PacketHandler.h"
 #include "Message.h"
 #include "SvrMessageHandler.h"
+#include "SvrClientHandler.h"
 
  
 using namespace std;
@@ -27,14 +28,17 @@ int main (void)
 	sigprocmask (SIG_BLOCK, &sigset, NULL);
 
 
-	CSvrMessageHandler *pMessageHandler = new CSvrMessageHandler();
+	CSvrClientHandler *pClientHandler = new CSvrClientHandler ();
+	CSvrMessageHandler *pMessageHandler = NULL;
 
 #ifndef _DEBUG_TCP
-	CImmSocketServer server ((char*)"/tmp/imm_socket_sample", pMessageHandler);
+	CImmSocketServer server ((char*)"/tmp/imm_socket_sample", pClientHandler);
 #else
-	CImmSocketServer server (65000, pMessageHandler);
+	CImmSocketServer server (65000, pClientHandler);
 //	CImmSocketServer server (65000); // debug echo server
-//	CImmSocketServer server (65000, pMessageHandler, false); // debug single client
+
+//	pMessageHandler = new CSvrMessageHandler();
+//	CImmSocketServer server (65000, pMessageHandler); // debug single client
 
 #endif
 	server.start();
@@ -73,6 +77,11 @@ int main (void)
 	}
 
 	server.syncStop();
+
+	if (pClientHandler) {
+		delete pClientHandler;
+		pClientHandler = NULL;
+	}
 
 	if (pMessageHandler) {
 		delete pMessageHandler;
