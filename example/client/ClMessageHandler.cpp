@@ -23,8 +23,8 @@ void CClMessageHandler::onHandleRequest (CMessage *pMsg)
 	_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
 
 
-	_UTL_LOG_I ("id.num[0x%02x] id.time[%ld] command[0x%02x]\n",
-					(int)pMsg->getId()->getNum(), pMsg->getId()->getTime(), (int)pMsg->getCommand());
+	_UTL_LOG_I ("id.num[0x%02x] id.time[0x%08x] command[0x%02x]\n",
+					(int)pMsg->getId()->getNum(), pMsg->getId()->getHash(), (int)pMsg->getCommand());
 
 	if (pMsg->getDataSize() > 0) {
 		_UTL_LOG_I ("requestData [%s]\n", (char*)(pMsg->getData()));
@@ -37,8 +37,8 @@ void CClMessageHandler::onHandleReply (CMessage *pMsg)
 	_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
 
 
-	_UTL_LOG_I ("id.num[0x%02x] id.time[%ld] command[0x%02x] %s\n",
-					(int)pMsg->getId()->getNum(), pMsg->getId()->getTime(), (int)pMsg->getCommand(),
+	_UTL_LOG_I ("id.num[0x%02x] id.hash[0x%08x] command[0x%02x] %s\n",
+					(int)pMsg->getId()->getNum(), pMsg->getId()->getHash(), (int)pMsg->getCommand(),
 					pMsg->isReplyResultOK() ? "reply_ok" : "reply_ng");
 
 	if (pMsg->getDataSize() > 0) {
@@ -53,8 +53,8 @@ void CClMessageHandler::onHandleNotify (CMessage *pMsg)
 	_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
 
 
-	_UTL_LOG_I ("id.num[0x%02x] id.time[%ld] command[0x%02x]\n",
-					(int)pMsg->getId()->getNum(), pMsg->getId()->getTime(), (int)pMsg->getCommand());
+	_UTL_LOG_I ("id.num[0x%02x] id.hash[0x%08x] command[0x%02x]\n",
+					(int)pMsg->getId()->getNum(), pMsg->getId()->getHash(), (int)pMsg->getCommand());
 
 	if (pMsg->getDataSize() > 0) {
 		_UTL_LOG_I ("notifyData [%s]\n", (char*)(pMsg->getData()));

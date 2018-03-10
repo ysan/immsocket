@@ -30,19 +30,19 @@ public:
 		virtual ~CId (void);
 
 		void setNum (uint8_t n);
-		void setTime (time_t time);
+		void setHash (uint32_t hash);
 
 		uint8_t getNum (void) const;
-		time_t getTime (void) const;
+		time_t getHash (void) const;
 
 
 //		void operator=(const CId& obj) {
 //			mNum = obj.mNum;
-//			mTime = obj.mTime;
+//			mHash = obj.mHash;
 //		}
 
 		bool operator==(const CId& obj) const {
-			if ((mNum == obj.mNum) && (mTime == obj.mTime)) {
+			if ((mNum == obj.mNum) && (mHash == obj.mHash)) {
 				return true;
 			} else {
 				return false;
@@ -50,7 +50,7 @@ public:
 		}
 
 		bool operator!=(const CId& obj) const {
-			if ((mNum != obj.mNum) || (mTime != obj.mTime)) {
+			if ((mNum != obj.mNum) || (mHash != obj.mHash)) {
 				return true;
 			} else {
 				return false;
@@ -58,7 +58,7 @@ public:
 		}
 
 //		bool operator<(const CId& right) const {
-//			if ((mNum < right.mNum) && (right.mTime != right.mTime)) {
+//			if ((mNum < right.mNum) && (right.mHash != right.mHash)) {
 //				return true;
 //			} else {
 //				return false;
@@ -67,7 +67,7 @@ public:
 
 	private:
 		uint8_t mNum;
-		time_t mTime;
+		time_t mHash;
 	};
 
 public:
@@ -79,6 +79,9 @@ public:
 	CId generateId (void) ;
 
 private:
+	uint32_t hash (uint8_t id) const;
+
+
 	pthread_mutex_t mMutexGenId;
 	uint8_t mIncId;
 };

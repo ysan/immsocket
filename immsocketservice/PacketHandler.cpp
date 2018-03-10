@@ -183,10 +183,10 @@ void CPacketHandler::onReceivePacket (CImmSocketClient *pSelf, uint8_t *pPacket,
 
 	ST_PACKET *pstPacket = (ST_PACKET*)pPacket;
 	_ISS_LOG_N (
-		"%s  id.num=[0x%02x] id.time=[%ld] type=[0x%02x] command=[0x%02x] size=[0x%02x]\n",
+		"%s  id.num=[0x%02x] id.hash=[0x%08x] type=[0x%02x] command=[0x%02x] size=[0x%02x]\n",
 		__func__,
 		pstPacket->id.num,
-		ntohl(pstPacket->id.time),
+		ntohl(pstPacket->id.hash),
 		pstPacket->type,
 		pstPacket->command,
 		pstPacket->size
@@ -194,7 +194,7 @@ void CPacketHandler::onReceivePacket (CImmSocketClient *pSelf, uint8_t *pPacket,
 
 	CMessageId::CId id;
 	id.setNum (pstPacket->id.num);
-	id.setTime (ntohl(pstPacket->id.time));
+	id.setHash (ntohl(pstPacket->id.hash));
 	CMessage msg(pSelf, &id, pstPacket->command, EN_OBJTYPE_NOTHING);
 
 	int type = (int)(pstPacket->type & CMessage::MASK_MSG_TYPE);

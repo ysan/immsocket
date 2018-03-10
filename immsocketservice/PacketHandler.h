@@ -23,7 +23,7 @@ namespace ImmSocketService {
 typedef struct {
 	struct _id {
 		uint8_t num;
-		time_t time;
+		uint32_t hash;
 	} id;
 	uint8_t type;
 	uint8_t command;
@@ -58,6 +58,7 @@ private:
 	void onSetup (CImmSocketClient *pSelf);
 	void onTeardown (CImmSocketClient *pSelf);
 	void onReceivePacket (CImmSocketClient *pSelf, uint8_t *pPacket, int size);
+
 	void handleMsg (CMessage *pMsg, int msgType);
 
 	void onAsyncProc (ST_REQ_QUEUE *pReq);

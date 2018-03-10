@@ -39,6 +39,8 @@ CImmSocketClient *CSvrClientHandler::onAcceptClient (int fdClientSocket)
 
 void CSvrClientHandler::onRemoveClient (CImmSocketClient *pClient)
 {
+	_UTL_LOG_N ("%s\n", __PRETTY_FUNCTION__);
+
 	if (!pClient) {
 		return ;
 	}

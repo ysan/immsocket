@@ -79,7 +79,7 @@ public:
 			mErrcode = code;
 		}
 
-		int code() {
+		int code() const {
 			return mErrcode;
 		}
 
@@ -100,12 +100,12 @@ public:
 	virtual ~CMessage (void);
 
 
-	uint8_t getCommand (void);
+	uint8_t getCommand (void) const;
 
 	uint8_t* getData (void);
-	int getDataSize (void);
+	int getDataSize (void) const;
 
-	bool isReplyResultOK (void);
+	bool isReplyResultOK (void) const ;
 
 
 	CMessageId::CId *getId (void); // reference current id value
@@ -136,11 +136,11 @@ private:
 	void setData (uint8_t *pData, int size, bool isClear=false); // friend access
 	void setReplyResult (bool isReplyResultOK); // friend access
 
-	EN_OBJTYPE getObjtype (void);      // friend access
-	void setObjtype (EN_OBJTYPE type); // friend access
+	EN_OBJTYPE getObjtype (void) const; // friend access
+	void setObjtype (EN_OBJTYPE type);  // friend access
 
-	bool isSync (void);  // friend access
-	void setSync (void); // friend access
+	bool isSync (void) const;  // friend access
+	void setSync (void);       // friend access
 
 
 	int sendRequestSync (uint32_t nTimeoutMsec=REQUEST_TIMEOUT_FEVER);

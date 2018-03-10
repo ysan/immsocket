@@ -226,7 +226,7 @@ CMessage::~CMessage (void)
 {
 }
 
-uint8_t CMessage::getCommand (void)
+uint8_t CMessage::getCommand (void) const
 {
 	return mCommand;
 }
@@ -259,16 +259,18 @@ void CMessage::setData (uint8_t *pData, int size, bool isClear)
 	mDataSize = cpsize;
 }
 
-int CMessage::getDataSize (void)
+int CMessage::getDataSize (void) const
 {
 	return mDataSize;
 }
 
-void CMessage::setReplyResult (bool isReplyResultOK) {
+void CMessage::setReplyResult (bool isReplyResultOK)
+{
 	mIsReplyResultOK = isReplyResultOK;
 }
 
-bool CMessage::isReplyResultOK (void) {
+bool CMessage::isReplyResultOK (void) const
+{
 	return mIsReplyResultOK;
 }
 
@@ -421,11 +423,6 @@ bool CMessage::sendRequest (CMessageId::CId *pId, bool isSync)
 		return false;
 	}
 
-	CPacketHandler *pPacketHandler = (CPacketHandler*)mpClientInstance->getPacketHandler();
-	if (!pPacketHandler) {
-		_ISS_LOG_E ("PacketHandler is null\n");
-		return false;
-	}
 
 	// 同期の場合 最上位bitを立てる
 	uint8_t type = MSG_TYPE_REQUEST;
@@ -495,7 +492,7 @@ bool CMessage::sendReply (void)
 
 	// reply結果をtypeの上位4bitの内3bitに埋め込み 実際には1bit分
 	uint8_t type = MSG_TYPE_REPLY;
-	if (mIsReplyResultOK) {
+	if (isReplyResultOK()) {
 		type |= 0x10;
 	}
 
@@ -588,7 +585,7 @@ bool CMessage::setPacket (CMessageId::CId *pId, uint8_t type, uint8_t command, u
 	ST_PACKET stPacket;
 	memset (&stPacket, 0x00, sizeof(stPacket));
 	stPacket.id.num = pId->getNum();
-	stPacket.id.time = htonl(pId->getTime());
+	stPacket.id.hash = htonl(pId->getHash());
 	stPacket.type = type;
 	stPacket.command = command;
 	stPacket.size = mDataSize;
@@ -609,7 +606,7 @@ CImmSocketClient *CMessage::getClientInstance (void)
 	return mpClientInstance;
 }
 
-EN_OBJTYPE CMessage::getObjtype (void)
+EN_OBJTYPE CMessage::getObjtype (void) const
 {
 	return mObjtype;
 }
@@ -623,7 +620,7 @@ void CMessage::setObjtype (EN_OBJTYPE type)
 	}
 }
 
-bool CMessage::isSync (void)
+bool CMessage::isSync (void) const
 {
 	return mIsSync;
 }

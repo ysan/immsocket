@@ -9,9 +9,30 @@
 
 namespace ImmSocketService {
 
+/**
+ * FNV Hash Algorithm
+ */
+static const uint32_t FNV_OFFSET_BASIS_32 = 2166136261U;
+static const uint32_t FNV_PRIME_32 = 16777619U;
+static uint32_t fnv_1_hash_32 (uint8_t *bytes, int len)
+{
+	if ((!bytes) || (len <= 0)) {
+		return 0;
+	}
+
+	uint32_t hash = 0;
+
+	hash = FNV_OFFSET_BASIS_32;
+	for (int i = 0; i < len; ++ i) {
+		hash = (FNV_PRIME_32 * hash) ^ (*(bytes + i));
+	}
+
+	return hash;
+}
+
 CMessageId::CId::CId (void)
 	:mNum (0)
-	,mTime (0)
+	,mHash (0)
 {
 }
 
@@ -24,9 +45,9 @@ void CMessageId::CId::setNum (uint8_t n)
 	mNum = n;
 }
 
-void CMessageId::CId::setTime (time_t time)
+void CMessageId::CId::setHash (uint32_t hash)
 {
-	mTime = time;
+	mHash = hash;
 }
 
 uint8_t CMessageId::CId::getNum (void) const
@@ -34,9 +55,9 @@ uint8_t CMessageId::CId::getNum (void) const
 	return mNum;
 }
 
-time_t CMessageId::CId::getTime (void) const
+time_t CMessageId::CId::getHash (void) const
 {
-	return mTime;
+	return mHash;
 }
 
 
@@ -63,16 +84,30 @@ CMessageId::CId CMessageId::generateId (void)
 
 
 	CId id;
-
-	id.setNum (mIncId & 0xff);
+	uint8_t n = mIncId & 0xff;
+	id.setNum (n);
 	++ mIncId;
 
-	struct timespec t;
-	clock_gettime (CLOCK_MONOTONIC_RAW, &t);
-	_ISS_LOG_N ("generateId  clock_gettime t.tv_sec=[%ld]\n", t.tv_sec);
-	id.setTime (t.tv_sec);
+	uint32_t h = hash (n);
+	_ISS_LOG_N ("generateId  hash=[0x%08x]\n", h);
+	id.setHash (h);
 
 	return id;
+}
+
+uint32_t CMessageId::hash (uint8_t id) const
+{
+	uint8_t bytes [8] = {0};
+	srand ((uint32_t)time(NULL));
+	bytes [0] = id;
+	bytes [1] = uint8_t(rand () & 0xff);
+	bytes [2] = uint8_t(rand () & 0xff);
+	bytes [3] = uint8_t(rand () & 0xff);
+	bytes [4] = uint8_t(rand () & 0xff);
+	bytes [5] = uint8_t(rand () & 0xff);
+	bytes [6] = uint8_t(rand () & 0xff);
+	bytes [7] = uint8_t(rand () & 0xff);
+	return fnv_1_hash_32 (bytes, sizeof(bytes));
 }
 
 } // namespace ImmSocketService

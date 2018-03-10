@@ -45,7 +45,6 @@ bool CAsyncProcProxy::CProxyThread::start (void)
 {
 	CUtils::CScopedMutex scopedMutex (&mMutex);
 
-_ISS_LOG_E ("%p\n", this);
 	if (isAlive()) {
 		_ISS_LOG_W ("already started\n");
 		return true;
