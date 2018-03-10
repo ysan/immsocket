@@ -98,7 +98,8 @@ void CAsyncProcProxy::CProxyThread::onThreadMainRoutine (void)
 	ST_REQ_QUEUE q ;
 
 	int rtn = 0;
-	struct timespec stTimeout = {0L, 0L};
+	struct timespec stTimeout = {0};
+	struct timeval stNowTimeval = {0};
 
 	while (1) {
 		// lock
@@ -107,8 +108,12 @@ void CAsyncProcProxy::CProxyThread::onThreadMainRoutine (void)
 		q = mpAsyncProcProxy->deQueue();
 		if (q.isEmpty) {
 
-			stTimeout.tv_sec = 1L;
-			stTimeout.tv_nsec = 0L;
+			memset (&stTimeout, 0x00, sizeof(stTimeout));
+			memset (&stNowTimeval, 0x00, sizeof(stNowTimeval));
+			CUtils::getTimeOfDay (&stNowTimeval);
+			stTimeout.tv_sec = stNowTimeval.tv_sec + 1;
+			stTimeout.tv_nsec = stNowTimeval.tv_usec * 1000;
+
 			rtn = pthread_cond_timedwait (pCond, pMutexCond, &stTimeout);
 
 			// unlock
