@@ -57,57 +57,57 @@ typedef enum {
 
 // --- Information ---
 #ifndef _LOG_ADD_FILE_INFO
-#define _UTL_LOG_I(fmt, ...) {\
+#define _UTL_LOG_I(fmt, ...) do {\
 	CUtils::putsLogLW (stdout, EN_LOG_LEVEL_I, fmt, ##__VA_ARGS__);\
-}
+} while (0)
 #else
-#define _UTL_LOG_I(fmt, ...) {\
+#define _UTL_LOG_I(fmt, ...) do {\
 	CUtils::putsLog (stdout, EN_LOG_LEVEL_I, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
-}
+} while (0)
 #endif
 
 // --- Notice ---
 #ifndef _LOG_ADD_FILE_INFO
-#define _UTL_LOG_N(fmt, ...) {\
+#define _UTL_LOG_N(fmt, ...) do {\
 	CUtils::putsLogLW (stdout, EN_LOG_LEVEL_N, fmt, ##__VA_ARGS__);\
-}
+} while (0)
 #else
-#define _UTL_LOG_N(fmt, ...) {\
+#define _UTL_LOG_N(fmt, ...) do {\
     CUtils::putsLog (stdout, EN_LOG_LEVEL_N, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
-}
+} while (0)
 #endif
 
 // --- Warning ---
 #ifndef _LOG_ADD_FILE_INFO
-#define _UTL_LOG_W(fmt, ...) {\
+#define _UTL_LOG_W(fmt, ...) do {\
 	CUtils::putsLogLW (stdout, EN_LOG_LEVEL_W, fmt, ##__VA_ARGS__);\
-}
+} while (0)
 #else
-#define _UTL_LOG_W(fmt, ...) {\
+#define _UTL_LOG_W(fmt, ...) do {\
     CUtils::putsLog (stdout, EN_LOG_LEVEL_W, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
-}
+} while (0)
 #endif
 
 // --- Error ---
 #ifndef _LOG_ADD_FILE_INFO
-#define _UTL_LOG_E(fmt, ...) {\
+#define _UTL_LOG_E(fmt, ...) do {\
 	CUtils::putsLogLW (stdout, EN_LOG_LEVEL_E, fmt, ##__VA_ARGS__);\
-}
+} while (0)
 #else
-#define _UTL_LOG_E(fmt, ...) {\
+#define _UTL_LOG_E(fmt, ...) do {\
     CUtils::putsLog (stdout, EN_LOG_LEVEL_E, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
-}
+} while (0)
 #endif
 
 // --- perror ---
 #ifndef _LOG_ADD_FILE_INFO
-#define _UTL_PERROR(fmt, ...) {\
+#define _UTL_PERROR(fmt, ...) do {\
 	CUtils::putsLogLW (stdout, EN_LOG_LEVEL_PE, fmt, ##__VA_ARGS__);\
-}
+} while (0)
 #else
-#define _UTL_PERROR(fmt, ...) {\
+#define _UTL_PERROR(fmt, ...) do {\
 	CUtils::putsLog (stdout, EN_LOG_LEVEL_PE, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__);\
-}
+} while (0)
 #endif
 
 #else // _ANDROID_BUILD
@@ -142,6 +142,13 @@ typedef enum {
 
 #endif
 
+
+extern int backtrace(void **array, int size) __attribute__ ((weak));
+extern char **backtrace_symbols(void *const *array, int size) __attribute__ ((weak));
+#ifdef _ANDROID_BUILD
+extern int bionic_backtrace (void **array, int size);
+extern char **bionic_backtrace_symbols (void *const *array, int size);
+#endif
 
 
 class CUtils

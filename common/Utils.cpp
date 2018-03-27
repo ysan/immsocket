@@ -490,23 +490,20 @@ void CUtils::putsLogLW (
  */
 void CUtils::deleteLF (char *p)
 {
-	if (!p) {
+	if ((!p) || ((int)strlen(p) == 0)) {
 		return;
 	}
 
-	if (strlen(p) == 0) {
-		return;
-	}
+	int len = (int)strlen (p);
 
-	if (*(p + (strlen(p) -1)) == '\n') {
-
-		/* LF削除 */
-		*(p + (strlen(p) -1)) = '\0';
-
-		/* CRLFの場合 CRも削除 */
-		if (*(p + (strlen(p) -1)) == '\r') {
-			*(p + (strlen(p) -1)) = '\0';
+	while (len > 0) {
+		if ((*(p + len -1) == '\n') || (*(p + len -1) == '\r')) {
+			*(p + len -1) = '\0';
+		} else {
+			break;
 		}
+
+		-- len;
 	}
 }
 
@@ -514,8 +511,6 @@ void CUtils::deleteLF (char *p)
  * putsBackTrace
  * libc とbionicはコンパイルスイッチで切り替え
  */
-extern int backtrace(void **array, int size) __attribute__ ((weak));
-extern char **backtrace_symbols(void *const *array, int size) __attribute__ ((weak));
 void CUtils::putsBackTrace (void)
 {
 	int i;
