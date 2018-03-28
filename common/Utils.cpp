@@ -5,10 +5,6 @@
 #include <errno.h>
 #include <dlfcn.h>
 
-#ifndef _ANDROID_BUILD
-#include <execinfo.h>
-#endif
-
 #include "Utils.h"
 
 

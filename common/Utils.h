@@ -19,6 +19,10 @@
 #include <sys/syscall.h>
 #include <sys/prctl.h>
 
+#ifndef _ANDROID_BUILD
+#include <execinfo.h>
+#endif
+
 #ifdef _ANDROID_BUILD
 #include <android/log.h>
 #endif
