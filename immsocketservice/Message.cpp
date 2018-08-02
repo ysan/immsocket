@@ -9,6 +9,7 @@
 #include "Utils.h"
 #include "PacketHandler.h"
 #include "Message.h"
+#include "SyncRequestManager.h"
 
 
 namespace ImmSocketService {
@@ -306,11 +307,11 @@ int CMessage::sendRequestSync (uint32_t nTimeoutMsec)
 
 	// add 
 	CMessageId::CId id = generateId(); // need new id
-	pPacketHandler->addSyncRequestTable (this);
+	pPacketHandler->getSyncRequestManager()->addSyncRequestTable (this);
 
 	if (!sendRequest (&id, true)) {
 		// remove
-		pPacketHandler->removeSyncRequestTable (this);
+		pPacketHandler->getSyncRequestManager()->removeSyncRequestTable (this);
 		// unlock
 		sync()->condUnlock();
 		// send error
@@ -328,7 +329,7 @@ int CMessage::sendRequestSync (uint32_t nTimeoutMsec)
 
 
 	// remove
-	pPacketHandler->removeSyncRequestTable (this);
+	pPacketHandler->getSyncRequestManager()->removeSyncRequestTable (this);
 
 	return nRtn;
 }

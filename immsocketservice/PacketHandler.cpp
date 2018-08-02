@@ -9,137 +9,20 @@
 #include "Utils.h"
 #include "PacketHandler.h"
 #include "Message.h"
+#include "SyncRequestManager.h"
 
 
 namespace ImmSocketService {
 
 CPacketHandler::CPacketHandler (void)
-	:mAsyncProcProxy (this)
+	:mProxy (2)
 {
-	pthread_mutex_init (&mMutexGenId, NULL);
-
-	pthread_mutexattr_t attrMutexWorker;
-	pthread_mutexattr_init (&attrMutexWorker);
-	pthread_mutexattr_settype (&attrMutexWorker, PTHREAD_MUTEX_RECURSIVE_NP);
-	pthread_mutex_init (&mMutexSyncRequestTable, &attrMutexWorker);	
 }
 
 CPacketHandler::~CPacketHandler (void)
 {
-	pthread_mutex_destroy (&mMutexGenId);
-	pthread_mutex_destroy (&mMutexSyncRequestTable);
 }
 
-void CPacketHandler::addSyncRequestTable (CMessage *pMsg)
-{
-	CUtils::CScopedMutex scopedMutex (&mMutexSyncRequestTable);
-
-
-	if (!pMsg) {
-		_ISS_LOG_E ("%s pMsg is null\n", __func__);
-		return;
-	}
-
-	SYNC_REQUEST_TABLE::iterator iter = mSyncRequestTable.begin();
-	while (iter != mSyncRequestTable.end()) {
-		if (*((*iter)->getId()) == *(pMsg->getId())) {
-			break;
-		}
-
-		++ iter;
-	}
-
-	if (iter == mSyncRequestTable.end()) {
-		mSyncRequestTable.push_back (pMsg);
-
-	} else {
-		// already use // bug
-		_ISS_LOG_E ("BUG: CMessageId::CId is already use.\n");
-	}
-}
-
-void CPacketHandler::removeSyncRequestTable (CMessage *pMsg)
-{
-	CUtils::CScopedMutex scopedMutex (&mMutexSyncRequestTable);
-
-
-	if (!pMsg) {
-		_ISS_LOG_E ("%s pMsg is null\n", __func__);
-		return;
-	}
-
-	SYNC_REQUEST_TABLE::iterator iter = mSyncRequestTable.begin();
-	while (iter != mSyncRequestTable.end()) {
-		if (*((*iter)->getId()) == *(pMsg->getId())) {
-			break;
-		}
-
-		++ iter;
-	}
-
-	if (iter != mSyncRequestTable.end()) {
-		mSyncRequestTable.erase (iter);
-	}
-}
-
-CMessage *CPacketHandler::findSyncRequestMessage (const CMessageId::CId *pId)
-{
-	CUtils::CScopedMutex scopedMutex (&mMutexSyncRequestTable);
-
-	if (!pId) {
-		_ISS_LOG_E ("%s pId is null\n", __func__);
-		return NULL;
-	}
-
-	CMessage *pRtn = NULL;
-
-	SYNC_REQUEST_TABLE::iterator iter = mSyncRequestTable.begin();
-	while (iter != mSyncRequestTable.end()) {
-		if (*((*iter)->getId()) == *pId) {
-			break;
-		}
-
-		++ iter;
-	}
-
-	if (iter != mSyncRequestTable.end()) {
-		pRtn = *iter;
-	}
-
-	return pRtn;
-}
-
-void CPacketHandler::checkSyncRequestMessage (CMessage *pReplyMsg)
-{
-	CUtils::CScopedMutex scopedMutex (&mMutexSyncRequestTable);
-
-	if (!pReplyMsg) {
-		_ISS_LOG_E ("%s pReplyMsg is null\n", __func__);
-		return;
-	}
-
-	CMessageId::CId *pId = pReplyMsg->getId();
-	CMessage *pWaitMsg = findSyncRequestMessage (pId);
-	if (!pWaitMsg) {
-		_ISS_LOG_E ("%s meybe timeout droped.\n", __func__);
-		return ;
-	}
-
-	bool isOK = pReplyMsg->isReplyResultOK();
-	pWaitMsg->setReplyResult (isOK);
-
-	int replyDataSize = pReplyMsg->getDataSize();
-	uint8_t* pReplyData = pReplyMsg->getData();
-	if ((replyDataSize > 0) && (pReplyData)) {
-		pWaitMsg->setData(pReplyData, replyDataSize);
-	}
-
-	pWaitMsg->sync()->condLock();
-	pWaitMsg->sync()->condSignal();
-	pWaitMsg->sync()->condUnlock();
-
-	return;
-}
 
 void CPacketHandler::onHandleRequest (CMessage *pMsg)
 {
@@ -162,15 +45,12 @@ void CPacketHandler::onSetup (CImmSocketClient *pSelf)
 		mpClientInstance = pSelf;
 	}
 
-	mAsyncProcProxy.start();
-
+	mProxy.start ();
 }
 
 void CPacketHandler::onTeardown (CImmSocketClient *pSelf)
 {
-
-	mAsyncProcProxy.syncStop();
-
+	mProxy.stop ();
 }
 
 void CPacketHandler::onReceivePacket (CImmSocketClient *pSelf, uint8_t *pPacket, int size)
@@ -243,14 +123,14 @@ void CPacketHandler::onReceivePacket (CImmSocketClient *pSelf, uint8_t *pPacket,
 
 
 //	handleMsg (&msg, type); // ProxyThreadでたたくようにしました
-	ST_REQ_QUEUE stReq (&msg, type);
-	mAsyncProcProxy.request (&stReq);
-
+	ST_PACKET_HANDLED *p = new ST_PACKET_HANDLED (&msg, type);
+	CAsyncHandlerImpl<ST_PACKET_HANDLED*> *pImpl = new CAsyncHandlerImpl<ST_PACKET_HANDLED*> (this);
+	pImpl->deletable();
+	mProxy.request (p, pImpl);
 }
 
 // ここはProxyThreadでたたかれます
-// PROXY_THREAD_POOL_NUM が2以上の時は
-// CPacketHandler::handleMsgはスレッドセーフな処理にする必要があります
+// handleMsg以下はスレッドセーフな処理にする必要があります
 // リエントラントなコード必須
 void CPacketHandler::handleMsg (CMessage *pMsg, int msgType)
 {
@@ -271,7 +151,7 @@ void CPacketHandler::handleMsg (CMessage *pMsg, int msgType)
 		pMsg->setObjtype (EN_OBJTYPE_NOTHING);
 
 		if (pMsg->isSync()) {
-			checkSyncRequestMessage (pMsg);
+			mSyncRequestManager.checkSyncRequestMessage (pMsg);
 		} else  {
 			onHandleReply (pMsg);
 		}
@@ -286,13 +166,6 @@ void CPacketHandler::handleMsg (CMessage *pMsg, int msgType)
 		_ISS_LOG_E ("%s  invalid packet (unknown type)\n", __func__);
 	}
 
-}
-
-void CPacketHandler::onAsyncProc (ST_REQ_QUEUE *pReq)
-{
-	if (pReq) {
-		handleMsg (&(pReq->msg), pReq->msgType);
-	}
 }
 
 } // namespace ImmSocketService

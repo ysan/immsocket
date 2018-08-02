@@ -12,8 +12,10 @@
 #include "ImmSocketServer.h"
 #include "ImmSocketClient.h"
 #include "Message.h"
-#include "AsyncProcProxy.h"
 #include "ImmSocketServiceCommon.h"
+#include "SyncRequestManager.h"
+#include "AsyncProcProxy.h"
+
 
 using namespace std;
 using namespace ImmSocket;
@@ -32,21 +34,61 @@ typedef struct {
 	uint8_t size;
 } ST_PACKET;
 
-typedef vector <CMessage*> SYNC_REQUEST_TABLE;
+
+struct ST_PACKET_HANDLED {
+public:
+	ST_PACKET_HANDLED (CMessage *pMsg, int type) {
+		msg = *pMsg;
+		msgType = type;
+	}
+
+	CMessage msg;
+	int msgType;
+};
 
 
-class CPacketHandler : public CImmSocketClient::IPacketHandler, CAsyncProcProxy::IAsyncHandler
+class CPacketHandler : public CImmSocketClient::IPacketHandler
 {
+public:
+	template <typename T>
+	class CAsyncHandlerImpl : public IAsyncHandler<T>
+	{
+	public:
+		CAsyncHandlerImpl (CPacketHandler *pHandler)
+			:mpPacketHandler (NULL)
+		{
+			if (pHandler) {
+				mpPacketHandler = pHandler;
+			}
+		}
+
+		virtual ~CAsyncHandlerImpl (void) {}
+
+	private:
+		void onAsyncHandled (T arg) {
+			ST_PACKET_HANDLED *p = arg;
+			if (!p) {
+				return ;
+			}
+
+			if (mpPacketHandler) {
+				mpPacketHandler->handleMsg (&(p->msg), p->msgType);
+			}
+
+			delete p;
+		}
+
+
+		CPacketHandler *mpPacketHandler;
+	};
+
 public:
 	CPacketHandler (void);
 	virtual ~CPacketHandler (void);
 
-
-	void addSyncRequestTable (CMessage *pMsg);
-	void removeSyncRequestTable (CMessage *pMsg);
-	CMessage *findSyncRequestMessage (const CMessageId::CId *pId);
-	void checkSyncRequestMessage (CMessage *pMsg);
-
+	CSyncRequestManager *getSyncRequestManager (void) {
+		return &mSyncRequestManager;
+	}
 
 protected:
 	virtual void onHandleRequest (CMessage *pMsg);
@@ -61,18 +103,10 @@ private:
 
 	void handleMsg (CMessage *pMsg, int msgType);
 
-	void onAsyncProc (ST_REQ_QUEUE *pReq);
-
 
 	CImmSocketClient *mpClientInstance;
-
-	pthread_mutex_t mMutexGenId;
-
-	SYNC_REQUEST_TABLE mSyncRequestTable;
-	pthread_mutex_t mMutexSyncRequestTable;
-
-	CAsyncProcProxy mAsyncProcProxy;
-
+	CSyncRequestManager mSyncRequestManager;
+	CAsyncProcProxy<ST_PACKET_HANDLED*> mProxy;
 };
 
 } // namespace ImmSocketService

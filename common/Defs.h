@@ -8,6 +8,10 @@
 #include <errno.h>
 
 
+//TODO
+#define _NO_TYPEDEF_uint64_t
+
+
 #if !defined (_NO_TYPEDEF_uint8_t)
 typedef unsigned char uint8_t;
 #endif

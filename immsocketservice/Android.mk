@@ -25,8 +25,9 @@ LOCAL_SHARED_LIBRARIES := \
 LOCAL_SRC_FILES := \
 	PacketHandler.cpp \
 	Message.cpp \
-	AsyncProcProxy.cpp \
 	ImmSocketServiceCommon.cpp \
+	MessageId.cpp \
+	SyncRequestManager.cpp \
 
 
 include $(BUILD_SHARED_LIBRARY)

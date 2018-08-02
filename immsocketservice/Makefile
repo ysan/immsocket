@@ -41,9 +41,9 @@ SRCS		:=
 SRCS_CPP	:= \
 	PacketHandler.cpp \
 	Message.cpp \
-	AsyncProcProxy.cpp \
 	ImmSocketServiceCommon.cpp \
 	MessageId.cpp \
+	SyncRequestManager.cpp \
 
 #
 #   Configurations

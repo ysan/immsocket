@@ -15,7 +15,6 @@
 
 #include "ImmSocketServer.h"
 #include "ImmSocketClient.h"
-#include "PacketHandler.h"
 #include "ImmSocketServiceCommon.h"
 #include "MessageId.h"
 
@@ -52,7 +51,7 @@ public:
 	{
 	public:
 		friend class CMessage;
-		friend class CPacketHandler;
+		friend class CSyncRequestManager;
 
 		CSync (void);
 		virtual ~CSync (void);
@@ -89,6 +88,7 @@ public:
 
 public:
 	friend class CPacketHandler;
+	friend class CSyncRequestManager;
 
 	CMessage (void);
 	CMessage (CImmSocketClient *pClient);

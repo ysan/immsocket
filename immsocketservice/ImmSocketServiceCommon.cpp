@@ -18,6 +18,7 @@
 namespace ImmSocketService {
 
 static EN_LOG_LEVEL s_Loglevel = EN_LOG_LEVEL_W;
+//static EN_LOG_LEVEL s_Loglevel = EN_LOG_LEVEL_I;
 
 void setLogLevel (EN_LOG_LEVEL enLvl)
 {
