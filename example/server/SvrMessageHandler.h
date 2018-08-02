@@ -9,11 +9,9 @@
 #include <errno.h>
 #include <pthread.h>
 
-#include "Message.h"
-#include "PacketHandler.h"
+#include "ImmSocketService.h"
 
 using namespace std;
-using namespace ImmSocket;
 using namespace ImmSocketService;
 
 

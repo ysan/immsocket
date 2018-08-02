@@ -7,18 +7,18 @@ CFLAGS		:=
 
 INCLUDES	:= \
 	-I./ \
-	-I$(BASEDIR)/common \
+	-I$(BASEDIR)/immsocketcommon \
 	-I$(BASEDIR)/immsocket \
 	-I$(BASEDIR)/immsocketservice \
 
 LIBS		:= \
 	-L$(BASEDIR)/immsocketservice -limmsocketservice \
 	-L$(BASEDIR)/immsocket -limmsocket \
-	-L$(BASEDIR)/common -lcommon \
+	-L$(BASEDIR)/immsocketcommon -limmsocketcommon \
 	-lpthread \
 
 LDFLAGS		:= \
-	-Wl,-rpath=`pwd`/$(BASEDIR)/common \
+	-Wl,-rpath=`pwd`/$(BASEDIR)/immsocketcommon \
 	-Wl,-rpath=`pwd`/$(BASEDIR)/immsocket \
 	-Wl,-rpath=`pwd`/$(BASEDIR)/immsocketservice \
 

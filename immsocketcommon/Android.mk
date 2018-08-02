@@ -2,7 +2,7 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE := libcommon
+LOCAL_MODULE := libimmsocketcommon
 
 LOCAL_LDLIBS := -llog -rdynamic -lunwind -ldl
 

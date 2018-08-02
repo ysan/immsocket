@@ -12,7 +12,7 @@ LDFLAGS		:=
 APPEND_OBJS	:=
 
 SUBDIRS		:= \
-	common \
+	immsocketcommon \
 	immsocket \
 	immsocketservice \
 	example \

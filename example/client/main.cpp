@@ -5,15 +5,12 @@
 #include <unistd.h>
 #include <signal.h>
 
-#include "ImmSocketClient.h"
-#include "Utils.h"
-#include "PacketHandler.h"
-#include "Message.h"
+#include "ImmSocketService.h"
+
 #include "ClMessageHandler.h"
 
  
 using namespace std;
-using namespace ImmSocket;
 using namespace ImmSocketService;
 
 
@@ -28,7 +25,6 @@ int main (void)
 	sigprocmask (SIG_BLOCK, &sigset, NULL);
 
 
-//	CPacketHandler *pHandler = new CPacketHandler();
 	CClMessageHandler *pHandler = new CClMessageHandler();
 
 #ifndef _DEBUG_TCP

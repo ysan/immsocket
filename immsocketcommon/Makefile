@@ -21,7 +21,7 @@ SUBDIRS		:=
 #
 #   Target object
 #
-TARGET_NAME	:=	common
+TARGET_NAME	:=	immsocketcommon
 
 #
 #   Target type

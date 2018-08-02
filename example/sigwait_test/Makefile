@@ -5,13 +5,13 @@ BASEDIR		:=	../../
 
 INCLUDES    := \
 	-I./ \
-	-I$(BASEDIR)/common \
+	-I$(BASEDIR)/immsocketcommon \
 
 LIBS		:= \
 	-lpthread \
-	-L$(BASEDIR)/common -lcommon \
+	-L$(BASEDIR)/immsocketcommon -limmsocketcommon \
 
-LDFLAGS		:= -Wl,-rpath=`pwd`/$(BASEDIR)/common
+LDFLAGS		:= -Wl,-rpath=`pwd`/$(BASEDIR)/immsocketcommon
 
 APPEND_OBJS	:=
 

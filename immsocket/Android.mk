@@ -6,18 +6,18 @@ LOCAL_MODULE := libimmsocket
 
 LOCAL_LDLIBS := \
 	-llog \
-	-lcommon \
+	-limmsocketcommon \
 
 LOCAL_PRELINK_MODULE := false
 
 LOCAL_CFLAGS := -D_ANDROID_BUILD
 
 LOCAL_C_INCLUDES := \
-	$(LOCAL_PATH)/../common \
+	$(LOCAL_PATH)/../immsocketcommon \
 
 
 LOCAL_SHARED_LIBRARIES := \
-	libcommon
+	libimmsocketcommon
 
 LOCAL_SRC_FILES := \
 	ImmSocketServer.cpp \

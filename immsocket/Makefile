@@ -7,14 +7,14 @@ CFLAGS		:=
 
 INCLUDES    := \
 	-I./ \
-	-I$(BASEDIR)/common \
+	-I$(BASEDIR)/immsocketcommon \
 
 LIBS		:= \
-	-L$(BASEDIR)/common -lcommon \
+	-L$(BASEDIR)/immsocketcommon -limmsocketcommon \
 	-lpthread \
 
 LDFLAGS		:= \
-	-Wl,-rpath=`pwd`/$(BASEDIR)/common
+	-Wl,-rpath=`pwd`/$(BASEDIR)/immsocketcommon
 
 APPEND_OBJS	:=
 

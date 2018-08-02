@@ -9,13 +9,9 @@
 #include <errno.h>
 #include <pthread.h>
 
-#include "ImmSocketServer.h"
-#include "ImmSocketClient.h"
-#include "PacketHandler.h"
+#include "ImmSocketService.h"
 
 using namespace std;
-using namespace ImmSocket;
-using namespace ImmSocketService;
 
 
 class CSvrClientHandler : public CImmSocketServer::IClientHandler

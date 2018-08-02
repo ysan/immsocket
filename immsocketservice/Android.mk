@@ -7,25 +7,25 @@ LOCAL_MODULE := libimmsocketservice
 LOCAL_LDLIBS := \
 	-llog \
 	-limmsocket \
-	-lcommon \	
+	-limmsocketcommon \	
 
 LOCAL_PRELINK_MODULE := false
 
 LOCAL_CFLAGS := -D_ANDROID_BUILD
 
 LOCAL_C_INCLUDES := \
-	$(LOCAL_PATH)/../common \
+	$(LOCAL_PATH)/../immsocketcommon \
 	$(LOCAL_PATH)/../immsocket \
 
 
 LOCAL_SHARED_LIBRARIES := \
-	libcommon \
+	libimmsocketcommon \
 	libimmsocket \
 
 LOCAL_SRC_FILES := \
 	PacketHandler.cpp \
 	Message.cpp \
-	ImmSocketServiceCommon.cpp \
+	Common.cpp \
 	MessageId.cpp \
 	SyncRequestManager.cpp \
 

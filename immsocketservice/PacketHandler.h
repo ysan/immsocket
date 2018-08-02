@@ -12,7 +12,7 @@
 #include "ImmSocketServer.h"
 #include "ImmSocketClient.h"
 #include "Message.h"
-#include "ImmSocketServiceCommon.h"
+#include "Common.h"
 #include "SyncRequestManager.h"
 #include "AsyncProcProxy.h"
 

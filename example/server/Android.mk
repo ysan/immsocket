@@ -8,7 +8,7 @@ LOCAL_LDLIBS := \
 	-llog \
 	-limmsocketservice \
 	-limmsocket \
-	-lcommon \
+	-limmsocketcommon \
 
 LOCAL_PRELINK_MODULE := false
 
@@ -17,13 +17,13 @@ LOCAL_CFLAGS := \
 	-D_DEBUG_TCP \
 
 LOCAL_C_INCLUDES := \
-	$(LOCAL_PATH)/../../common \
+	$(LOCAL_PATH)/../../immsocketcommon \
 	$(LOCAL_PATH)/../../immsocket \
 	$(LOCAL_PATH)/../../immsocketservice \
 
 
 LOCAL_SHARED_LIBRARIES := \
-	libcommon \
+	libimmsocketcommon \
 	libimmsocket \
 	libimmsocketservice \
 

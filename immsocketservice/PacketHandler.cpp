@@ -50,7 +50,7 @@ void CPacketHandler::onSetup (CImmSocketClient *pSelf)
 
 void CPacketHandler::onTeardown (CImmSocketClient *pSelf)
 {
-	mProxy.stop ();
+	mProxy.syncStop ();
 }
 
 void CPacketHandler::onReceivePacket (CImmSocketClient *pSelf, uint8_t *pPacket, int size)

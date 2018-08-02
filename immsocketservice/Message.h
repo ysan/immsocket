@@ -15,7 +15,7 @@
 
 #include "ImmSocketServer.h"
 #include "ImmSocketClient.h"
-#include "ImmSocketServiceCommon.h"
+#include "Common.h"
 #include "MessageId.h"
 
 using namespace std;

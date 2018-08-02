@@ -7,16 +7,16 @@ CFLAGS		:=
 
 INCLUDES	:= \
 	-I./ \
-	-I$(BASEDIR)/common \
+	-I$(BASEDIR)/immsocketcommon \
 	-I$(BASEDIR)/immsocket \
 
 LIBS		:= \
 	-L$(BASEDIR)/immsocket -limmsocket \
-	-L$(BASEDIR)/common -lcommon \
+	-L$(BASEDIR)/immsocketcommon -limmsocketcommon \
 	-lpthread \
 
 LDFLAGS		:= \
-	-Wl,-rpath=`pwd`/$(BASEDIR)/common \
+	-Wl,-rpath=`pwd`/$(BASEDIR)/immsocketcommon \
 	-Wl,-rpath=`pwd`/$(BASEDIR)/immsocket \
 
 APPEND_OBJS	:=
@@ -41,7 +41,7 @@ SRCS		:=
 SRCS_CPP	:= \
 	PacketHandler.cpp \
 	Message.cpp \
-	ImmSocketServiceCommon.cpp \
+	Common.cpp \
 	MessageId.cpp \
 	SyncRequestManager.cpp \
 
