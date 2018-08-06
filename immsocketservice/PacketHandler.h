@@ -84,7 +84,7 @@ public:
 	};
 
 public:
-	CPacketHandler (void);
+	explicit CPacketHandler (int threadPoolNum=1);
 	virtual ~CPacketHandler (void);
 
 	CSyncRequestManager *getSyncRequestManager (void) {

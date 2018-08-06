@@ -9,7 +9,8 @@
 #include "ClMessageHandler.h"
 
 
-CClMessageHandler::CClMessageHandler (void)
+CClMessageHandler::CClMessageHandler (int threadPoolNum)
+	:CPacketHandler (threadPoolNum)
 {
 }
 

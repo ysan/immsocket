@@ -25,7 +25,7 @@ int main (void)
 	sigprocmask (SIG_BLOCK, &sigset, NULL);
 
 
-	CClMessageHandler *pHandler = new CClMessageHandler();
+	CClMessageHandler *pHandler = new CClMessageHandler(2); // packet handle thread pool num = 2
 
 #ifndef _DEBUG_TCP
 	CImmSocketClient client ((const char*)"/tmp/imm_socket_sample", pHandler);

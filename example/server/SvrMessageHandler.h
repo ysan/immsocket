@@ -18,7 +18,7 @@ using namespace ImmSocketService;
 class CSvrMessageHandler : public CPacketHandler
 {
 public:
-	CSvrMessageHandler (void);
+	explicit CSvrMessageHandler (int threadPoolNum);
 	virtual ~CSvrMessageHandler (void);
 
 private:

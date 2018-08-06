@@ -18,7 +18,7 @@ using namespace ImmSocketService;
 class CClMessageHandler : public CPacketHandler
 {
 public:
-	CClMessageHandler (void);
+	explicit CClMessageHandler (int threadPoolNum);
 	virtual ~CClMessageHandler (void);
 
 private:

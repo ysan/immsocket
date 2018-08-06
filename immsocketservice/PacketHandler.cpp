@@ -14,9 +14,9 @@
 
 namespace ImmSocketService {
 
-CPacketHandler::CPacketHandler (void)
+CPacketHandler::CPacketHandler (int threadPoolNum)
 	:mpClientInstance (NULL)
-	,mProxy (2)
+	,mProxy (threadPoolNum)
 {
 }
 

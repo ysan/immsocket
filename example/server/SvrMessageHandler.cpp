@@ -7,7 +7,8 @@
 #include "SvrMessageHandler.h"
 
 
-CSvrMessageHandler::CSvrMessageHandler (void)
+CSvrMessageHandler::CSvrMessageHandler (int threadPoolNum)
+	:CPacketHandler (threadPoolNum)
 {
 }
 

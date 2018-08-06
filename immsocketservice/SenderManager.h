@@ -87,7 +87,7 @@ private:
 
 
 	CAsyncProcProxy<_sender_handle_info*> mProxy;
-	CAsyncHandlerImpl<_sender_handle_info*> mAsyncHandler;
+	CAsyncHandlerImpl<_sender_handle_info*> mAsyncHandler; // single thread handler
 };
 
 } // namespace ImmSocketService
