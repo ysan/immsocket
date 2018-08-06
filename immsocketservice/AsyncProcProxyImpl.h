@@ -81,6 +81,7 @@ void CProxyThread<T>::setAsyncProcProxy (CAsyncProcProxy<T> *pAsyncProcProxy)
 }
 
 template <typename T>
+// override
 void CProxyThread<T>::onThreadMainRoutine (void)
 {
 	char szName [64] = {0};

@@ -118,6 +118,7 @@ public:
 	void setAsyncProcProxy (CAsyncProcProxy<T> *pAsyncProcProxy);
 
 private:
+	// override
 	void onThreadMainRoutine (void);
 
 

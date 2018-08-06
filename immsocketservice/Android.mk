@@ -28,6 +28,7 @@ LOCAL_SRC_FILES := \
 	Common.cpp \
 	MessageId.cpp \
 	SyncRequestManager.cpp \
+	SenderManager.cpp \
 
 
 include $(BUILD_SHARED_LIBRARY)

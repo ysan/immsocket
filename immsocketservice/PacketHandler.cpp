@@ -15,7 +15,8 @@
 namespace ImmSocketService {
 
 CPacketHandler::CPacketHandler (void)
-	:mProxy (2)
+	:mpClientInstance (NULL)
+	,mProxy (2)
 {
 }
 
@@ -39,6 +40,7 @@ void CPacketHandler::onHandleNotify (CMessage *pMsg)
 	_ISS_LOG_I ("%s %s\n", __FILE__, __func__);
 }
 
+// override
 void CPacketHandler::onSetup (CImmSocketClient *pSelf)
 {
 	if (pSelf) {
@@ -48,11 +50,13 @@ void CPacketHandler::onSetup (CImmSocketClient *pSelf)
 	mProxy.start ();
 }
 
+// override
 void CPacketHandler::onTeardown (CImmSocketClient *pSelf)
 {
 	mProxy.syncStop ();
 }
 
+// override
 void CPacketHandler::onReceivePacket (CImmSocketClient *pSelf, uint8_t *pPacket, int size)
 {
 	if ((!pPacket) || (size < (int)sizeof(ST_PACKET))) {
@@ -123,8 +127,8 @@ void CPacketHandler::onReceivePacket (CImmSocketClient *pSelf, uint8_t *pPacket,
 
 
 //	handleMsg (&msg, type); // ProxyThreadでたたくようにしました
-	ST_PACKET_HANDLED *p = new ST_PACKET_HANDLED (&msg, type);
-	CAsyncHandlerImpl<ST_PACKET_HANDLED*> *pImpl = new CAsyncHandlerImpl<ST_PACKET_HANDLED*> (this);
+	_packet_handle_info *p = new _packet_handle_info (&msg, type);
+	CAsyncHandlerImpl<_packet_handle_info*> *pImpl = new CAsyncHandlerImpl<_packet_handle_info*> (this);
 	pImpl->deletable();
 	mProxy.request (p, pImpl);
 }

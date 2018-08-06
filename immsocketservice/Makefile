@@ -44,6 +44,7 @@ SRCS_CPP	:= \
 	Common.cpp \
 	MessageId.cpp \
 	SyncRequestManager.cpp \
+	SenderManager.cpp \
 
 #
 #   Configurations

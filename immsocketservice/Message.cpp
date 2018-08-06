@@ -10,6 +10,7 @@
 #include "PacketHandler.h"
 #include "Message.h"
 #include "SyncRequestManager.h"
+#include "SenderManager.h"
 
 
 namespace ImmSocketService {
@@ -444,7 +445,13 @@ bool CMessage::sendRequest (CMessageId::CId *pId, bool isSync)
 	}
 
 
-	return mpClientInstance->sendToConnection (buff, totalsize);
+	_sender_handle_info *pinfo = new _sender_handle_info (buff, totalsize);
+	CSenderManager::getInstance()->getAsyncHandler()->setClient(mpClientInstance);
+	CSenderManager::getInstance()->getProxy()->request (pinfo);
+
+// ProxyThreadでたたくようにしました
+//	return mpClientInstance->sendToConnection (buff, totalsize);
+	return true;
 }
 
 bool CMessage::sendReplyOK (void)
@@ -514,10 +521,18 @@ bool CMessage::sendReply (void)
 		return false;
 	}
 
+
 //TODO replyは一度限り
 	mObjtype = EN_OBJTYPE_NOTHING;
 
-	return mpClientInstance->sendToConnection (buff, totalsize);
+
+	_sender_handle_info *pinfo = new _sender_handle_info (buff, totalsize);
+	CSenderManager::getInstance()->getAsyncHandler()->setClient(mpClientInstance);
+	CSenderManager::getInstance()->getProxy()->request (pinfo);
+
+// ProxyThreadでたたくようにしました
+//	return mpClientInstance->sendToConnection (buff, totalsize);
+	return true;
 }
 
 bool CMessage::sendNotify (uint8_t command)
@@ -564,7 +579,13 @@ bool CMessage::sendNotify (void)
 	}
 
 
-	return mpClientInstance->sendToConnection (buff, totalsize);
+	_sender_handle_info *pinfo = new _sender_handle_info (buff, totalsize);
+	CSenderManager::getInstance()->getAsyncHandler()->setClient(mpClientInstance);
+	CSenderManager::getInstance()->getProxy()->request (pinfo);
+
+// ProxyThreadでたたくようにしました
+//	return mpClientInstance->sendToConnection (buff, totalsize);
+	return true;
 }
 
 bool CMessage::setPacket (CMessageId::CId *pId, uint8_t type, uint8_t command, uint8_t *pOut, int outsize)
