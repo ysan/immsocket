@@ -7,7 +7,7 @@ CFLAGS		:=
 
 INCLUDES    := -I./
 
-LIBS		:= -lpthread -rdynamic
+LIBS		:= -lpthread
 
 LDFLAGS		:=
 

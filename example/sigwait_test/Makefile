@@ -11,7 +11,8 @@ LIBS		:= \
 	-lpthread \
 	-L$(BASEDIR)/immsocketcommon -limmsocketcommon \
 
-LDFLAGS		:= -Wl,-rpath=`pwd`/$(BASEDIR)/immsocketcommon
+LDFLAGS		:= \
+#	 -Wl,-rpath=`pwd`/$(BASEDIR)/immsocketcommon
 
 APPEND_OBJS	:=
 
