@@ -48,12 +48,12 @@ public:
 public:
 //	CImmSocketClient (void);
 	// for client single
-	CImmSocketClient (const char *pszPath);                                                              // local
+	explicit CImmSocketClient (const char *pszPath);                                                     // local
 	CImmSocketClient (const char *pszPath, CImmSocketClient::IPacketHandler *pHandler);                  // local
 	CImmSocketClient (const char *pszIpAddr, uint16_t port);                                             // tcp
 	CImmSocketClient (const char *pszIpAddr, uint16_t port, CImmSocketClient::IPacketHandler *pHandler); // tcp
 	// for sever side
-	CImmSocketClient (int fdClientSocket);
+	explicit CImmSocketClient (int fdClientSocket);
 	CImmSocketClient (int fdClientSocket, CImmSocketClient::IPacketHandler *pHandler);
 
 	virtual ~CImmSocketClient (void);
@@ -79,7 +79,12 @@ public:
 	void setTcpSocket (void);
 
 private:
+	void init ();
+	void finaliz ();
+
+	// override
 	void onThreadMainRoutine (void);
+
 	void receiveLoop (int fdClientSocket);
 	int receiveOnce (int fdClientSocket, uint32_t nTimeoutMsec=0);
 	void clearReceiveDependVals (void);

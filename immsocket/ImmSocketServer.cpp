@@ -28,11 +28,7 @@ CImmSocketServer::CImmSocketServer (void) :
 	mIsStop (false),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
-	pthread_mutex_init (&mMutex, NULL);
-	pthread_mutexattr_t attr;
-	pthread_mutexattr_init (&attr);
-	pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE_NP);
-	pthread_mutex_init (&mMutexClientTable, &attr);
+	init ();
 
 	memset (mSocketEndpointPath, 0x00, sizeof(mSocketEndpointPath));
 	strncpy (mSocketEndpointPath, DEFAULT_IMMSOCKET_ENDPOINT_PATH, sizeof(mSocketEndpointPath)-1);
@@ -49,11 +45,7 @@ CImmSocketServer::CImmSocketServer (const char *pPath) :
 	mIsStop (false),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
-	pthread_mutex_init (&mMutex, NULL);
-	pthread_mutexattr_t attr;
-	pthread_mutexattr_init (&attr);
-	pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE_NP);
-	pthread_mutex_init (&mMutexClientTable, &attr);
+	init ();
 
 	memset (mSocketEndpointPath, 0x00, sizeof(mSocketEndpointPath));
 	if ((pPath) && (strlen(pPath) > 0)) {
@@ -71,11 +63,7 @@ CImmSocketServer::CImmSocketServer (const char *pPath, CImmSocketServer::IClient
 	mIsStop (false),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
-	pthread_mutex_init (&mMutex, NULL);
-	pthread_mutexattr_t attr;
-	pthread_mutexattr_init (&attr);
-	pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE_NP);
-	pthread_mutex_init (&mMutexClientTable, &attr);
+	init ();
 
 	if (pHandler) {
 		mpClientHandler = pHandler;
@@ -97,11 +85,7 @@ CImmSocketServer::CImmSocketServer (const char *pPath, CImmSocketClient::IPacket
 	mIsStop (false),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
-	pthread_mutex_init (&mMutex, NULL);
-	pthread_mutexattr_t attr;
-	pthread_mutexattr_init (&attr);
-	pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE_NP);
-	pthread_mutex_init (&mMutexClientTable, &attr);
+	init ();
 
 	if (pHandler) {
 		mpPacketHandler = pHandler;
@@ -123,11 +107,7 @@ CImmSocketServer::CImmSocketServer (uint16_t port) :
 	mIsStop (false),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
-	pthread_mutex_init (&mMutex, NULL);
-	pthread_mutexattr_t attr;
-	pthread_mutexattr_init (&attr);
-	pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE_NP);
-	pthread_mutex_init (&mMutexClientTable, &attr);
+	init ();
 
 	memset (mSocketEndpointPath, 0x00, sizeof(mSocketEndpointPath));
 	strncpy (mSocketEndpointPath, DEFAULT_IMMSOCKET_ENDPOINT_PATH, sizeof(mSocketEndpointPath)-1);
@@ -145,11 +125,7 @@ CImmSocketServer::CImmSocketServer (uint16_t port, CImmSocketServer::IClientHand
 	mIsStop (false),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
-	pthread_mutex_init (&mMutex, NULL);
-	pthread_mutexattr_t attr;
-	pthread_mutexattr_init (&attr);
-	pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE_NP);
-	pthread_mutex_init (&mMutexClientTable, &attr);
+	init ();
 
 	if (pHandler) {
 		mpClientHandler = pHandler;
@@ -171,11 +147,7 @@ CImmSocketServer::CImmSocketServer (uint16_t port, CImmSocketClient::IPacketHand
 	mIsStop (false),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
-	pthread_mutex_init (&mMutex, NULL);
-	pthread_mutexattr_t attr;
-	pthread_mutexattr_init (&attr);
-	pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE_NP);
-	pthread_mutex_init (&mMutexClientTable, &attr);
+	init ();
 
 	if (pHandler) {
 		mpPacketHandler = pHandler;
@@ -191,10 +163,24 @@ CImmSocketServer::CImmSocketServer (uint16_t port, CImmSocketClient::IPacketHand
 
 CImmSocketServer::~CImmSocketServer (void)
 {
+	finaliz ();
+}
+
+
+void CImmSocketServer::init (void)
+{
+	pthread_mutex_init (&mMutex, NULL);
+	pthread_mutexattr_t attr;
+	pthread_mutexattr_init (&attr);
+	pthread_mutexattr_settype (&attr, PTHREAD_MUTEX_RECURSIVE_NP);
+	pthread_mutex_init (&mMutexClientTable, &attr);
+}
+
+void CImmSocketServer::finaliz (void)
+{
 	pthread_mutex_destroy (&mMutex);
 	pthread_mutex_destroy (&mMutexClientTable);
 }
-
 
 bool CImmSocketServer::start (void)
 {

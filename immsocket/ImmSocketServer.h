@@ -65,12 +65,12 @@ public:
 
 public:
 //	CImmSocketServer (void); // local
-	CImmSocketServer (const char *pPath); // local echo server
-	CImmSocketServer (const char *pPath, CImmSocketServer::IClientHandler *pHandler); // local
-	CImmSocketServer (const char *pPath, CImmSocketClient::IPacketHandler *pHandler); // local
-	CImmSocketServer (uint16_t port); // tcp echo server
-	CImmSocketServer (uint16_t port, CImmSocketServer::IClientHandler *pHandler); // tcp
-	CImmSocketServer (uint16_t port, CImmSocketClient::IPacketHandler *pHandler); // tcp
+	explicit CImmSocketServer (const char *pPath);                                    // local echo server
+	CImmSocketServer (const char *pPath, CImmSocketServer::IClientHandler *pHandler); // local multi
+	CImmSocketServer (const char *pPath, CImmSocketClient::IPacketHandler *pHandler); // local single
+	explicit CImmSocketServer (uint16_t port);                                        // tcp echo server
+	CImmSocketServer (uint16_t port, CImmSocketServer::IClientHandler *pHandler);     // tcp multi
+	CImmSocketServer (uint16_t port, CImmSocketClient::IPacketHandler *pHandler);     // tcp single
 	virtual ~CImmSocketServer (void);
 
 
@@ -90,7 +90,12 @@ public:
 	void setTcpSocket (void);
 
 private:
+	void init (void);
+	void finaliz (void);
+
+	// override
 	void onThreadMainRoutine (void);
+
 	void acceptLoop (int fdServerSocket);
 	void addClientTable (int fd, CImmSocketClient *pInstance, bool isEchoMode=false);
 	bool removeClientTable (int fd);

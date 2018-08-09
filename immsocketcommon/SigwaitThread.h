@@ -47,6 +47,8 @@ private:
 	bool setSignalMask (const int *pSetArray);
 	bool unsetSignalMask (void);
 	void execHandler (int signo);
+
+	// override
 	void onThreadMainRoutine (void);
 
 

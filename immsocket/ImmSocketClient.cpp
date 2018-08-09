@@ -27,9 +27,7 @@ CImmSocketClient::CImmSocketClient (void) :
 	mpPacketHandler (NULL),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
-	memset (mCurrentPacket, 0x00, sizeof (mCurrentPacket));
-	pthread_mutex_init (&mMutex, NULL);
-	pthread_mutex_init (&mMutexSend, NULL);
+	init ();
 
 	memset (mSocketEndpointPath, 0x00, sizeof(mSocketEndpointPath));
 	strncpy (mSocketEndpointPath, DEFAULT_IMMSOCKET_ENDPOINT_PATH, sizeof(mSocketEndpointPath)-1);
@@ -51,9 +49,7 @@ CImmSocketClient::CImmSocketClient (const char *pPath) :
 	mpPacketHandler (NULL),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
-	memset (mCurrentPacket, 0x00, sizeof (mCurrentPacket));
-	pthread_mutex_init (&mMutex, NULL);
-	pthread_mutex_init (&mMutexSend, NULL);
+	init ();
 
 	memset (mSocketEndpointPath, 0x00, sizeof(mSocketEndpointPath));
 	if ((pPath) && (strlen(pPath) > 0)) {
@@ -76,9 +72,7 @@ CImmSocketClient::CImmSocketClient (const char *pPath, CImmSocketClient::IPacket
 	mpPacketHandler (NULL),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
-	memset (mCurrentPacket, 0x00, sizeof (mCurrentPacket));
-	pthread_mutex_init (&mMutex, NULL);
-	pthread_mutex_init (&mMutexSend, NULL);
+	init ();
 
 	if (pHandler) {
 		mpPacketHandler = pHandler;
@@ -105,9 +99,7 @@ CImmSocketClient::CImmSocketClient (const char *pszIpAddr, uint16_t port) :
 	mpPacketHandler (NULL),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
-	memset (mCurrentPacket, 0x00, sizeof (mCurrentPacket));
-	pthread_mutex_init (&mMutex, NULL);
-	pthread_mutex_init (&mMutexSend, NULL);
+	init ();
 
 	memset (mSocketEndpointPath, 0x00, sizeof(mSocketEndpointPath));
 	strncpy (mSocketEndpointPath, DEFAULT_IMMSOCKET_ENDPOINT_PATH, sizeof(mSocketEndpointPath)-1);
@@ -132,9 +124,7 @@ CImmSocketClient::CImmSocketClient (const char *pszIpAddr, uint16_t port, CImmSo
 	mpPacketHandler (NULL),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
-	memset (mCurrentPacket, 0x00, sizeof (mCurrentPacket));
-	pthread_mutex_init (&mMutex, NULL);
-	pthread_mutex_init (&mMutexSend, NULL);
+	init ();
 
 	if (pHandler) {
 		mpPacketHandler = pHandler;
@@ -163,9 +153,7 @@ CImmSocketClient::CImmSocketClient (int fdClientSocket) :
 	mpPacketHandler (NULL),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
-	memset (mCurrentPacket, 0x00, sizeof (mCurrentPacket));
-	pthread_mutex_init (&mMutex, NULL);
-	pthread_mutex_init (&mMutexSend, NULL);
+	init ();
 
 	mFdClientSocket = fdClientSocket;
 
@@ -188,9 +176,7 @@ CImmSocketClient::CImmSocketClient (int fdClientSocket, CImmSocketClient::IPacke
 	mpPacketHandler (NULL),
 	mPort (DEFAULT_TCP_SERVER_PORT)
 {
-	memset (mCurrentPacket, 0x00, sizeof (mCurrentPacket));
-	pthread_mutex_init (&mMutex, NULL);
-	pthread_mutex_init (&mMutexSend, NULL);
+	init ();
 
 	mFdClientSocket = fdClientSocket;
 
@@ -209,10 +195,22 @@ CImmSocketClient::CImmSocketClient (int fdClientSocket, CImmSocketClient::IPacke
 
 CImmSocketClient::~CImmSocketClient (void)
 {
+	finaliz ();
+}
+
+
+void CImmSocketClient::init (void)
+{
+	memset (mCurrentPacket, 0x00, sizeof (mCurrentPacket));
+	pthread_mutex_init (&mMutex, NULL);
+	pthread_mutex_init (&mMutexSend, NULL);
+}
+
+void CImmSocketClient::finaliz (void)
+{
 	pthread_mutex_destroy (&mMutex);
 	pthread_mutex_destroy (&mMutexSend);
 }
-
 
 bool CImmSocketClient::startReceiver (void)
 {
