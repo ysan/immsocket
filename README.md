@@ -24,7 +24,7 @@ Then shared libraries is created.
 	└── immsocketservice
 	    └── libimmsocketservice.so
 
-Example codes
+Example of use (sample codes)
 --------
 
 Please refer to the following code.
