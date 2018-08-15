@@ -63,5 +63,5 @@ Packet format
 
 Platforms
 ------------
-Generic Linux/Windows will be ok. (confirmed worked on Ubuntu, Fedora)
+Generic Linux will be ok. (confirmed worked on Ubuntu, Fedora)
 
