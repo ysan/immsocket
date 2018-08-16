@@ -16,6 +16,7 @@ SUBDIRS		:= \
 	immsocket \
 	immsocketservice \
 	test \
+	sample_codes \
 
 
 #
