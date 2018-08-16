@@ -15,7 +15,7 @@ SUBDIRS		:= \
 	immsocketcommon \
 	immsocket \
 	immsocketservice \
-	example \
+	test \
 
 
 #

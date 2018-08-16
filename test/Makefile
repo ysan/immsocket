@@ -10,8 +10,8 @@ LDFLAGS		:=
 APPEND_OBJS	:=
 
 SUBDIRS		:= \
-	client \
-	server \
+	client_test \
+	server_test \
 	sigwait_test \
 	send_test \
 
