@@ -38,7 +38,7 @@ private:
 			pReplyMsg = NULL;
 			} break;
 		}
-    }
+	}
 
 	// override
 	void onHandleReply (CMessage *pMsg) {

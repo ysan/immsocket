@@ -28,7 +28,7 @@ Then shared libraries is created.
 Example of use (sample codes)
 --------
 
-Server (echo server)
+server code (echo server)
 
 ```c
 #include <stdio.h>
@@ -71,7 +71,7 @@ private:
 			pReplyMsg = NULL;
 			} break;
 		}
-    }
+	}
 
 	// override
 	void onHandleReply (CMessage *pMsg) {
@@ -94,8 +94,7 @@ private:
 	// override
 	CImmSocketClient* onAcceptClient (int fdClientSocket) {
 		_UTL_LOG_N ("%s\n", __PRETTY_FUNCTION__);
-		CSvrMessageHandler *pHandler = new CSvrMessageHandler(5); // packet handle thread pool num =
- 5
+		CSvrMessageHandler *pHandler = new CSvrMessageHandler(5); // packet handle thread pool num = 5
 		CImmSocketClient *pClient = new CImmSocketClient (fdClientSocket, pHandler);
 		pClient->setTcpSocket ();
 		pClient->startReceiver ();
@@ -156,7 +155,7 @@ int main (void)
 }
 ```
 
-Client
+client code
 
 ```c
 #include <stdio.h>
@@ -173,6 +172,8 @@ using namespace std;
 using namespace ImmSocketService;
 
 
+CMessageId::CId g_id;
+
 class CClMessageHandler : public CPacketHandler
 {
 public:
@@ -188,14 +189,15 @@ private:
 	// override
 	void onHandleReply (CMessage *pMsg) {
 		_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
-
 		switch ((int)pMsg->getCommand()) {
-		case 0x01:
-			_UTL_LOG_I ("%s\n", pMsg->isReplyResultOK() ? "reply_ok" : "reply_ng");
-			if (pMsg->getDataSize() > 0) {
+		case 0x01: {
+			CMessageId::CId id = *pMsg->getId();
+			if (id == g_id) { // id match
+				_UTL_LOG_I ("%s (async)\n", pMsg->isReplyResultOK() ? "REPLY_OK" : "REPLY_NG");
 				_UTL_LOG_I ("replyData [%s]\n", (char*)(pMsg->getData()));
 			}
-			break;
+
+			} break;
 		default:
 			// unexpected reply
 			break;
@@ -229,28 +231,24 @@ int main (void)
 	client.startReceiver();
 
 
-	CMessageId::CId id;
 	char *p = (char*)"test";
 
 	// async request
 	CMessage *pMsg = new CMessage (&client);
-	id = pMsg->generateId();
-	pMsg->sendRequestAsync (&id, (uint8_t)0x01, (uint8_t*)p, (int)strlen(p));
+	g_id = pMsg->generateId(); // for async reply id match
+	pMsg->sendRequestAsync (&g_id, (uint8_t)0x01, (uint8_t*)p, (int)strlen(p));
 	delete pMsg;
 	pMsg = NULL;
 
 	// sync request
 	CMessage *pMsgSync = new CMessage (&client);
-	id = pMsgSync->generateId();
 	pMsgSync->sendRequestSync ((uint8_t)0x01, (uint8_t*)p, (int)strlen(p));
 	if (pMsgSync->isReplyResultOK()) {
-		_UTL_LOG_I ("REPLY_OK\n");
+		_UTL_LOG_I ("REPLY_OK (sync)\n");
 	} else {
-		_UTL_LOG_I ("REPLY_NG\n");
+		_UTL_LOG_I ("REPLY_NG (sync)\n");
 	}
-	if (pMsgSync->getDataSize() > 0) {
-		_UTL_LOG_I ("replyData [%s]\n", (char*)(pMsgSync->getData()));
-	}
+	_UTL_LOG_I ("replyData [%s]\n", (char*)(pMsgSync->getData()));
 	delete pMsgSync;
 	pMsgSync = NULL;
 
