@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <dlfcn.h>
+#include <sys/stat.h>
 
 #include "Utils.h"
 
@@ -164,6 +165,58 @@ void CUtils::getTimeOfDay (struct timeval *p)
 	gettimeofday (p, NULL);
 }
 
+// default stdout
+FILE *CUtils::mfpLog = stdout;
+
+void CUtils::initLog (void)
+{
+	char szTime [64];
+	char ne [128];
+	struct tm *pstTmLocal = NULL;
+
+	memset (szTime, 0x00, sizeof (szTime));
+	memset (ne, 0x00, sizeof (ne));
+
+	time_t timer;
+	struct stat s;
+	int r = stat (LOG_PATH"/"LOG_NAME"."LOG_EXT, &s);
+	if (r == 0) {
+		timer = time (NULL);
+		pstTmLocal = localtime (&timer);
+		snprintf (
+			szTime,
+			(int)sizeof(szTime),
+			"%04d-%02d-%02d-%02d%02d%02d",
+			pstTmLocal->tm_year+1900,
+			pstTmLocal->tm_mon+1,
+			pstTmLocal->tm_mday,
+			pstTmLocal->tm_hour,
+			pstTmLocal->tm_min,
+			pstTmLocal->tm_sec
+		);
+		
+		snprintf (
+			ne,
+			(int)sizeof(ne),
+			"%s_%s.log",
+			LOG_PATH"/"LOG_NAME,
+			szTime
+		);
+		rename (LOG_PATH"/"LOG_NAME"."LOG_EXT, ne);
+	}
+	
+	if ((mfpLog = fopen (LOG_PATH"/"LOG_NAME"."LOG_EXT, "a")) == NULL) {
+		perror ("fopen");
+	}
+}
+
+void CUtils::finalizLog (void)
+{
+	if (mfpLog) {
+		fclose (mfpLog);
+	}
+}
+
 /**
  * putsLog
  * ログ出力 本体
@@ -178,6 +231,10 @@ void CUtils::putsLog (
 	va_list va
 )
 {
+	if (!pFp || !pszFile || !pszFunc || !pszFormat) {
+		return ;
+	}
+
 	char szBufVa [LOG_STRING_SIZE];
 	char szTime [SYSTIME_STRING_SIZE];
     char szThreadName [THREAD_NAME_STRING_SIZE];
@@ -340,6 +397,10 @@ void CUtils::putsLogLW (
 	va_list va
 )
 {
+	if (!pFp || !pszFormat) {
+		return ;
+	}
+
 	char szBufVa [LOG_STRING_SIZE];
 	char szTime [SYSTIME_STRING_SIZE];
     char szThreadName [THREAD_NAME_STRING_SIZE];
