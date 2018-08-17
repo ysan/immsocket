@@ -189,18 +189,10 @@ private:
 	// override
 	void onHandleReply (CMessage *pMsg) {
 		_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
-		switch ((int)pMsg->getCommand()) {
-		case 0x01: {
-			CMessageId::CId id = *pMsg->getId();
-			if (id == g_id) { // id match
-				_UTL_LOG_I ("%s (async)\n", pMsg->isReplyResultOK() ? "REPLY_OK" : "REPLY_NG");
-				_UTL_LOG_I ("replyData [%s]\n", (char*)(pMsg->getData()));
-			}
-
-			} break;
-		default:
-			// unexpected reply
-			break;
+		CMessageId::CId id = *pMsg->getId();
+		if (id == g_id) { // id match
+			_UTL_LOG_I ("%s (async)\n", pMsg->isReplyResultOK() ? "REPLY_OK" : "REPLY_NG");
+			_UTL_LOG_I ("replyData [%s]\n", (char*)(pMsg->getData()));
 		}
 	}
 
