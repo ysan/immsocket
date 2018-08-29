@@ -5,5 +5,5 @@ BASE_DIR=${HOME}/prog/immsocket
 
 export LD_LIBRARY_PATH=${BASE_DIR}/immsocket:${BASE_DIR}/immsocketcommon:${BASE_DIR}/immsocketservice
 
-${BASE_DIR}/example/client/client
+${BASE_DIR}/test/client_test/client_test
 

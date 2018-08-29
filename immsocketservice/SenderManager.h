@@ -57,8 +57,7 @@ public:
 		}
 
 	private:
-		// override
-		void onAsyncHandled (T arg) {
+		void onAsyncHandled (T arg) override {
 			_sender_handle_info *p = arg;
 			if (!p) {
 				return ;

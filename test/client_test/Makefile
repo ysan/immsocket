@@ -3,7 +3,7 @@
 #
 BASEDIR		:=	../../
 
-CFLAGS		:=
+CFLAGS		:=	-std=c++11
 
 INCLUDES	:= \
 	-I./ \
@@ -30,7 +30,7 @@ USERDEFS	:= -D_DEBUG_TCP
 #
 #   Target object
 #
-TARGET_NAME	:=	client
+TARGET_NAME	:=	client_test
 
 #
 #   Target type

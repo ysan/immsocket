@@ -13,7 +13,7 @@
 #include "ImmSocketClient.h"
 #include "Message.h"
 #include "PacketHandler.h"
-
+#include "ClientHandler.h"
 
 using namespace std;
 
@@ -21,6 +21,24 @@ using namespace std;
 namespace ImmSocketService {
 
 using namespace ImmSocket;
+
+
+class CServer : public CImmSocketServer {
+public:
+	template <typename T>
+	CServer (uint16_t port, CClientHandler<T> *pHandler) : CImmSocketServer (port, pHandler) {}
+	template <typename T>
+	CServer (const char* pPath, CClientHandler<T> *pHandler) : CImmSocketServer (pPath, pHandler) {}
+	~CServer (void) {}
+};
+
+class CClient : public CImmSocketClient {
+public:
+	CClient (const char *pszIpAddr, uint16_t port, CPacketHandler *pHandler) : CImmSocketClient (pszIpAddr, port, pHandler) {}
+	CClient (const char *pszPath, CPacketHandler *pHandler) : CImmSocketClient (pszPath, pHandler) {}
+	~CClient (void) {}
+};
+
 
 
 } // namespace ImmSocketService

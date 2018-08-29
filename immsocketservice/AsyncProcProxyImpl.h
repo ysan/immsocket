@@ -81,7 +81,6 @@ void CProxyThread<T>::setAsyncProcProxy (CAsyncProcProxy<T> *pAsyncProcProxy)
 }
 
 template <typename T>
-// override
 void CProxyThread<T>::onThreadMainRoutine (void)
 {
 	char szName [64] = {0};
@@ -167,21 +166,21 @@ void CProxyThread<T>::onThreadMainRoutine (void)
 }
 
 template <typename T>
-CAsyncProcProxy<T> ::CAsyncProcProxy (int nThreadPoolNum)
+CAsyncProcProxy<T> ::CAsyncProcProxy (int threadPoolNum)
 	:mThreadPoolNum (1)
 	,mpThreadPool (NULL)
 	,mpAsyncHandler (NULL)
 {
-	init (NULL, nThreadPoolNum);
+	init (NULL, threadPoolNum);
 }
 
 template <typename T>
-CAsyncProcProxy<T> ::CAsyncProcProxy (IAsyncHandler<T> *pHandler, int nThreadPoolNum)
+CAsyncProcProxy<T> ::CAsyncProcProxy (IAsyncHandler<T> *pHandler, int threadPoolNum)
 	:mThreadPoolNum (1)
 	,mpThreadPool (NULL)
 	,mpAsyncHandler (NULL)
 {
-	init (pHandler, nThreadPoolNum);
+	init (pHandler, threadPoolNum);
 }
 
 template <typename T>
@@ -191,12 +190,11 @@ CAsyncProcProxy<T> ::~CAsyncProcProxy (void)
 }
 
 template <typename T>
-void CAsyncProcProxy<T> ::init (IAsyncHandler<T> *pHandler, int nThreadPoolNum)
+void CAsyncProcProxy<T> ::init (IAsyncHandler<T> *pHandler, int threadPoolNum)
 {
-	if (nThreadPoolNum < 1) {
-		nThreadPoolNum = 1;
+	if (threadPoolNum > 1) {
+		mThreadPoolNum = threadPoolNum;
 	}
-	mThreadPoolNum = nThreadPoolNum;
 
 	mpThreadPool = new CProxyThread<T> [mThreadPoolNum];
 

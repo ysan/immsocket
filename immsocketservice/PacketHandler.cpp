@@ -40,7 +40,6 @@ void CPacketHandler::onHandleNotify (CMessage *pMsg)
 	_ISS_LOG_I ("%s %s\n", __FILE__, __func__);
 }
 
-// override
 void CPacketHandler::onSetup (CImmSocketClient *pSelf)
 {
 	if (pSelf) {
@@ -50,13 +49,11 @@ void CPacketHandler::onSetup (CImmSocketClient *pSelf)
 	mProxy.start ();
 }
 
-// override
 void CPacketHandler::onTeardown (CImmSocketClient *pSelf)
 {
 	mProxy.syncStop ();
 }
 
-// override
 void CPacketHandler::onReceivePacket (CImmSocketClient *pSelf, uint8_t *pPacket, int size)
 {
 	if ((!pPacket) || (size < (int)sizeof(ST_PACKET))) {

@@ -11,6 +11,12 @@ using namespace std;
 using namespace ImmSocketService;
 
 
+//
+// You inherit CPacketHandler and implement the following three methods.
+// - onHandleRequest
+// - onHandleReply
+// - onHandleNotify
+// 
 class CSvrMessageHandler : public CPacketHandler
 {
 public:
@@ -18,8 +24,7 @@ public:
 	virtual ~CSvrMessageHandler (void) {}
 
 private:
-	// override
-	void onHandleRequest (CMessage *pMsg) {
+	void onHandleRequest (CMessage *pMsg) override {
 		_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
 		switch ((int)pMsg->getCommand()) {
 		case 0x01: {
@@ -40,56 +45,14 @@ private:
 		}
 	}
 
-	// override
-	void onHandleReply (CMessage *pMsg) {
+	void onHandleReply (CMessage *pMsg) override {
 		_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
 	}
 
-	// override
-	void onHandleNotify (CMessage *pMsg) {
+	void onHandleNotify (CMessage *pMsg) override {
 		_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
 	}
 };
-
-class CSvrClientHandler : public CImmSocketServer::IClientHandler
-{
-public:
-	CSvrClientHandler (void) {}
-	virtual ~CSvrClientHandler (void) {}
-
-private:
-	// override
-	CImmSocketClient* onAcceptClient (int fdClientSocket) {
-		_UTL_LOG_N ("%s\n", __PRETTY_FUNCTION__);
-		CSvrMessageHandler *pHandler = new CSvrMessageHandler(5); // packet handle thread pool num = 5
-		CImmSocketClient *pClient = new CImmSocketClient (fdClientSocket, pHandler);
-		pClient->setTcpSocket ();
-		pClient->startReceiver ();
-		return pClient;
-	}
-
-	// override
-	void onRemoveClient (CImmSocketClient *pClient) {
-		_UTL_LOG_N ("%s\n", __PRETTY_FUNCTION__);
-		if (!pClient) {
-			return ;
-		}
-
-		pClient->syncStopReceiver ();
-
-		CImmSocketClient::IPacketHandler *pHandler = pClient->getPacketHandler();
-		if (pHandler) {
-			_UTL_LOG_N ("client socket:[%d] --> packetHandler delete\n", pClient->getFd());
-			delete pHandler;
-			pHandler = NULL;
-		}
-
-		_UTL_LOG_N ("client socket:[%d] --> instance delete\n", pClient->getFd());
-		delete pClient;
-		pClient = NULL;
-	}
-};
-
 
 int main (void)
 { 
@@ -100,9 +63,13 @@ int main (void)
 	sigprocmask (SIG_BLOCK, &sigset, NULL);
 
 
-	CSvrClientHandler *pClientHandler = new CSvrClientHandler ();
+	// Specify a class that inherits from CPacketHandler in template.
+	// specified message handle thread pool num = 2
+	// CSvrMessageHandler instance is created for each client connection.
+	// thread pool is created for each connection.
+	CClientHandler<CSvrMessageHandler> *pClientHandler = new CClientHandler<CSvrMessageHandler> (2);
 
-	CImmSocketServer server (65000, pClientHandler); // specified tcp port 65000
+	CServer server (65000, pClientHandler); // specified tcp port 65000
 	server.start();
 
 

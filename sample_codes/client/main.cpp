@@ -14,6 +14,12 @@ using namespace ImmSocketService;
 
 CMessageId::CId g_id;
 
+//
+// You inherit CPacketHandler and implement the following three methods.
+// - onHandleRequest
+// - onHandleReply
+// - onHandleNotify
+// 
 class CClMessageHandler : public CPacketHandler
 {
 public:
@@ -21,13 +27,11 @@ public:
 	virtual ~CClMessageHandler (void) {}
 
 private:
-	// override
-	void onHandleRequest (CMessage *pMsg) {
+	void onHandleRequest (CMessage *pMsg) override {
 		_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
 	}
 
-	// override
-	void onHandleReply (CMessage *pMsg) {
+	void onHandleReply (CMessage *pMsg) override {
 		_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
 		CMessageId::CId id = *pMsg->getId();
 		if (id == g_id) { // id match
@@ -36,8 +40,7 @@ private:
 		}
 	}
 
-	// override
-	void onHandleNotify (CMessage *pMsg) {
+	void onHandleNotify (CMessage *pMsg) override {
 		_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
 	}
 };
@@ -51,9 +54,10 @@ int main (void)
 	sigprocmask (SIG_BLOCK, &sigset, NULL);
 
 
-	CClMessageHandler *pHandler = new CClMessageHandler(2); // packet handle thread pool num = 2
+	// specified essage handle thread pool num = 2
+	CClMessageHandler *pHandler = new CClMessageHandler(2);
 
-	CImmSocketClient client ((const char*)"127.0.0.1", 65000, pHandler); // specified tcp port 65000
+	CClient client ((const char*)"127.0.0.1", 65000, pHandler); // specified tcp port 65000
 
 	// connect
 	bool r = client.connectToServer();
@@ -65,7 +69,7 @@ int main (void)
 
 	char *p = (char*)"test";
 
-	// async request
+	// async request  -> reply is handled by CClMessageHandler.
 	CMessage *pMsg = new CMessage (&client);
 	g_id = pMsg->generateId(); // for async reply id match
 	pMsg->sendRequestAsync (&g_id, (uint8_t)0x01, (uint8_t*)p, (int)strlen(p));
@@ -74,7 +78,7 @@ int main (void)
 
 	// sync request
 	CMessage *pMsgSync = new CMessage (&client);
-	pMsgSync->sendRequestSync ((uint8_t)0x01, (uint8_t*)p, (int)strlen(p));
+	pMsgSync->sendRequestSync ((uint8_t)0x01, (uint8_t*)p, (int)strlen(p)); // request and wait reply
 	if (pMsgSync->isReplyResultOK()) {
 		_UTL_LOG_I ("REPLY_OK (sync)\n");
 	} else {

@@ -30,5 +30,4 @@ LOCAL_SRC_FILES := \
 	SyncRequestManager.cpp \
 	SenderManager.cpp \
 
-
 include $(BUILD_SHARED_LIBRARY)

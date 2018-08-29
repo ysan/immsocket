@@ -28,10 +28,10 @@ int main (void)
 	CClMessageHandler *pHandler = new CClMessageHandler(2); // packet handle thread pool num = 2
 
 #ifndef _DEBUG_TCP
-	CImmSocketClient client ((const char*)"/tmp/imm_socket_sample", pHandler);
+	CClient client ((const char*)"/tmp/imm_socket_sample", pHandler);
 #else
-//	CImmSocketClient client ((const char*)"43.3.177.96", 65000, pHandler);
-	CImmSocketClient client ((const char*)"127.0.0.1", 65000, pHandler);
+//	CClient client ((const char*)"43.3.177.96", 65000, pHandler);
+	CClient client ((const char*)"127.0.0.1", 65000, pHandler);
 #endif
 	if (!client.connectToServer()) {
 		exit (EXIT_FAILURE);

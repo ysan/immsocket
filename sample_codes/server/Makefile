@@ -3,7 +3,7 @@
 #
 BASEDIR		:=	../../
 
-CFLAGS		:=
+CFLAGS		:=	-std=c++11
 
 INCLUDES	:= \
 	-I./ \

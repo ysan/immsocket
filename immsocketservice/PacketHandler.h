@@ -65,8 +65,7 @@ public:
 		virtual ~CAsyncHandlerImpl (void) {}
 
 	private:
-		// override
-		void onAsyncHandled (T arg) {
+		void onAsyncHandled (T arg) override {
 			_packet_handle_info *p = arg;
 			if (!p) {
 				return ;
@@ -98,12 +97,9 @@ protected:
 
 
 private:
-	// override
-	void onSetup (CImmSocketClient *pSelf);
-	// override
-	void onTeardown (CImmSocketClient *pSelf);
-	// override
-	void onReceivePacket (CImmSocketClient *pSelf, uint8_t *pPacket, int size);
+	void onSetup (CImmSocketClient *pSelf) override;
+	void onTeardown (CImmSocketClient *pSelf) override;
+	void onReceivePacket (CImmSocketClient *pSelf, uint8_t *pPacket, int size) override;
 
 	void handleMsg (CMessage *pMsg, int msgType);
 

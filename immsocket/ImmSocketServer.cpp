@@ -55,7 +55,7 @@ CImmSocketServer::CImmSocketServer (const char *pPath) :
 	setLocalSocket ();
 }
 
-// local
+// local // multi client
 CImmSocketServer::CImmSocketServer (const char *pPath, CImmSocketServer::IClientHandler *pHandler) :
 	mFdServerSocket (0),
 	mpClientHandler (NULL),
@@ -117,7 +117,7 @@ CImmSocketServer::CImmSocketServer (uint16_t port) :
 	setTcpSocket ();
 }
 
-// tcp
+// tcp // multi client
 CImmSocketServer::CImmSocketServer (uint16_t port, CImmSocketServer::IClientHandler *pHandler) :
 	mFdServerSocket (0),
 	mpClientHandler (NULL),

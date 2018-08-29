@@ -8,7 +8,6 @@
 #include "ImmSocketService.h"
 
 #include "SvrMessageHandler.h"
-#include "SvrClientHandler.h"
 
  
 using namespace std;
@@ -24,13 +23,12 @@ int main (void)
 	sigprocmask (SIG_BLOCK, &sigset, NULL);
 
 
-	CSvrClientHandler *pClientHandler = new CSvrClientHandler ();
-	CSvrMessageHandler *pMessageHandler = NULL;
+	CClientHandler<CSvrMessageHandler> *pClientHandler = new CClientHandler<CSvrMessageHandler> ();
 
 #ifndef _DEBUG_TCP
-	CImmSocketServer server ((char*)"/tmp/imm_socket_sample", pClientHandler);
+	CServer server ((char*)"/tmp/imm_socket_sample", pClientHandler);
 #else
-	CImmSocketServer server (65000, pClientHandler);
+	CServer server (65000, pClientHandler);
 //	CImmSocketServer server (65000); // debug echo server
 
 //	pMessageHandler = new CSvrMessageHandler();
@@ -77,11 +75,6 @@ int main (void)
 	if (pClientHandler) {
 		delete pClientHandler;
 		pClientHandler = NULL;
-	}
-
-	if (pMessageHandler) {
-		delete pMessageHandler;
-		pMessageHandler = NULL;
 	}
 
 	exit (EXIT_SUCCESS);

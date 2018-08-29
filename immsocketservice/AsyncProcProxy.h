@@ -118,8 +118,7 @@ public:
 	void setAsyncProcProxy (CAsyncProcProxy<T> *pAsyncProcProxy);
 
 private:
-	// override
-	void onThreadMainRoutine (void);
+	void onThreadMainRoutine (void) override;
 
 
 	bool mIsStop;
@@ -134,8 +133,8 @@ class CAsyncProcProxy
 public:
 	friend class CProxyThread<T>;
 
-	explicit CAsyncProcProxy (int nThreadPoolNum=1);
-	CAsyncProcProxy (IAsyncHandler<T> *pHandler, int nThreadPoolNum=1);
+	explicit CAsyncProcProxy (int threadPoolNum=1);
+	CAsyncProcProxy (IAsyncHandler<T> *pHandler, int threadPoolNum=1);
 	virtual ~CAsyncProcProxy (void);
 
 	bool start (void);
@@ -147,7 +146,7 @@ public:
 
 
 private:
-	void init (IAsyncHandler<T> *pHandler, int nThreadPoolNum);
+	void init (IAsyncHandler<T> *pHandler, int threadPoolNum);
 	void finaliz (void);
 	void enQueue (ST_ASYNC_QUEUE<T> *eq);
 	ST_ASYNC_QUEUE<T> deQueue (bool isPeep=false); // friend access

@@ -2,7 +2,7 @@ LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE := client
+LOCAL_MODULE := client_test
 
 LOCAL_LDLIBS := \
 	-llog \
