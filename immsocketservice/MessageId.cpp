@@ -64,6 +64,7 @@ time_t CMessageId::CId::getHash (void) const
 CMessageId::CMessageId (void)
 	:mIncId (0)
 {
+	srand ((uint32_t)time(NULL));
 	pthread_mutex_init (&mMutexGenId, NULL);
 }
 
@@ -98,7 +99,6 @@ CMessageId::CId CMessageId::generateId (void)
 uint32_t CMessageId::hash (uint8_t id) const
 {
 	uint8_t bytes [8] = {0};
-	srand ((uint32_t)time(NULL));
 	bytes [0] = id;
 	bytes [1] = uint8_t(rand () & 0xff);
 	bytes [2] = uint8_t(rand () & 0xff);

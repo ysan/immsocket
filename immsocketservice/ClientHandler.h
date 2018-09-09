@@ -42,7 +42,7 @@ private:
 	CImmSocketClient* onAcceptClient (int fdClientSocket) override {
 		_ISS_LOG_N ("%s\n", __PRETTY_FUNCTION__);
 
-		T *pHandler = new T (2); // packet handle thread pool num = 2
+		T *pHandler = new T (mThreadPoolNum);
 		CImmSocketClient *pClient = new CImmSocketClient (fdClientSocket, pHandler);
 		pClient->setTcpSocket ();
 		pClient->startReceiver ();
