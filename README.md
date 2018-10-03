@@ -57,32 +57,32 @@ public:
 	virtual ~CSvrMessageHandler (void) {}
 
 private:
-	void onHandleRequest (CMessage *pMsg) override {
+	void onHandleRequest (CRequestMessage *pRequestMsg) override {
 		_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
-		switch ((int)pMsg->getCommand()) {
+		switch ((int)pRequestMsg->getCommand()) {
 		case 0x01: {
-			char *p = (char*)pMsg->getData();
+			char *p = (char*)pRequestMsg->getData();
 			_UTL_LOG_I ("received ->  [%s]\n", p);
 
-			CMessage *pReplyMsg = new CMessage(pMsg);
-			pReplyMsg->sendReplyOK ((uint8_t*)p, (int)strlen(p)); // echo reply
+			CReplyMessage *pReplyMsg = new CReplyMessage (pRequestMsg);
+			pReplyMsg->sendOK ((uint8_t*)p, (int)strlen(p)); // echo reply
 			delete pReplyMsg;
 			pReplyMsg = NULL;
 			} break;
 		default: {
-			CMessage *pReplyMsg = new CMessage(pMsg);
-			pReplyMsg->sendReplyNG();
+			CReplyMessage *pReplyMsg = new CReplyMessage (pRequestMsg);
+			pReplyMsg->sendNG();
 			delete pReplyMsg;
 			pReplyMsg = NULL;
 			} break;
 		}
 	}
 
-	void onHandleReply (CMessage *pMsg) override {
+	void onHandleReply (CReplyMessage *pReplyMsg) override {
 		_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
 	}
 
-	void onHandleNotify (CMessage *pMsg) override {
+	void onHandleNotify (CNotifyMessage *pNotifyMsg) override {
 		_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
 	}
 };
@@ -154,20 +154,20 @@ public:
 	virtual ~CClMessageHandler (void) {}
 
 private:
-	void onHandleRequest (CMessage *pMsg) override {
+	void onHandleRequest (CRequestMessage *pRequestMsg) override {
 		_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
 	}
 
-	void onHandleReply (CMessage *pMsg) override {
+	void onHandleReply (CReplyMessage *pReplyMsg) override {
 		_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
-		CMessageId::CId id = *pMsg->getId();
+		CMessageId::CId id = *pReplyMsg->getId();
 		if (id == g_id) { // id match
-			_UTL_LOG_I ("%s (async)\n", pMsg->isReplyResultOK() ? "REPLY_OK" : "REPLY_NG");
-			_UTL_LOG_I ("replyData [%s]\n", (char*)(pMsg->getData()));
+			_UTL_LOG_I ("%s (async)\n", pReplyMsg->isReplyResultOK() ? "REPLY_OK" : "REPLY_NG");
+			_UTL_LOG_I ("replyData [%s]\n", (char*)(pReplyMsg->getData()));
 		}
 	}
 
-	void onHandleNotify (CMessage *pMsg) override {
+	void onHandleNotify (CNotifyMessage *pNotifyMsg) override {
 		_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
 	}
 };
@@ -197,23 +197,23 @@ int main (void)
 	char *p = (char*)"test";
 
 	// async request  -> reply is handled by CClMessageHandler.
-	CMessage *pMsg = new CMessage (&client);
-	g_id = pMsg->generateId(); // for async reply id match
-	pMsg->sendRequestAsync (&g_id, (uint8_t)0x01, (uint8_t*)p, (int)strlen(p));
-	delete pMsg;
-	pMsg = NULL;
+	CRequestMessage *pRequestMsg = new CRequestMessage (&client);
+	g_id = pRequestMsg->generateId(); // for async reply id match
+	pRequestMsg->sendAsync (&g_id, (uint8_t)0x01, (uint8_t*)p, (int)strlen(p));
+	delete pRequestMsg;
+	pRequestMsg = NULL;
 
 	// sync request
-	CMessage *pMsgSync = new CMessage (&client);
-	pMsgSync->sendRequestSync ((uint8_t)0x01, (uint8_t*)p, (int)strlen(p)); // request and wait reply
-	if (pMsgSync->isReplyResultOK()) {
+	CRequestMessage *pRequestMsgSync = new CRequestMessage (&client);
+	pRequestMsgSync->sendSync ((uint8_t)0x01, (uint8_t*)p, (int)strlen(p)); // request and wait reply
+	if (pRequestMsgSync->isReplyResultOK()) {
 		_UTL_LOG_I ("REPLY_OK (sync)\n");
 	} else {
 		_UTL_LOG_I ("REPLY_NG (sync)\n");
 	}
-	_UTL_LOG_I ("replyData [%s]\n", (char*)(pMsgSync->getData()));
-	delete pMsgSync;
-	pMsgSync = NULL;
+	_UTL_LOG_I ("replyData [%s]\n", (char*)(pRequestMsgSync->getData()));
+	delete pRequestMsgSync;
+	pRequestMsgSync = NULL;
 
 
 	fgetc (stdin);
