@@ -8,7 +8,6 @@
 #include "ImmSocketClient.h"
 #include "Utils.h"
 #include "PacketHandler.h"
-#include "Message.h"
 #include "SyncRequestManager.h"
 
 
@@ -25,17 +24,17 @@ CPacketHandler::~CPacketHandler (void)
 }
 
 
-void CPacketHandler::onHandleRequest (CMessage *pMsg)
+void CPacketHandler::onHandleRequest (CRequestMessage *pRequestMsg)
 {
 	_ISS_LOG_I ("%s %s\n", __FILE__, __func__);
 }
 
-void CPacketHandler::onHandleReply (CMessage *pMsg)
+void CPacketHandler::onHandleReply (CReplyMessage *pReplyMsg)
 {
 	_ISS_LOG_I ("%s %s\n", __FILE__, __func__);
 }
 
-void CPacketHandler::onHandleNotify (CMessage *pMsg)
+void CPacketHandler::onHandleNotify (CNotifyMessage *pNotifyMsg)
 {
 	_ISS_LOG_I ("%s %s\n", __FILE__, __func__);
 }
@@ -144,8 +143,8 @@ void CPacketHandler::handleMsg (CMessage *pMsg, int msgType)
 	if (msgType == CMessage::MSG_TYPE_REQUEST) {
 
 		pMsg->setObjtype (EN_OBJTYPE_REPLYABLE);
-
-		onHandleRequest (pMsg);
+		CRequestMessage requestMsg (pMsg);
+		onHandleRequest (&requestMsg);
 
 	} else if (msgType == CMessage::MSG_TYPE_REPLY) {
 
@@ -154,14 +153,15 @@ void CPacketHandler::handleMsg (CMessage *pMsg, int msgType)
 		if (pMsg->isSync()) {
 			mSyncRequestManager.checkSyncRequestMessage (pMsg);
 		} else  {
-			onHandleReply (pMsg);
+			CReplyMessage replyMsg (pMsg);
+			onHandleReply (&replyMsg);
 		}
 
 	} else if (msgType == CMessage::MSG_TYPE_NOTIFY) {
 
 		pMsg->setObjtype (EN_OBJTYPE_NOTHING);
-
-		onHandleNotify (pMsg);
+		CNotifyMessage notifyMsg (pMsg);
+		onHandleNotify (&notifyMsg);
 
 	} else {
 		_ISS_LOG_E ("%s  invalid packet (unknown type)\n", __func__);

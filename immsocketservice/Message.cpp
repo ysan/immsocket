@@ -26,11 +26,6 @@ const uint8_t CMessage::MASK_MSG_TYPE     = 0x0f;
 const uint32_t CMessage::REQUEST_TIMEOUT_MAX   = 0x05265C00; // 24時間 msec
 const uint32_t CMessage::REQUEST_TIMEOUT_FEVER = 0xffffffff;
 
-const int CMessage::CSyncException::INTERNAL_ERROR   = 0;
-const int CMessage::CSyncException::TIMEOUT          = 1;
-const int CMessage::CSyncException::SIGNAL_INTERRUPT = 2;
-const int CMessage::CSyncException::UNEXPCTED_ERROR  = 3;
-
 
 CMessage::CSync::CSync (void)
 {
@@ -113,36 +108,7 @@ CMessage::CMessage (void)
 	mObjtype = EN_OBJTYPE_NOTHING;
 }
 
-// for create reply message
-CMessage::CMessage (CMessage *pRequestMsg)
-	:mCommand (0)
-	,mIsReplyResultOK (false)
-	,mpClientInstance (NULL)
-	,mDataSize (0)
-	,mObjtype (EN_OBJTYPE_REQUESTER)
-	,mIsSync (false)
-{
-	if (pRequestMsg) {
-		mId = *(pRequestMsg->getId());
-		mCommand = pRequestMsg->getCommand();
-		mpClientInstance = pRequestMsg->getClientInstance();
-		mIsSync = pRequestMsg->isSync();
-
-		if (pRequestMsg->getObjtype() == EN_OBJTYPE_REPLYABLE) { 
-			mObjtype = EN_OBJTYPE_REPLYER;
-		} else {
-			_ISS_LOG_E ("not EN_OBJTYPE_REPLYABLE\n");
-			mObjtype = EN_OBJTYPE_NOTHING;
-		}
-
-	} else {
-		_ISS_LOG_E ("pRequestMsg is null\n");
-		mObjtype = EN_OBJTYPE_NOTHING;
-	}
-
-}
-
-CMessage::CMessage (CImmSocketClient *pClient)
+CMessage::CMessage (CImmSocketClient *pClient, EN_OBJTYPE enType)
 	:mCommand (0)
 	,mIsReplyResultOK (false)
 	,mpClientInstance (NULL)
@@ -154,10 +120,12 @@ CMessage::CMessage (CImmSocketClient *pClient)
 		mpClientInstance = pClient;
 	}
 
+	mObjtype = enType;
+
 	memset (mEntityData, 0x00, sizeof(mEntityData));
 }
 
-CMessage::CMessage (CImmSocketClient *pClient, CMessageId::CId *pId)
+CMessage::CMessage (CMessage *pMsg)
 	:mCommand (0)
 	,mIsReplyResultOK (false)
 	,mpClientInstance (NULL)
@@ -165,36 +133,9 @@ CMessage::CMessage (CImmSocketClient *pClient, CMessageId::CId *pId)
 	,mObjtype (EN_OBJTYPE_REQUESTER)
 	,mIsSync (false)
 {
-	if (pClient) {
-		mpClientInstance = pClient;
+	if (pMsg) {
+		*this = *pMsg;
 	}
-
-	if (pId) {
-		mId = *pId;
-	}
-
-	memset (mEntityData, 0x00, sizeof(mEntityData));
-}
-
-CMessage::CMessage (CImmSocketClient *pClient, CMessageId::CId *pId, uint8_t command)
-	:mCommand (0)
-	,mIsReplyResultOK (false)
-	,mpClientInstance (NULL)
-	,mDataSize (0)
-	,mObjtype (EN_OBJTYPE_REQUESTER)
-	,mIsSync (false)
-{
-	if (pClient) {
-		mpClientInstance = pClient;
-	}
-
-	if (pId) {
-		mId = *pId;
-	}
-
-	mCommand = command;
-
-	memset (mEntityData, 0x00, sizeof(mEntityData));
 }
 
 CMessage::CMessage (CImmSocketClient *pClient, CMessageId::CId *pId, uint8_t command, EN_OBJTYPE enType)
@@ -335,75 +276,9 @@ int CMessage::sendRequestSync (uint32_t nTimeoutMsec)
 	return nRtn;
 }
 
-int CMessage::sendRequestSync (uint8_t command, uint32_t nTimeoutMsec) throw (CMessage::CSyncException)
-{
-	setCommand (command);
-	setData (NULL, 0, true);
-	int rtn = sendRequestSync (nTimeoutMsec);
-	switch (rtn) {
-	case 0:
-		// success
-		break;
-	case -1:
-		throw CSyncException ("exception: internal error", CMessage::CSyncException::INTERNAL_ERROR);
-		break;
-	case ETIMEDOUT:
-		throw CSyncException ("exception: timeout", CMessage::CSyncException::TIMEOUT);
-		break;
-	case EINTR:
-		throw CSyncException ("exception: signal interrupt", CMessage::CSyncException::SIGNAL_INTERRUPT);
-		break;
-	default:
-		throw CSyncException ("exception: unexpected error", CMessage::CSyncException::UNEXPCTED_ERROR);
-		break;
-	}
-
-	return rtn;
-}
-
-int CMessage::sendRequestSync (uint8_t command, uint8_t *pData, int size, uint32_t nTimeoutMsec) throw (CMessage::CSyncException)
-{
-	setCommand (command);
-	setData (pData, size);
-	int rtn = sendRequestSync (nTimeoutMsec);
-	switch (rtn) {
-	case 0:
-		// success
-		break;
-	case -1:
-		throw CSyncException ("exception: internal error", CMessage::CSyncException::INTERNAL_ERROR);
-		break;
-	case ETIMEDOUT:
-		throw CSyncException ("exception: timeout", CMessage::CSyncException::TIMEOUT);
-		break;
-	case EINTR:
-		throw CSyncException ("exception: signal interrupt", CMessage::CSyncException::SIGNAL_INTERRUPT);
-		break;
-	default:
-		throw CSyncException ("exception: unexpected error", CMessage::CSyncException::UNEXPCTED_ERROR);
-		break;
-	}
-
-	return rtn;
-}
-
 bool CMessage::sendRequestAsync (CMessageId::CId *pId)
 {
 	return sendRequest (pId);
-}
-
-bool CMessage::sendRequestAsync (CMessageId::CId *pId, uint8_t command)
-{
-	setCommand (command);
-	setData (NULL, 0, true);
-	return sendRequestAsync (pId);
-}
-
-bool CMessage::sendRequestAsync (CMessageId::CId *pId, uint8_t command, uint8_t *pData, int size)
-{
-	setCommand (command);
-	setData (pData, size);
-	return sendRequestAsync (pId);
 }
 
 bool CMessage::sendRequest (CMessageId::CId *pId, bool isSync)
@@ -452,34 +327,6 @@ bool CMessage::sendRequest (CMessageId::CId *pId, bool isSync)
 // ProxyThreadでたたくようにしました
 //	return mpClientInstance->sendToConnection (buff, totalsize);
 	return true;
-}
-
-bool CMessage::sendReplyOK (void)
-{
-	setReplyResult (true);
-	setData (NULL, 0, true);
-	return sendReply ();
-}
-
-bool CMessage::sendReplyOK (uint8_t *pReplyData, int size)
-{
-	setReplyResult (true);
-	setData (pReplyData, size);
-	return sendReply ();
-}
-
-bool CMessage::sendReplyNG (void)
-{
-	setReplyResult (false);
-	setData (NULL, 0, true);
-	return sendReply ();
-}
-
-bool CMessage::sendReplyNG (uint8_t *pReplyData, int size)
-{
-	setReplyResult (false);
-	setData (pReplyData, size);
-	return sendReply ();
 }
 
 bool CMessage::sendReply (void)
@@ -533,20 +380,6 @@ bool CMessage::sendReply (void)
 // ProxyThreadでたたくようにしました
 //	return mpClientInstance->sendToConnection (buff, totalsize);
 	return true;
-}
-
-bool CMessage::sendNotify (uint8_t command)
-{
-	setCommand (command);
-	setData (NULL, 0, true);
-	return sendNotify();
-}
-
-bool CMessage::sendNotify (uint8_t command, uint8_t *pData, int size)
-{
-	setCommand (command);
-	setData (pData, size);
-	return sendNotify();
 }
 
 bool CMessage::sendNotify (void)
@@ -650,6 +483,27 @@ bool CMessage::isSync (void) const
 void CMessage::setSync (void)
 {
 	mIsSync = true;
+}
+
+void CMessage::setRequest2Reply (CMessage * pRequestMsg)
+{
+	if (pRequestMsg) {
+		mId = *(pRequestMsg->getId());
+		mCommand = pRequestMsg->getCommand();
+		mpClientInstance = pRequestMsg->getClientInstance();
+		mIsSync = pRequestMsg->isSync();
+
+		if (pRequestMsg->getObjtype() == EN_OBJTYPE_REPLYABLE) {
+			mObjtype = EN_OBJTYPE_REPLYER;
+		} else {
+			_ISS_LOG_E ("not EN_OBJTYPE_REPLYABLE\n");
+			mObjtype = EN_OBJTYPE_NOTHING;
+		}
+
+	} else {
+		_ISS_LOG_E ("pRequestMsg is null\n");
+		mObjtype = EN_OBJTYPE_NOTHING;
+	}
 }
 
 } // namespace ImmSocketService

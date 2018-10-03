@@ -24,32 +24,32 @@ public:
 	virtual ~CSvrMessageHandler (void) {}
 
 private:
-	void onHandleRequest (CMessage *pMsg) override {
+	void onHandleRequest (CRequestMessage *pRequestMsg) override {
 		_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
-		switch ((int)pMsg->getCommand()) {
+		switch ((int)pRequestMsg->getCommand()) {
 		case 0x01: {
-			char *p = (char*)pMsg->getData();
+			char *p = (char*)pRequestMsg->getData();
 			_UTL_LOG_I ("received ->  [%s]\n", p);
 
-			CMessage *pReplyMsg = new CMessage(pMsg);
-			pReplyMsg->sendReplyOK ((uint8_t*)p, (int)strlen(p)); // echo reply
+			CReplyMessage *pReplyMsg = new CReplyMessage (pRequestMsg);
+			pReplyMsg->sendOK ((uint8_t*)p, (int)strlen(p)); // echo reply
 			delete pReplyMsg;
 			pReplyMsg = NULL;
 			} break;
 		default: {
-			CMessage *pReplyMsg = new CMessage(pMsg);
-			pReplyMsg->sendReplyNG();
+			CReplyMessage *pReplyMsg = new CReplyMessage (pRequestMsg);
+			pReplyMsg->sendNG();
 			delete pReplyMsg;
 			pReplyMsg = NULL;
 			} break;
 		}
 	}
 
-	void onHandleReply (CMessage *pMsg) override {
+	void onHandleReply (CReplyMessage *pReplyMsg) override {
 		_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
 	}
 
-	void onHandleNotify (CMessage *pMsg) override {
+	void onHandleNotify (CNotifyMessage *pNotifyMsg) override {
 		_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
 	}
 };

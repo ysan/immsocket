@@ -12,6 +12,9 @@
 #include "ImmSocketServer.h"
 #include "ImmSocketClient.h"
 #include "Message.h"
+#include "RequestMessage.h"
+#include "ReplyMessage.h"
+#include "NotifyMessage.h"
 #include "Common.h"
 #include "SyncRequestManager.h"
 #include "AsyncProcProxy.h"
@@ -91,9 +94,9 @@ public:
 	}
 
 protected:
-	virtual void onHandleRequest (CMessage *pMsg);
-	virtual void onHandleReply (CMessage *pMsg);
-	virtual void onHandleNotify (CMessage *pMsg);
+	virtual void onHandleRequest (CRequestMessage *pRequestMsg);
+	virtual void onHandleReply (CReplyMessage *pReplyMsg);
+	virtual void onHandleNotify (CNotifyMessage *pNotifyMsg);
 
 
 private:

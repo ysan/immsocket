@@ -18,46 +18,57 @@ CClMessageHandler::~CClMessageHandler (void)
 {
 }
 
-void CClMessageHandler::onHandleRequest (CMessage *pMsg)
+void CClMessageHandler::onHandleRequest (CRequestMessage *pRequestMsg)
 {
 	_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
 
 
-	_UTL_LOG_I ("id.num[0x%02x] id.time[0x%08x] command[0x%02x]\n",
-					(int)pMsg->getId()->getNum(), pMsg->getId()->getHash(), (int)pMsg->getCommand());
+	_UTL_LOG_I (
+		"id.num[0x%02x] id.time[0x%08x] command[0x%02x]\n",
+		(int)pRequestMsg->getId()->getNum(),
+		pRequestMsg->getId()->getHash(),
+		(int)pRequestMsg->getCommand()
+	);
 
-	if (pMsg->getDataSize() > 0) {
-		_UTL_LOG_I ("requestData [%s]\n", (char*)(pMsg->getData()));
+	if (pRequestMsg->getDataSize() > 0) {
+		_UTL_LOG_I ("requestData [%s]\n", (char*)(pRequestMsg->getData()));
 	}
 
 }
 
-void CClMessageHandler::onHandleReply (CMessage *pMsg)
+void CClMessageHandler::onHandleReply (CReplyMessage *pReplyMsg)
 {
 	_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
 
 
-	_UTL_LOG_I ("id.num[0x%02x] id.hash[0x%08x] command[0x%02x] %s\n",
-					(int)pMsg->getId()->getNum(), pMsg->getId()->getHash(), (int)pMsg->getCommand(),
-					pMsg->isReplyResultOK() ? "reply_ok" : "reply_ng");
+	_UTL_LOG_I (
+		"id.num[0x%02x] id.hash[0x%08x] command[0x%02x] %s\n",
+		(int)pReplyMsg->getId()->getNum(),
+		pReplyMsg->getId()->getHash(),
+		(int)pReplyMsg->getCommand(),
+		pReplyMsg->isReplyResultOK() ? "reply_ok" : "reply_ng");
 
-	if (pMsg->getDataSize() > 0) {
-		_UTL_LOG_I ("replyData [%s]\n", (char*)(pMsg->getData()));
+	if (pReplyMsg->getDataSize() > 0) {
+		_UTL_LOG_I ("replyData [%s]\n", (char*)(pReplyMsg->getData()));
 	}
 
 
 }
 
-void CClMessageHandler::onHandleNotify (CMessage *pMsg)
+void CClMessageHandler::onHandleNotify (CNotifyMessage *pNotifyMsg)
 {
 	_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
 
 
-	_UTL_LOG_I ("id.num[0x%02x] id.hash[0x%08x] command[0x%02x]\n",
-					(int)pMsg->getId()->getNum(), pMsg->getId()->getHash(), (int)pMsg->getCommand());
+	_UTL_LOG_I (
+		"id.num[0x%02x] id.hash[0x%08x] command[0x%02x]\n",
+		(int)pNotifyMsg->getId()->getNum(),
+		pNotifyMsg->getId()->getHash(),
+		(int)pNotifyMsg->getCommand()
+	);
 
-	if (pMsg->getDataSize() > 0) {
-		_UTL_LOG_I ("notifyData [%s]\n", (char*)(pMsg->getData()));
+	if (pNotifyMsg->getDataSize() > 0) {
+		_UTL_LOG_I ("notifyData [%s]\n", (char*)(pNotifyMsg->getData()));
 	}
 
 

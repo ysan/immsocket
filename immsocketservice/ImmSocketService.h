@@ -11,7 +11,9 @@
 #include "Utils.h"
 #include "ImmSocketServer.h"
 #include "ImmSocketClient.h"
-#include "Message.h"
+#include "RequestMessage.h"
+#include "ReplyMessage.h"
+#include "NotifyMessage.h"
 #include "PacketHandler.h"
 #include "ClientHandler.h"
 

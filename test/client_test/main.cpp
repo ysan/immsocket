@@ -63,27 +63,27 @@ int main (void)
 
 		_UTL_LOG_I ("async request\n");
 
-		CMessage *pMsg = new CMessage(&client);
+		CRequestMessage *pRequestMsg = new CRequestMessage(&client);
 		if ((int)strlen(buf) > 0) {
-			id = pMsg->generateId();
-			if (!pMsg->sendRequestAsync(&id, (uint8_t)0x01, (uint8_t*)buf, (int)strlen(buf))) {
-				delete pMsg;
-				pMsg = NULL;
+			id = pRequestMsg->generateId();
+			if (!pRequestMsg->sendAsync(&id, (uint8_t)0x01, (uint8_t*)buf, (int)strlen(buf))) {
+				delete pRequestMsg;
+				pRequestMsg = NULL;
 				continue;
 			}
 
 		} else {
 			n ++;
-			id = pMsg->generateId();
-			if (!pMsg->sendRequestAsync(&id, (uint8_t)0x05, (uint8_t*)&n, sizeof(int))) {
-				delete pMsg;
-				pMsg = NULL;
+			id = pRequestMsg->generateId();
+			if (!pRequestMsg->sendAsync(&id, (uint8_t)0x05, (uint8_t*)&n, sizeof(int))) {
+				delete pRequestMsg;
+				pRequestMsg = NULL;
 				continue;
 			}
 		}
 
-		delete pMsg;
-		pMsg = NULL;
+		delete pRequestMsg;
+		pRequestMsg = NULL;
 
 	}
 
@@ -104,43 +104,43 @@ static void *sync_req_test (void *args)
 {
 	CImmSocketClient* pcl = (CImmSocketClient*)args;
 
-	CMessage *pMsg = NULL;
+	CRequestMessage *pRequestMsg = NULL;
 	int rtn = 0;
 
 	while (1) {
 		sleep (5);
 
 		_UTL_LOG_I ("sync request\n");
-		pMsg = new CMessage(pcl);
+		pRequestMsg = new CRequestMessage(pcl);
 		try {
-			rtn = pMsg->sendRequestSync ((uint8_t)0x02);
+			rtn = pRequestMsg->sendSync ((uint8_t)0x02);
 			if (rtn == 0) {
-				if (pMsg->isReplyResultOK()) {
+				if (pRequestMsg->isReplyResultOK()) {
 					_UTL_LOG_I ("REPLY_OK\n");
 				} else {
 					_UTL_LOG_I ("REPLY_NG\n");
 				}
 
-				if (pMsg->getDataSize() > 0) {
-					_UTL_LOG_I ("replyData [%s]\n", (char*)(pMsg->getData()));
+				if (pRequestMsg->getDataSize() > 0) {
+					_UTL_LOG_I ("replyData [%s]\n", (char*)(pRequestMsg->getData()));
 				}
 
-				delete pMsg;
-				pMsg = NULL;
+				delete pRequestMsg;
+				pRequestMsg = NULL;
 			}
 
-		} catch (CMessage::CSyncException& e) {
+		} catch (CRequestMessage::CSyncException& e) {
 
-			if (e.code() == CMessage::CSyncException::INTERNAL_ERROR) {
-			} else if (e.code() == CMessage::CSyncException::TIMEOUT) {
-			} else if (e.code() == CMessage::CSyncException::SIGNAL_INTERRUPT) {
+			if (e.code() == CRequestMessage::CSyncException::INTERNAL_ERROR) {
+			} else if (e.code() == CRequestMessage::CSyncException::TIMEOUT) {
+			} else if (e.code() == CRequestMessage::CSyncException::SIGNAL_INTERRUPT) {
 			} else {
 				// UNEXPCTED_ERROR
 			}
 
 			_UTL_LOG_E (e.what());
-			delete pMsg;
-			pMsg = NULL;
+			delete pRequestMsg;
+			pRequestMsg = NULL;
 			continue;
 		}
 
@@ -149,36 +149,36 @@ static void *sync_req_test (void *args)
 		sleep (5);
 
 		_UTL_LOG_I ("sync request 2\n");
-		pMsg = new CMessage(pcl);
+		pRequestMsg = new CRequestMessage(pcl);
 		try {
-			rtn = pMsg->sendRequestSync ((uint8_t)0x02, 500);
+			rtn = pRequestMsg->sendSync ((uint8_t)0x02, 500);
 			if (rtn == 0) {
-				if (pMsg->isReplyResultOK()) {
+				if (pRequestMsg->isReplyResultOK()) {
 					_UTL_LOG_I ("REPLY_OK\n");
 				} else {
 					_UTL_LOG_I ("REPLY_NG\n");
 				}
 
-				if (pMsg->getDataSize() > 0) {
-					_UTL_LOG_I ("replyData [%s]\n", (char*)(pMsg->getData()));
+				if (pRequestMsg->getDataSize() > 0) {
+					_UTL_LOG_I ("replyData [%s]\n", (char*)(pRequestMsg->getData()));
 				}
 
-				delete pMsg;
-				pMsg = NULL;
+				delete pRequestMsg;
+				pRequestMsg = NULL;
 			}
 
-		} catch (CMessage::CSyncException& e) {
+		} catch (CRequestMessage::CSyncException& e) {
 
-			if (e.code() == CMessage::CSyncException::INTERNAL_ERROR) {
-			} else if (e.code() == CMessage::CSyncException::TIMEOUT) {
-			} else if (e.code() == CMessage::CSyncException::SIGNAL_INTERRUPT) {
+			if (e.code() == CRequestMessage::CSyncException::INTERNAL_ERROR) {
+			} else if (e.code() == CRequestMessage::CSyncException::TIMEOUT) {
+			} else if (e.code() == CRequestMessage::CSyncException::SIGNAL_INTERRUPT) {
 			} else {
 				// UNEXPCTED_ERROR
 			}
 
 			_UTL_LOG_E (e.what());
-			delete pMsg;
-			pMsg = NULL;
+			delete pRequestMsg;
+			pRequestMsg = NULL;
 			continue;
 		}
 	}

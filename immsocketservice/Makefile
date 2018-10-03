@@ -39,6 +39,9 @@ SRCS		:=
 SRCS_CPP	:= \
 	PacketHandler.cpp \
 	Message.cpp \
+	RequestMessage.cpp \
+	ReplyMessage.cpp \
+	NotifyMessage.cpp \
 	Common.cpp \
 	MessageId.cpp \
 	SyncRequestManager.cpp \

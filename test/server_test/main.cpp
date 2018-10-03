@@ -23,7 +23,7 @@ int main (void)
 	sigprocmask (SIG_BLOCK, &sigset, NULL);
 
 
-	CClientHandler<CSvrMessageHandler> *pClientHandler = new CClientHandler<CSvrMessageHandler> ();
+	CClientHandler<CSvrMessageHandler> *pClientHandler = new CClientHandler<CSvrMessageHandler> (2);
 
 #ifndef _DEBUG_TCP
 	CServer server ((char*)"/tmp/imm_socket_sample", pClientHandler);
@@ -59,10 +59,10 @@ int main (void)
 					CImmSocketClient *pClient = iter->second.pInstance;
 					if (pClient) {
 						_UTL_LOG_I ("send notify fd:[%d] [%s]\n", pClient->getFd(), buf);
-						CMessage *pMsg = new CMessage (pClient);
-						pMsg->sendNotify (0xee, (uint8_t*)buf, strlen(buf));
-						delete pMsg;
-						pMsg = NULL;
+						CNotifyMessage *pNotifyMsg = new CNotifyMessage (pClient);
+						pNotifyMsg->send (0xee, (uint8_t*)buf, strlen(buf));
+						delete pNotifyMsg;
+						pNotifyMsg = NULL;
 					}
 					iter ++;
 				}

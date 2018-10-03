@@ -22,9 +22,9 @@ public:
 	virtual ~CClMessageHandler (void);
 
 private:
-	void onHandleRequest (CMessage *pMsg);
-	void onHandleReply (CMessage *pMsg);
-	void onHandleNotify (CMessage *pMsg);
+	void onHandleRequest (CRequestMessage *pRequestMsg);
+	void onHandleReply (CReplyMessage *pReplyMsg);
+	void onHandleNotify (CNotifyMessage *pNotifyMsg);
 
 
 };
