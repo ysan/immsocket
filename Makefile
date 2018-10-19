@@ -40,5 +40,5 @@ SRCS_CPP	:=
 #
 #   Configurations
 #
-include $(BASEDIR)/Config.make
+include $(BASEDIR)/Config.mak
 
