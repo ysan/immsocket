@@ -16,7 +16,12 @@ using namespace ImmSocketService;
 // - onHandleRequest
 // - onHandleReply
 // - onHandleNotify
-// 
+//
+//  Attention:
+//    If there are multiple thread pools, the above functions are called in parallel.
+//    Therefore, reentrant code is mandatory.
+//    Also, putting mutex makes sense of thread pool meaningless.
+//
 class CSvrMessageHandler : public CPacketHandler
 {
 public:
@@ -64,7 +69,7 @@ int main (void)
 
 
 	// Specify a class that inherits from CPacketHandler in template.
-	// specified message handle thread pool num = 2
+	// Specify message handle thread pool num = 2
 	// CSvrMessageHandler instance is created for each client connection.
 	// thread pool is created for each connection.
 	CClientHandler<CSvrMessageHandler> *pClientHandler = new CClientHandler<CSvrMessageHandler> (2);

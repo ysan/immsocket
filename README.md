@@ -49,7 +49,12 @@ using namespace ImmSocketService;
 // - onHandleRequest
 // - onHandleReply
 // - onHandleNotify
-// 
+//
+//  Attention:
+//    If there are multiple thread pools, the above functions are called in parallel.
+//    Therefore, reentrant code is mandatory.
+//    Also, putting mutex makes sense of thread pool meaningless.
+//
 class CSvrMessageHandler : public CPacketHandler
 {
 public:
@@ -97,7 +102,7 @@ int main (void)
 
 
 	// Specify a class that inherits from CPacketHandler in template.
-	// specified message handle thread pool num = 2
+	// Specify message handle thread pool num = 2
 	// CSvrMessageHandler instance is created for each client connection.
 	// thread pool is created for each connection.
 	CClientHandler<CSvrMessageHandler> *pClientHandler = new CClientHandler<CSvrMessageHandler> (2);
@@ -146,7 +151,12 @@ CMessageId::CId g_id;
 // - onHandleRequest
 // - onHandleReply
 // - onHandleNotify
-// 
+//
+//  Attention:
+//    If there are multiple thread pools, the above functions are called in parallel.
+//    Therefore, reentrant code is mandatory.
+//    Also, putting mutex makes sense of thread pool meaningless.
+//
 class CClMessageHandler : public CPacketHandler
 {
 public:
@@ -162,7 +172,8 @@ private:
 		_UTL_LOG_I ("%s\n", __PRETTY_FUNCTION__);
 		CMessageId::CId id = *pReplyMsg->getId();
 		if (id == g_id) { // id match
-			_UTL_LOG_I ("%s (async)\n", pReplyMsg->isReplyResultOK() ? "REPLY_OK" : "REPLY_NG");
+			_UTL_LOG_I ("%s (async)\n", pReplyMsg->isReplyResultOK() ? "REPLY_OK" : "REPLY_NG")
+;
 			_UTL_LOG_I ("replyData [%s]\n", (char*)(pReplyMsg->getData()));
 		}
 	}
@@ -181,7 +192,7 @@ int main (void)
 	sigprocmask (SIG_BLOCK, &sigset, NULL);
 
 
-	// specified essage handle thread pool num = 2
+	// specify message handle thread pool num = 2
 	CClMessageHandler *pHandler = new CClMessageHandler(2);
 
 	CClient client ((const char*)"127.0.0.1", 65000, pHandler); // specified tcp port 65000
@@ -194,18 +205,20 @@ int main (void)
 	client.startReceiver();
 
 
-	char *p = (char*)"test";
+	uint8_t command = 0x01;
+	char *p_data = (char*)"test";
 
 	// async request  -> reply is handled by CClMessageHandler.
 	CRequestMessage *pRequestMsg = new CRequestMessage (&client);
 	g_id = pRequestMsg->generateId(); // for async reply id match
-	pRequestMsg->sendAsync (&g_id, (uint8_t)0x01, (uint8_t*)p, (int)strlen(p));
+	pRequestMsg->sendAsync (&g_id, command, (uint8_t*)p_data, (int)strlen(p_data));
 	delete pRequestMsg;
 	pRequestMsg = NULL;
 
 	// sync request
 	CRequestMessage *pRequestMsgSync = new CRequestMessage (&client);
-	pRequestMsgSync->sendSync ((uint8_t)0x01, (uint8_t*)p, (int)strlen(p)); // request and wait reply
+	pRequestMsgSync->sendSync (command, (uint8_t*)p_data, (int)strlen(p_data)); // request and wait rep
+ly
 	if (pRequestMsgSync->isReplyResultOK()) {
 		_UTL_LOG_I ("REPLY_OK (sync)\n");
 	} else {

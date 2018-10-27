@@ -179,7 +179,7 @@ void CUtils::initLog (void)
 
 	time_t timer;
 	struct stat s;
-	int r = stat (LOG_PATH"/"LOG_NAME"."LOG_EXT, &s);
+	int r = stat (LOG_PATH "/" LOG_NAME "." LOG_EXT, &s);
 	if (r == 0) {
 		timer = time (NULL);
 		pstTmLocal = localtime (&timer);
@@ -199,13 +199,13 @@ void CUtils::initLog (void)
 			ne,
 			(int)sizeof(ne),
 			"%s_%s.log",
-			LOG_PATH"/"LOG_NAME,
+			LOG_PATH "/" LOG_NAME,
 			szTime
 		);
-		rename (LOG_PATH"/"LOG_NAME"."LOG_EXT, ne);
+		rename (LOG_PATH "/" LOG_NAME "." LOG_EXT, ne);
 	}
 	
-	if ((mfpLog = fopen (LOG_PATH"/"LOG_NAME"."LOG_EXT, "a")) == NULL) {
+	if ((mfpLog = fopen (LOG_PATH "/" LOG_NAME "." LOG_EXT, "a")) == NULL) {
 		perror ("fopen");
 	}
 }
