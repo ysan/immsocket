@@ -1,7 +1,7 @@
 immsocket
 ===============
 
-socket library which can be used immediately (sock_stream) (unix_domain/inet_domain)
+socket library which can be used immediately (sock_stream) (unix_domain/inet_domain)  
 a kind of short packet message exchanger.
 
 
