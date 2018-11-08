@@ -196,7 +196,13 @@ void CMessage::setData (uint8_t *pData, int size, bool isClear)
 		return;
 	}
 
-	int cpsize = size > (0xff - (int)sizeof(ST_PACKET)) ? (0xff - (int)sizeof(ST_PACKET)) : size;
+	int cpsize = 0;
+	if (size > (0xff - (int)sizeof(ST_PACKET))) {
+		cpsize = (0xff - (int)sizeof(ST_PACKET));
+		_ISS_LOG_W ("send data was truncated. [max %d bytes]\n", cpsize);
+	} else {
+		cpsize = size;
+	}
 	memset (mEntityData, 0x00, sizeof(mEntityData));
 	memcpy (mEntityData, pData, cpsize);
 	mDataSize = cpsize;

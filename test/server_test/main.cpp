@@ -41,7 +41,7 @@ int main (void)
 	sleep (1);
 	if (server.isAlive()) {
 		while (1) {
-			char buf[1024] = {0};
+			char buf[65536] = {0};
 			memset (buf, 0x00, sizeof(buf));
 			fgets (buf, sizeof(buf)-1, stdin);
 			CUtils::deleteLF (buf);

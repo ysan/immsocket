@@ -39,7 +39,8 @@ void CSvrMessageHandler::onHandleRequest (CRequestMessage *pRequestMsg)
 
 	case 0x01: {
 		char *pData = (char*)pRequestMsg->getData();
-		_UTL_LOG_I ("received ->  [%s]\n", pData);
+		int size = pRequestMsg->getDataSize();
+		_UTL_LOG_I ("received -> [%d]bytes [%s]\n", size, pData);
 
 		CReplyMessage *pReplyMsg = new CReplyMessage(pRequestMsg);
 		pReplyMsg->sendOK();

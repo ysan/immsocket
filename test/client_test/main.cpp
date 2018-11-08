@@ -47,7 +47,7 @@ int main (void)
 
 
 
-	char buf[1024] = {0};
+	char buf[65536] = {0};
 	int n = 0;
 	CMessageId::CId id;
 	while (1) {

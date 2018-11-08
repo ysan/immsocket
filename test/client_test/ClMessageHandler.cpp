@@ -49,7 +49,7 @@ void CClMessageHandler::onHandleReply (CReplyMessage *pReplyMsg)
 		pReplyMsg->isReplyResultOK() ? "reply_ok" : "reply_ng");
 
 	if (pReplyMsg->getDataSize() > 0) {
-		_UTL_LOG_I ("replyData [%s]\n", (char*)(pReplyMsg->getData()));
+		_UTL_LOG_I ("replyData [%dbytes] [%s]\n", pReplyMsg->getDataSize(), (char*)(pReplyMsg->getData()));
 	}
 
 
