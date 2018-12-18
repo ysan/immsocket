@@ -10,6 +10,7 @@
 
 
 #define SYSTIME_STRING_SIZE			(2+1+2+1+2+1+2+1+2 +1)
+#define SYSTIME_MS_STRING_SIZE		(2+1+2+1+2+1+2+1+2+1+3 +1)
 #define THREAD_NAME_STRING_SIZE		(15+1)
 #define LOG_STRING_SIZE				(128)
 #define BACKTRACE_BUFF_SIZE			(20)
@@ -113,6 +114,32 @@ void CUtils::getSysTime (char *pszOut, size_t nSize)
 		pstTmLocal->tm_hour,
 		pstTmLocal->tm_min,
 		pstTmLocal->tm_sec
+	);
+}
+
+/**
+ * システム現在時刻を取得
+ * MM/dd HH:mm:ss.sss形式
+ */
+void CUtils::getSysTimeMs (char *pszOut, size_t nSize)
+{
+	struct tm *pstTmLocal = NULL;
+	struct tm stTmLocalTmp;
+	struct timespec ts;
+
+	clock_gettime (CLOCK_REALTIME, &ts);
+	pstTmLocal = localtime_r (&ts.tv_sec, &stTmLocalTmp); /* スレッドセーフ */
+
+	snprintf (
+		pszOut,
+		nSize,
+		"%02d/%02d %02d:%02d:%02d.%03ld",
+		pstTmLocal->tm_mon+1,
+		pstTmLocal->tm_mday,
+		pstTmLocal->tm_hour,
+		pstTmLocal->tm_min,
+		pstTmLocal->tm_sec,
+		ts.tv_nsec/1000000
 	);
 }
 
@@ -236,7 +263,7 @@ void CUtils::putsLog (
 	}
 
 	char szBufVa [LOG_STRING_SIZE];
-	char szTime [SYSTIME_STRING_SIZE];
+	char szTime [SYSTIME_MS_STRING_SIZE];
     char szThreadName [THREAD_NAME_STRING_SIZE];
 	char type;
 	char szPerror[32];
@@ -291,7 +318,7 @@ void CUtils::putsLog (
 
 	vsnprintf (szBufVa, sizeof(szBufVa), pszFormat, va);
 
-	getSysTime (szTime, SYSTIME_STRING_SIZE);
+	getSysTimeMs (szTime, SYSTIME_MS_STRING_SIZE);
 	getThreadName (szThreadName, THREAD_NAME_STRING_SIZE);
 
 	deleteLF (szBufVa);
@@ -402,7 +429,7 @@ void CUtils::putsLogLW (
 	}
 
 	char szBufVa [LOG_STRING_SIZE];
-	char szTime [SYSTIME_STRING_SIZE];
+	char szTime [SYSTIME_MS_STRING_SIZE];
     char szThreadName [THREAD_NAME_STRING_SIZE];
 	char type;
 	char szPerror[32];
@@ -457,7 +484,7 @@ void CUtils::putsLogLW (
 
 	vsnprintf (szBufVa, sizeof(szBufVa), pszFormat, va);
 
-	getSysTime (szTime, SYSTIME_STRING_SIZE);
+	getSysTimeMs (szTime, SYSTIME_MS_STRING_SIZE);
 	getThreadName (szThreadName, THREAD_NAME_STRING_SIZE);
 
 	deleteLF (szBufVa);

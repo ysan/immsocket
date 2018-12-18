@@ -236,6 +236,7 @@ public:
 private:
 
 	static void getSysTime (char *pszOut, size_t nSize);
+	static void getSysTimeMs (char *pszOut, size_t nSize);
 
 	static void putsLog (
 		FILE *pFp,
