@@ -11,7 +11,7 @@
 
 #define SYSTIME_STRING_SIZE			(2+1+2+1+2+1+2+1+2 +1)
 #define SYSTIME_MS_STRING_SIZE		(2+1+2+1+2+1+2+1+2+1+3 +1)
-#define THREAD_NAME_STRING_SIZE		(15+1)
+#define THREAD_NAME_STRING_SIZE		(20+1)
 #define LOG_STRING_SIZE				(128)
 #define BACKTRACE_BUFF_SIZE			(20)
 
@@ -90,6 +90,59 @@ char **bionic_backtrace_symbols (void *const *array, int size)
 }
 
 #endif
+
+
+char * strtok_r_impl (char *str, const char *delim, char **saveptr)
+{
+	if ((!delim) || (strlen(delim) == 0)) {
+		return NULL;
+	}
+
+	if (!saveptr) {
+		return NULL;
+	}
+
+	if (str) {
+
+		char *f = strstr (str, delim);
+		if (!f) {
+			return NULL;
+		}
+
+		int i = 0;
+		for (i = 0; i < (int)strlen(delim); ++ i) {
+			*(f+i) = 0x00;
+		}
+
+		*saveptr = f + (int)strlen(delim);
+//		printf ("a %p\n", *saveptr);
+
+		return str;
+
+	} else {
+
+		char *r = *saveptr;
+		char *f = strstr (*saveptr, delim);
+		if (!f) {
+			if ((int)strlen(*saveptr) > 0) {
+				*saveptr += (int)strlen(*saveptr);
+				return r;
+			} else {
+				return NULL;
+			}
+		}
+
+		int i = 0;
+		for (i = 0; i < (int)strlen(delim); ++ i) {
+			*(f+i) = 0x00;
+		}
+
+		*saveptr = f + (int)strlen(delim);
+//		printf ("b %p\n", *saveptr);
+
+		return r;
+	}
+}
 
 
 /**
@@ -195,7 +248,11 @@ void CUtils::getTimeOfDay (struct timeval *p)
 // default stdout
 FILE *CUtils::mfpLog = stdout;
 
-void CUtils::initLog (void)
+/**
+ * ファイル出力用
+ * ログ初期化
+ */
+bool CUtils::initLog (void)
 {
 	char szTime [64];
 	char ne [128];
@@ -234,9 +291,16 @@ void CUtils::initLog (void)
 	
 	if ((mfpLog = fopen (LOG_PATH "/" LOG_NAME "." LOG_EXT, "a")) == NULL) {
 		perror ("fopen");
+		return false;
 	}
+
+	return true;
 }
 
+/**
+ * ファイル出力用
+ * ログ終了
+ */
 void CUtils::finalizLog (void)
 {
 	if (mfpLog) {
@@ -267,9 +331,7 @@ void CUtils::putsLog (
     char szThreadName [THREAD_NAME_STRING_SIZE];
 	char type;
 	char szPerror[32];
-#ifndef _ANDROID_BUILD
 	char *pszPerror = NULL;
-#endif
 
 	memset (szBufVa, 0x00, sizeof (szBufVa));
 	memset (szTime, 0x00, sizeof (szTime));
@@ -283,31 +345,32 @@ void CUtils::putsLog (
 
 	case EN_LOG_LEVEL_N:
 		type = 'N';
-		fprintf (stdout, _UTL_TEXT_CYAN);
+		fprintf (pFp, _UTL_TEXT_CYAN);
 		break;
 
 	case EN_LOG_LEVEL_W:
 		type = 'W';
-		fprintf (stdout, _UTL_TEXT_BOLD_TYPE);
-		fprintf (stdout, _UTL_TEXT_YELLOW);
+		fprintf (pFp, _UTL_TEXT_BOLD_TYPE);
+		fprintf (pFp, _UTL_TEXT_YELLOW);
 		break;
 
 	case EN_LOG_LEVEL_E:
 		type = 'E';
-		fprintf (stdout, _UTL_TEXT_UNDER_LINE);
-		fprintf (stdout, _UTL_TEXT_BOLD_TYPE);
-		fprintf (stdout, _UTL_TEXT_RED);
+		fprintf (pFp, _UTL_TEXT_UNDER_LINE);
+		fprintf (pFp, _UTL_TEXT_BOLD_TYPE);
+		fprintf (pFp, _UTL_TEXT_RED);
 		break;
 
 	case EN_LOG_LEVEL_PE:
 		type = 'E';
-		fprintf (stdout, _UTL_TEXT_REVERSE);
-		fprintf (stdout, _UTL_TEXT_BOLD_TYPE);
-		fprintf (stdout, _UTL_TEXT_MAGENTA);
+		fprintf (pFp, _UTL_TEXT_REVERSE);
+		fprintf (pFp, _UTL_TEXT_BOLD_TYPE);
+		fprintf (pFp, _UTL_TEXT_MAGENTA);
 #ifndef _ANDROID_BUILD
 		pszPerror = strerror_r(errno, szPerror, sizeof (szPerror));
 #else
 		strerror_r(errno, szPerror, sizeof (szPerror));
+		pszPerror = szPerror;
 #endif
 		break;
 
@@ -321,8 +384,8 @@ void CUtils::putsLog (
 	getSysTimeMs (szTime, SYSTIME_MS_STRING_SIZE);
 	getThreadName (szThreadName, THREAD_NAME_STRING_SIZE);
 
+#if 0
 	deleteLF (szBufVa);
-
 	switch (enLogLevel) {
 	case EN_LOG_LEVEL_PE:
 		fprintf (
@@ -332,11 +395,7 @@ void CUtils::putsLog (
 			type,
 			szTime,
 			szBufVa,
-#ifndef _ANDROID_BUILD
 			pszPerror,
-#else
-			szPerror,
-#endif
 			pszFile,
 			pszFunc,
 			nLine
@@ -361,10 +420,109 @@ void CUtils::putsLog (
 		);
 		break;
 	}
-
 	fflush (pFp);
 
-	fprintf (stdout, _UTL_TEXT_ATTR_RESET);
+#else
+	char *token = NULL;
+	char *saveptr = NULL;
+	char *s = szBufVa;
+	int n = 0;
+	while (1) {
+		token = strtok_r_impl (s, "\n", &saveptr);
+		if (token == NULL) {
+			if (n == 0 && (int)strlen(szBufVa) > 0) {
+				putsLogFprintf (
+					pFp,
+					enLogLevel,
+					szThreadName,
+					type,
+					szTime,
+					szBufVa,
+					pszPerror,
+					pszFile,
+					pszFunc,
+					nLine
+				);
+			}
+			break;
+		}
+
+		putsLogFprintf (
+			pFp,
+			enLogLevel,
+			szThreadName,
+			type,
+			szTime,
+			token,
+			pszPerror,
+			pszFile,
+			pszFunc,
+			nLine
+		);
+
+		s = NULL;
+	}
+#endif
+
+	fprintf (pFp, _UTL_TEXT_ATTR_RESET);
+	fflush (pFp);
+}
+
+/**
+ * putsLogFprintf
+ */
+void CUtils::putsLogFprintf (
+	FILE *pFp,
+	EN_LOG_LEVEL enLogLevel,
+	const char *pszThreadName,
+	char type,
+	const char *pszTime,
+	const char *pszBuf,
+	const char *pszPerror,
+	const char *pszFile,
+	const char *pszFunc,
+	int nLine
+)
+{
+	if (!pFp || !pszTime || !pszBuf || !pszFile || !pszFunc) {
+		return ;
+	}
+
+	switch (enLogLevel) {
+	case EN_LOG_LEVEL_PE:
+		fprintf (
+			pFp,
+			"[%s] %c %s  %s: %s   src=[%s %s()] line=[%d]\n",
+			pszThreadName,
+			type,
+			pszTime,
+			pszBuf,
+			pszPerror,
+			pszFile,
+			pszFunc,
+			nLine
+		);
+		break;
+
+	case EN_LOG_LEVEL_I:
+	case EN_LOG_LEVEL_N:
+	case EN_LOG_LEVEL_W:
+	case EN_LOG_LEVEL_E:
+	default:
+		fprintf (
+			pFp,
+			"[%s] %c %s  %s   src=[%s %s()] line=[%d]\n",
+			pszThreadName,
+			type,
+			pszTime,
+			pszBuf,
+			pszFile,
+			pszFunc,
+			nLine
+		);
+		break;
+	}
+
 	fflush (pFp);
 }
 
@@ -415,7 +573,8 @@ void CUtils::putsLog (
 
 /**
  * putsLW
- * ログ出力 src,lineなし 本体
+ * ログ出力 本体
+ * (src,lineなし)
  */
 void CUtils::putsLogLW (
 	FILE *pFp,
@@ -433,9 +592,7 @@ void CUtils::putsLogLW (
     char szThreadName [THREAD_NAME_STRING_SIZE];
 	char type;
 	char szPerror[32];
-#ifndef _ANDROID_BUILD
 	char *pszPerror = NULL;
-#endif
 
 	memset (szBufVa, 0x00, sizeof (szBufVa));
 	memset (szTime, 0x00, sizeof (szTime));
@@ -449,31 +606,32 @@ void CUtils::putsLogLW (
 
 	case EN_LOG_LEVEL_N:
 		type = 'N';
-		fprintf (stdout, _UTL_TEXT_CYAN);
+		fprintf (pFp, _UTL_TEXT_CYAN);
 		break;
 
 	case EN_LOG_LEVEL_W:
 		type = 'W';
-		fprintf (stdout, _UTL_TEXT_BOLD_TYPE);
-		fprintf (stdout, _UTL_TEXT_YELLOW);
+		fprintf (pFp, _UTL_TEXT_BOLD_TYPE);
+		fprintf (pFp, _UTL_TEXT_YELLOW);
 		break;
 
 	case EN_LOG_LEVEL_E:
 		type = 'E';
-		fprintf (stdout, _UTL_TEXT_UNDER_LINE);
-		fprintf (stdout, _UTL_TEXT_BOLD_TYPE);
-		fprintf (stdout, _UTL_TEXT_RED);
+		fprintf (pFp, _UTL_TEXT_UNDER_LINE);
+		fprintf (pFp, _UTL_TEXT_BOLD_TYPE);
+		fprintf (pFp, _UTL_TEXT_RED);
 		break;
 
 	case EN_LOG_LEVEL_PE:
 		type = 'E';
-		fprintf (stdout, _UTL_TEXT_REVERSE);
-		fprintf (stdout, _UTL_TEXT_BOLD_TYPE);
-		fprintf (stdout, _UTL_TEXT_MAGENTA);
+		fprintf (pFp, _UTL_TEXT_REVERSE);
+		fprintf (pFp, _UTL_TEXT_BOLD_TYPE);
+		fprintf (pFp, _UTL_TEXT_MAGENTA);
 #ifndef _ANDROID_BUILD
 		pszPerror = strerror_r(errno, szPerror, sizeof (szPerror));
 #else
 		strerror_r(errno, szPerror, sizeof (szPerror));
+		pszPerror = szPerror;
 #endif
 		break;
 
@@ -487,8 +645,8 @@ void CUtils::putsLogLW (
 	getSysTimeMs (szTime, SYSTIME_MS_STRING_SIZE);
 	getThreadName (szThreadName, THREAD_NAME_STRING_SIZE);
 
+#if 0
 	deleteLF (szBufVa);
-
 	switch (enLogLevel) {
 	case EN_LOG_LEVEL_PE:
 		fprintf (
@@ -498,11 +656,7 @@ void CUtils::putsLogLW (
 			type,
 			szTime,
 			szBufVa,
-#ifndef _ANDROID_BUILD
 			pszPerror
-#else
-			szPerror
-#endif
 		);
 		break;
 
@@ -521,16 +675,102 @@ void CUtils::putsLogLW (
 		);
 		break;
 	}
-
 	fflush (pFp);
+#else
+	char *token = NULL;
+	char *saveptr = NULL;
+	char *s = szBufVa;
+	int n = 0;
+	while (1) {
+		token = strtok_r_impl (s, "\n", &saveptr);
+		if (token == NULL) {
+			if (n == 0 && (int)strlen(szBufVa) > 0) {
+				putsLogFprintf (
+					pFp,
+					enLogLevel,
+					szThreadName,
+					type,
+					szTime,
+					szBufVa,
+					pszPerror
+				);
+			}
+			break;
+		}
 
-	fprintf (stdout, _UTL_TEXT_ATTR_RESET);
+		putsLogFprintf (
+			pFp,
+			enLogLevel,
+			szThreadName,
+			type,
+			szTime,
+			token,
+			pszPerror
+		);
+
+		s = NULL;
+		++ n;
+	}
+#endif
+
+	fprintf (pFp, _UTL_TEXT_ATTR_RESET);
+	fflush (pFp);
+}
+
+/**
+ * putsLogFprintf
+ * (src,lineなし)
+ */
+void CUtils::putsLogFprintf (
+	FILE *pFp,
+	EN_LOG_LEVEL enLogLevel,
+	const char *pszThreadName,
+	char type,
+	const char *pszTime,
+	const char *pszBuf,
+	const char *pszPerror
+)
+{
+	if (!pFp || !pszTime || !pszBuf) {
+		return ;
+	}
+
+	switch (enLogLevel) {
+	case EN_LOG_LEVEL_PE:
+		fprintf (
+			pFp,
+			"[%s] %c %s  %s: %s\n",
+			pszThreadName,
+			type,
+			pszTime,
+			pszBuf,
+			pszPerror
+		);
+		break;
+
+	case EN_LOG_LEVEL_I:
+	case EN_LOG_LEVEL_N:
+	case EN_LOG_LEVEL_W:
+	case EN_LOG_LEVEL_E:
+	default:
+		fprintf (
+			pFp,
+			"[%s] %c %s  %s\n",
+			pszThreadName,
+			type,
+			pszTime,
+			pszBuf
+		);
+		break;
+	}
+
 	fflush (pFp);
 }
 
 /**
  * putsLog
- * ログ出力 src,lineなし loglevel判定なし
+ * ログ出力 loglevel判定なし
+ * (src,lineなし)
  */
 void CUtils::putsLogLW (
 	FILE *pFp,
@@ -547,7 +787,8 @@ void CUtils::putsLogLW (
 
 /**
  * putsLog
- * ログ出力 src,lineなし loglevel判定あり
+ * ログ出力 loglevel判定あり
+ * (src,lineなし)
  */
 void CUtils::putsLogLW (
 	FILE *pFp,
@@ -629,6 +870,40 @@ void CUtils::putsBackTrace (void)
 	}
 	_UTL_LOG_W ("============================================================\n");
 	free (pRtn);
+}
+
+int CUtils::readFile (int fd, uint8_t *pBuff, size_t nSize)
+{
+	if ((!pBuff) || (nSize == 0)) {
+		return -1;
+	}
+
+	int nReadSize = 0;
+	int nDone = 0;
+
+	while (1) {
+		nReadSize = read (fd, pBuff, nSize);
+		if (nReadSize < 0) {
+			perror ("read()");
+			return -1;
+
+		} else if (nReadSize == 0) {
+			// file end
+			break;
+
+		} else {
+			// read done
+			pBuff += nReadSize;
+			nSize -= nReadSize;
+			nDone += nReadSize;
+
+			if (nSize == 0) {
+				break;
+			}
+		}
+	}
+
+	return nDone;
 }
 
 #define DUMP_PUTS_OFFSET	"  "
@@ -810,3 +1085,98 @@ void CUtils::dumper (const uint8_t *pSrc, int nSrcLen, bool isAddAscii)
 		_UTL_LOG_I ("%s", szWk);
 	}
 }
+
+#if 0
+#define DUMP_PUTS_OFFSET	"  "
+void CUtils::dumper (const uint8_t *pSrc, int nSrcLen, bool isAddAscii)
+{
+	if ((!pSrc) || (nSrcLen <= 0)) {
+		return;
+	}
+
+	int i = 0;
+	int j = 0;
+	int k = 0;
+
+	while (nSrcLen >= 16) {
+
+		fprintf (stdout, "%s0x%08x: ", DUMP_PUTS_OFFSET, i);
+
+		// 16進dump
+		fprintf (
+			stdout,
+			"%02x %02x %02x %02x %02x %02x %02x %02x  %02x %02x %02x %02x %02x %02x %02x %02x",
+			*(pSrc+ 0), *(pSrc+ 1), *(pSrc+ 2), *(pSrc+ 3), *(pSrc+ 4), *(pSrc+ 5), *(pSrc+ 6), *(pSrc+ 7),
+			*(pSrc+ 8), *(pSrc+ 9), *(pSrc+10), *(pSrc+11), *(pSrc+12), *(pSrc+13), *(pSrc+14), *(pSrc+15)
+		);
+
+		// ascii文字表示
+		if (isAddAscii) {
+			fprintf (stdout, "  |");
+			k = 0;
+			while (k < 16) {
+				// 制御コード系は'.'で代替
+				fprintf (
+					stdout,
+					"%c",
+					(*(pSrc+k)>0x1f) && (*(pSrc+k)<0x7f) ? *(pSrc+k) : '.'
+				);
+				++ k;
+			}
+		}
+
+		fprintf (stdout, "|\n");
+
+		pSrc += 16;
+		i += 16;
+		nSrcLen -= 16;
+	}
+
+	// 余り分(16byte満たない分)
+	if (nSrcLen) {
+
+		// 16進dump
+		fprintf (stdout, "%s0x%08x: ", DUMP_PUTS_OFFSET, i);
+		while (j < 16) {
+			if (j < nSrcLen) {
+				fprintf (stdout, "%02x", *(pSrc+j));
+				if (j == 7) {
+					fprintf (stdout, "  ");
+				} else if (j == 15) {
+
+				} else {
+					fprintf (stdout, " ");
+				}
+
+			} else {
+				fprintf (stdout, "  ");
+				if (j == 7) {
+					fprintf (stdout, "  ");
+				} else if (j == 15) {
+
+				} else {
+					fprintf (stdout, " ");
+				}
+			}
+
+			++ j;
+		}
+
+		// ascii文字表示
+		if (isAddAscii) {
+			fprintf (stdout, "  |");
+			k = 0;
+			while (k < nSrcLen) {
+				// 制御コード系は'.'で代替
+				fprintf (stdout, "%c", (*(pSrc+k)>0x20) && (*(pSrc+k)<0x7f) ? *(pSrc+k) : '.');
+				++ k;
+			}
+			for (int i = 0; i < (16 - nSrcLen); ++ i) {
+				fprintf (stdout, " ");
+			}
+		}
+
+		fprintf (stdout, "|\n");
+	}
+}
+#endif
