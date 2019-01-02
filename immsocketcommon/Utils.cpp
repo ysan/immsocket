@@ -461,6 +461,7 @@ void CUtils::putsLog (
 		);
 
 		s = NULL;
+		++ n;
 	}
 #endif
 
